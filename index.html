@@ -143,6 +143,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys .legend-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:color-mix(in srgb,var(--blue) 5%,var(--background));border-radius:10px;padding:8px 10px;}
   #uavwind-sys .legend-row .cap{background:color-mix(in srgb,var(--blue) 8%,var(--background));border-radius:999px;padding:3px 9px;border:1px solid color-mix(in srgb,var(--blue) 18%,var(--border));}
   #uavwind-sys .valid-row{display:flex;gap:6px;padding:3px 0;font-size:var(--font-size-small);}
+  #uavwind-sys .smooth-line{stroke:var(--primary);stroke-width:2.5;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  #uavwind-sys .smooth-cpt{fill:var(--muted-foreground);opacity:.75;}
+  #uavwind-sys .smooth-warn{fill:none;stroke:var(--red);stroke-width:2;}
+  #uavwind-sys .multi-path{fill:none;stroke-width:2;stroke-linejoin:round;}
   #uavwind-sys #map{height:260px;width:100%;z-index:1;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
   #uavwind-sys .form-label{font-weight:500;}
   #uavwind-sys .form-select,#uavwind-sys .form-control{border-radius:9px;}
@@ -531,6 +535,77 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
           </select>
         </div>
       </div>
+      <h3>轨迹平滑</h3>
+      <div class="row3">
+        <div class="ctl">
+          <label class="form-label" for="smooth-method">平滑方法（作用于风感知 A* 路径）</label>
+          <select id="smooth-method" class="form-select">
+            <option value="none" selected>无</option>
+            <option value="bspline">B 样条</option>
+            <option value="minsnap">Minimum Snap</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="turn-radius">最小转弯半径</label>
+          <div class="pair"><input type="number" id="turn-radius" class="form-control" min="1" max="200" step="1" value="10"><span class="unit">m</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="max-acc">最大加速度</label>
+          <div class="pair"><input type="number" id="max-acc" class="form-control" min="0.5" max="10" step="0.5" value="2"><span class="unit">m/s²</span></div>
+        </div>
+      </div>
+      <div class="inline">
+        <input type="checkbox" id="show-cpts" class="form-check-input" checked>
+        <label class="form-check-label" for="show-cpts">显示控制点</label>
+        <span class="cap" id="smooth-info"></span>
+      </div>
+      <h3>多机协同（冲突检测 + 时间错开）</h3>
+      <div class="row2">
+        <div class="ctl">
+          <label class="form-label" for="multi-count">无人机数量</label>
+          <select id="multi-count" class="form-select">
+            <option value="2" selected>2 架</option>
+            <option value="3">3 架</option>
+            <option value="4">4 架</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="multi-safe">安全间距</label>
+          <div class="pair"><input type="number" id="multi-safe" class="form-control" min="5" max="200" step="5" value="30"><span class="unit">m</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="multi-mode">时间错开模式</label>
+          <select id="multi-mode" class="form-select">
+            <option value="auto" selected>自动（最小间隔无冲突）</option>
+            <option value="fixed">固定间隔</option>
+            <option value="serial">串行</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="multi-dt">固定间隔</label>
+          <div class="pair"><input type="number" id="multi-dt" class="form-control" min="1" max="600" step="5" value="20"><span class="unit">s</span></div>
+        </div>
+      </div>
+      <div class="btns">
+        <button type="button" id="multi-samples" class="btn">自动布点</button>
+        <button type="button" id="multi-plan" class="btn btn-primary">开始协同规划</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead><tr><th>无人机</th><th>起点 X</th><th>起点 Y</th><th>终点 X</th><th>终点 Y</th></tr></thead>
+          <tbody id="multi-body"></tbody>
+        </table>
+      </div>
+      <div class="cap" id="multi-info"></div>
+      <div id="multi-play-wrap" style="display:none">
+        <div class="pair">
+          <button type="button" id="multi-play" class="btn">▶ 播放</button>
+          <input type="range" id="multi-time" min="0" max="100" step="1" value="0">
+          <span class="cap" id="multi-clock">t = 0 s</span>
+        </div>
+        <div class="cap" id="multi-conflict-info"></div>
+        <div class="cap" id="multi-conflict-list"></div>
+      </div>
       <div class="btns">
         <button type="button" id="pick-start" class="btn">拾取起点</button>
         <button type="button" id="pick-goal" class="btn">拾取终点</button>
@@ -590,9 +665,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     {id:'vtol',name:'复合翼',maxWind:12,load:4,cruise:20,hoverW:600,cruiseWh100:0.50,climbWh10:0.30,endurance:50,launchCost:2.5,canHover:true,altRange:{min:5,max:300}}
   ];
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
-  var state={buildings:[],noFly:[],mode:'2d',azimuth:45,pick:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var state={buildings:[],noFly:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,pick:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-samples','multi-plan','multi-body','multi-info','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -670,6 +745,14 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     state.sliceAlt=Math.max(0,Math.min(state.region.z,parseInt(els['slice-alt'].value,10)||0));
     state.showRisk=els['show-risk'].checked;
     state.showFly=els['show-fly'].checked;
+    state.smoothMethod=els['smooth-method'].value;
+    state.turnR=num('turn-radius');
+    state.maxAcc=num('max-acc');
+    state.showCpts=els['show-cpts'].checked;
+    state.multiCount=parseInt(els['multi-count'].value,10)||2;
+    state.multiSafe=num('multi-safe');
+    state.multiMode=els['multi-mode'].value;
+    state.multiDt=num('multi-dt');
     state.bgOpacity=parseInt(els['bg-opacity'].value,10)||100;
     state.wakeLen=Math.max(1,num('wake-len'));
     state.obj=els['obj-select'].value;
@@ -1308,6 +1391,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       else { add('ok',x.name+' 最小净空 '+x.m.clearance.toFixed(1)+' m ≥ 安全膨胀 '+state.margin.toFixed(0)+' m'); }
     });
     if(!anyOk){ add('err','没有成功生成的路径，无法完成时间/净空检验'); }
+    if(state.smoothResult){
+      var sr=state.smoothResult;
+      if(sr.minRadius<sr.turnR){ add('warn','平滑轨迹最小转弯半径 '+(sr.minRadius===Infinity?'∞':sr.minRadius.toFixed(1))+' m 小于要求 '+sr.turnR+' m'); }
+      else { add('ok','平滑轨迹转弯半径满足要求（≥'+sr.turnR+' m）'); }
+      if(sr.maxAccel>sr.maxAcc){ add('warn','平滑轨迹最大加速度 '+sr.maxAccel.toFixed(2)+' m/s² 超过上限 '+sr.maxAcc+' m/s²'); }
+      else { add('ok','平滑轨迹最大加速度 '+sr.maxAccel.toFixed(2)+' m/s² ≤ '+sr.maxAcc+' m/s²'); }
+    }
     els['valid-wrap'].style.display='';
     els['valid-summary'].textContent='检验结论：通过 '+okc+' 项 · 警告 '+warn+' 项 · 错误 '+err+' 项（对照机型：'+uav.name+'）';
     var tb=els['valid-body'];
@@ -1600,6 +1690,377 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       renderAll();
     });
   }
+  function dist3(a,b){ return Math.sqrt(Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2)+Math.pow(a.z-b.z,2)); }
+  function lerpPts(a,b,t){ return {x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t, z:a.z+(b.z-a.z)*t}; }
+  function bsplineDeBoor(pts, degree, u){
+    var n=pts.length;
+    function K(i){ if(i<=degree) return 0; if(i>=n) return n-degree; return i-degree; }
+    var k=degree;
+    for(var i=degree+1;i<n;i++){ if(u<K(i)) break; k=i; }
+    var d=[];
+    for(var i2=0;i2<=degree;i2++){ d.push({x:pts[k-degree+i2].x,y:pts[k-degree+i2].y,z:pts[k-degree+i2].z}); }
+    for(var r=1;r<=degree;r++){
+      for(var j=degree;j>=r;j--){
+        var idx=k-degree+j;
+        var den=K(idx+degree-r+1)-K(idx);
+        var alpha=den>1e-12?(u-K(idx))/den:0;
+        d[j]={x:d[j-1].x*(1-alpha)+d[j].x*alpha, y:d[j-1].y*(1-alpha)+d[j].y*alpha, z:d[j-1].z*(1-alpha)+d[j].z*alpha};
+      }
+    }
+    return d[degree];
+  }
+  function smoothBSpline(waypoints, samples){
+    var n=waypoints.length, deg=3;
+    if(n<2) return waypoints.slice();
+    var out=[], i;
+    if(n<=deg+1){ for(i=0;i<samples;i++) out.push(lerpPts(waypoints[0],waypoints[n-1], i/(samples-1))); return out; }
+    var uMax=n-deg;
+    for(i=0;i<samples;i++){ out.push(bsplineDeBoor(waypoints,deg,uMax*i/(samples-1))); }
+    out[0]=waypoints[0]; out[out.length-1]=waypoints[n-1];
+    return out;
+  }
+  function timeProfile(points, totalT){
+    var lens=[0], i, L=0;
+    for(i=1;i<points.length;i++){ L+=dist3(points[i-1],points[i]); lens.push(L); }
+    var ts=[];
+    for(i=0;i<points.length;i++){ ts.push(totalT*(L>1e-9?lens[i]/L:(i/(points.length-1||1)))); }
+    return ts;
+  }
+  function profileStats(points, ts){
+    var maxV=0, maxA=0, i;
+    for(i=1;i<points.length-1;i++){
+      var v=dist3(points[i-1],points[i+1])/((ts[i+1]-ts[i-1])||1e-9);
+      if(v>maxV) maxV=v;
+    }
+    for(i=2;i<points.length-2;i++){
+      var v1=dist3(points[i-1],points[i+1])/((ts[i+1]-ts[i-1])||1e-9);
+      var v2=dist3(points[i],points[i+2])/((ts[i+2]-ts[i])||1e-9);
+      var a=Math.abs(v2-v1)/((ts[i+1]-ts[i-1])||1e-9);
+      if(a>maxA) maxA=a;
+    }
+    return {maxSpeed:maxV, maxAccel:maxA};
+  }
+  function curvatureInfo(points){
+    var maxK=0, worst=1, i;
+    for(i=1;i<points.length-1;i++){
+      var p0=points[i-1], p1=points[i], p2=points[i+1];
+      var dx1=p1.x-p0.x, dy1=p1.y-p0.y, ds1=Math.sqrt(dx1*dx1+dy1*dy1)||1e-9;
+      var dx2=p2.x-p1.x, dy2=p2.y-p1.y, ds2=Math.sqrt(dx2*dx2+dy2*dy2)||1e-9;
+      var tx1=dx1/ds1, ty1=dy1/ds1, tx2=dx2/ds2, ty2=dy2/ds2;
+      var ds=(ds1+ds2)/2;
+      var k=Math.sqrt(Math.pow((tx2-tx1)/ds,2)+Math.pow((ty2-ty1)/ds,2));
+      if(k>maxK){ maxK=k; worst=i; }
+    }
+    return {maxK:maxK, minRadius:maxK>1e-9?1/maxK:Infinity, worst:worst};
+  }
+  function gaussianSolve(A,b){
+    var n=b.length, i,j,k;
+    var M=[];
+    for(i=0;i<n;i++){ M.push(A[i].slice()); M[i].push(b[i]); }
+    for(k=0;k<n;k++){
+      var piv=k;
+      for(i=k+1;i<n;i++) if(Math.abs(M[i][k])>Math.abs(M[piv][k])) piv=i;
+      if(piv!==k){ var tmp=M[k]; M[k]=M[piv]; M[piv]=tmp; }
+      var d=M[k][k];
+      if(Math.abs(d)<1e-12) continue;
+      for(j=k;j<=n;j++) M[k][j]/=d;
+      for(i=0;i<n;i++){ if(i===k) continue; var f=M[i][k]; if(Math.abs(f)<1e-15) continue; for(j=k;j<=n;j++) M[i][j]-=f*M[k][j]; }
+    }
+    var x=new Array(n);
+    for(i=0;i<n;i++) x[i]=M[i][n];
+    return x;
+  }
+  function minSnapAxis(waypoints, times, axis){
+    var S=waypoints.length-1, i, j;
+    var nvar=8*S;
+    function segBase(s){ return s*8; }
+    function derivCoeff(k, order){ if(k<order) return 0; var c=1; for(var o=0;o<order;o++) c*=(k-o); return c; }
+    function evalPoly(a,s,t){ var base=segBase(s), v=0; for(var k=0;k<8;k++) v+=a[base+k]*Math.pow(t,k); return v; }
+    function evalDeriv(a,s,t,order){ var base=segBase(s), v=0; for(var k=order;k<8;k++) v+=a[base+k]*derivCoeff(k,order)*Math.pow(t,k-order); return v; }
+    var Q=[];
+    for(i=0;i<nvar;i++){ var row=new Array(nvar); for(j=0;j<nvar;j++) row[j]=0; Q.push(row); }
+    for(var s=0;s<S;s++){
+      var T=times[s];
+      for(var k=0;k<8;k++) for(var l=0;l<8;l++){
+        var ck=derivCoeff(k,4), cl=derivCoeff(l,4);
+        if(!ck||!cl) continue;
+        var a=k+l-8+1;
+        var integ=a>=0?Math.pow(T,a+1)/(a+1):0;
+        Q[segBase(s)+k][segBase(s)+l]=ck*cl*integ;
+      }
+    }
+    var rows=[];
+    function addRow(vec,rhs){ rows.push({vec:vec.slice(),rhs:rhs}); }
+    for(s=0;s<S;s++){
+      var v0=new Array(nvar); for(i=0;i<nvar;i++) v0[i]=0; v0[segBase(s)]=1; addRow(v0, waypoints[s][axis]);
+      var v1=new Array(nvar); for(i=0;i<nvar;i++) v1[i]=0; for(k=0;k<8;k++) v1[segBase(s)+k]=Math.pow(times[s],k); addRow(v1, waypoints[s+1][axis]);
+    }
+    for(s=1;s<S;s++){
+      var Tp=times[s-1];
+      for(var dd=0;dd<4;dd++){
+        var v=new Array(nvar); for(i=0;i<nvar;i++) v[i]=0;
+        for(k=dd;k<8;k++){ v[segBase(s-1)+k]=derivCoeff(k,dd)*Math.pow(Tp,k-dd); v[segBase(s)+k]=-derivCoeff(k,dd)*Math.pow(0,k-dd); }
+        addRow(v,0);
+      }
+    }
+    var vs=new Array(nvar); for(i=0;i<nvar;i++) vs[i]=0; vs[segBase(0)+1]=1; addRow(vs,0);
+    var as=new Array(nvar); for(i=0;i<nvar;i++) as[i]=0; as[segBase(0)+2]=2; addRow(as,0);
+    var Tf=times[S-1];
+    var ve=new Array(nvar); for(i=0;i<nvar;i++) ve[i]=0;
+    for(k=1;k<8;k++) ve[segBase(S-1)+k]=derivCoeff(k,1)*Math.pow(Tf,k-1); addRow(ve,0);
+    var ae=new Array(nvar); for(i=0;i<nvar;i++) ae[i]=0;
+    for(k=2;k<8;k++) ae[segBase(S-1)+k]=derivCoeff(k,2)*Math.pow(Tf,k-2); addRow(ae,0);
+    var nc=rows.length;
+    var M=[], b=[];
+    for(i=0;i<nvar;i++){
+      var row=new Array(nvar+nc); for(j=0;j<nvar+nc;j++) row[j]=0;
+      for(j=0;j<nvar;j++) row[j]=2*Q[i][j];
+      for(j=0;j<nc;j++) row[nvar+j]=rows[j].vec[i];
+      M.push(row); b.push(0);
+    }
+    for(j=0;j<nc;j++){
+      var row=new Array(nvar+nc); for(i=0;i<nvar+nc;i++) row[i]=0;
+      for(i=0;i<nvar;i++) row[i]=rows[j].vec[i];
+      M.push(row); b.push(rows[j].rhs);
+    }
+    var sol=gaussianSolve(M,b);
+    return {coeff:sol.slice(0,nvar), eval:function(s,t){ return evalPoly(sol.slice(0,nvar),s,t); }};
+  }
+  function smoothMinSnap(waypoints, totalT){
+    var S=waypoints.length-1, i;
+    if(S<1) return {points:waypoints.slice(), times:waypoints.map(function(_,i2){ return i2; })};
+    var lens=[0], L=0;
+    for(i=1;i<waypoints.length;i++){ var d=dist3(waypoints[i-1],waypoints[i]); L+=d; lens.push(d); }
+    var times=[];
+    for(i=0;i<S;i++){ times.push(Math.max(0.5, totalT*(L>1e-9?lens[i+1]/L:1/S))); }
+    var axes=['x','y','z'].map(function(ax){ return minSnapAxis(waypoints,times,ax); });
+    var samples=Math.max(30,S*10), Ttot=0;
+    for(i=0;i<times.length;i++) Ttot+=times[i];
+    var points=[], ts=[];
+    for(i=0;i<=samples;i++){
+      var u=Ttot*i/samples;
+      var seg=0, acc=0;
+      for(var s=0;s<S;s++){ if(u<acc+times[s]+1e-9||s===S-1){ seg=s; break; } acc+=times[s]; }
+      var lt=Math.min(times[seg],Math.max(0,u-acc));
+      points.push({x:axes[0].eval(seg,lt), y:axes[1].eval(seg,lt), z:axes[2].eval(seg,lt)});
+      ts.push(u);
+    }
+    points[0]=waypoints[0]; points[points.length-1]=waypoints[S];
+    return {points:points, times:ts};
+  }
+  function smoothMainPath(grid, awRun){
+    state.smoothResult=null;
+    if(!awRun||!awRun.res||!state.smoothMethod||state.smoothMethod==='none'){ els['smooth-info'].textContent=''; return; }
+    var waypoints=awRun.res.cells.map(function(idx){
+      var dd=decode(grid,idx);
+      return {x:(dd.ix+0.5)*state.res, y:(dd.iy+0.5)*state.res, z:(dd.iz+0.5)*state.res};
+    });
+    waypoints[0]={x:state.start.x,y:state.start.y,z:state.flightAlt};
+    waypoints[waypoints.length-1]={x:state.goal.x,y:state.goal.y,z:state.flightAlt};
+    var totalT=awRun.m?Math.max(10,awRun.m.time):60;
+    var res;
+    if(state.smoothMethod==='minsnap'){
+      var wps=waypoints;
+      if(wps.length>16){
+        var idxs=[], wi;
+        for(wi=0;wi<16;wi++){ idxs.push(Math.round(wi*(wps.length-1)/15)); }
+        var uniq=[];
+        for(wi=0;wi<idxs.length;wi++){ if(wi===0||idxs[wi]!==idxs[wi-1]) uniq.push(idxs[wi]); }
+        wps=uniq.map(function(v){ return wps[v]; });
+      }
+      res=smoothMinSnap(wps,totalT);
+    }
+    else {
+      var pts=smoothBSpline(waypoints, Math.max(40, waypoints.length*8));
+      res={points:pts, times:timeProfile(pts,totalT)};
+    }
+    var curv=curvatureInfo(res.points);
+    var stats=profileStats(res.points,res.times);
+    state.smoothResult={method:state.smoothMethod, points:res.points, times:res.times, control:waypoints, minRadius:curv.minRadius, worst:curv.worst, maxSpeed:stats.maxSpeed, maxAccel:stats.maxAccel, turnR:state.turnR, maxAcc:state.maxAcc};
+    var rTxt=curv.minRadius===Infinity?'∞':curv.minRadius.toFixed(1);
+    els['smooth-info'].textContent='平滑（'+state.smoothMethod+'）：采样 '+res.points.length+' 点 · 最小转弯半径 '+rTxt+' m（要求 ≥'+state.turnR+' m）'+(curv.minRadius<state.turnR?' ⚠ 转弯过急':' ✓')+' · 最大速度 '+stats.maxSpeed.toFixed(1)+' m/s · 最大加速度 '+stats.maxAccel.toFixed(2)+' m/s²（要求 ≤'+state.maxAcc+'）'+(stats.maxAccel>state.maxAcc?' ⚠ 超限':' ✓');
+  }
+  var MULTI_COLORS=['var(--viz-series-1)','var(--viz-series-2)','var(--viz-series-4)','var(--viz-series-6)'];
+  function multiSamples(){
+    var N=state.multiCount;
+    var pats=[[[100,150],[900,850]],[[900,150],[100,850]],[[500,100],[500,900]],[[100,500],[900,500]]];
+    var tb=els['multi-body'];
+    tb.innerHTML='';
+    for(var i=0;i<N;i++){
+      var tr=document.createElement('tr');
+      var td0=document.createElement('td'); td0.textContent='UAV'+(i+1); tr.appendChild(td0);
+      for(var f=0;f<4;f++){
+        var td=document.createElement('td');
+        var inp=document.createElement('input');
+        inp.type='number'; inp.className='form-control'; inp.min=0; inp.max=3000; inp.step=10;
+        inp.value=String(pats[i][Math.floor(f/2)][f%2]);
+        td.appendChild(inp); tr.appendChild(td);
+      }
+      tb.appendChild(tr);
+    }
+  }
+  function multiRowsFromTable(){
+    var rows=els['multi-body'].children, out=[];
+    for(var i=0;i<rows.length;i++){
+      var tds=rows[i].children;
+      if(tds.length<5) continue;
+      var g1=tds[1].firstChild, g2=tds[2].firstChild, g3=tds[3].firstChild, g4=tds[4].firstChild;
+      out.push({x1:parseFloat(g1&&g1.value)||0, y1:parseFloat(g2&&g2.value)||0, x2:parseFloat(g3&&g3.value)||0, y2:parseFloat(g4&&g4.value)||0});
+    }
+    return out;
+  }
+  function uavTrajectory(grid, cells, uav){
+    var pts=cells.map(function(idx){ var d=decode(grid,idx); return {x:(d.ix+0.5)*state.res,y:(d.iy+0.5)*state.res,z:(d.iz+0.5)*state.res}; });
+    var times=[0], t=0;
+    for(var i=1;i<pts.length;i++){
+      var p=pts[i-1], q=pts[i];
+      var dx=q.x-p.x, dy=q.y-p.y, dz=q.z-p.z;
+      var horiz=Math.sqrt(dx*dx+dy*dy), vert=Math.abs(dz);
+      if(vert>1e-9) t+=vertTime(vert,dz>0);
+      if(horiz>1e-9){
+        var vg=uav.cruise;
+        var dirX=dx/horiz, dirY=dy/horiz;
+        var ws=windSpeedAt(q.z);
+        var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
+        vg=Math.max(0.5,uav.cruise+wAlong);
+        t+=horiz/vg;
+      }
+      times.push(t);
+    }
+    return {pts:pts, times:times, duration:t};
+  }
+  function trajPos(tr, tt){
+    if(tt<=0) return tr.pts[0];
+    if(tt>=tr.duration) return tr.pts[tr.pts.length-1];
+    for(var i=1;i<tr.times.length;i++){
+      if(tt<=tr.times[i]){
+        var den=tr.times[i]-tr.times[i-1];
+        var f=den>1e-9?(tt-tr.times[i-1])/den:0;
+        var a=tr.pts[i-1], b=tr.pts[i];
+        return {x:a.x+(b.x-a.x)*f, y:a.y+(b.y-a.y)*f, z:a.z+(b.z-a.z)*f};
+      }
+    }
+    return tr.pts[tr.pts.length-1];
+  }
+  function multiConflicts(uavs, offsets){
+    var dt=1, conflicts=[], i, j;
+    var end=0;
+    for(i=0;i<uavs.length;i++){ if(uavs[i]) end=Math.max(end, offsets[i]+uavs[i].duration); }
+    for(var t=0;t<=end;t+=dt){
+      for(i=0;i<uavs.length;i++) for(j=i+1;j<uavs.length;j++){
+        if(!uavs[i]||!uavs[j]) continue;
+        var ti=t-offsets[i], tj=t-offsets[j];
+        if(ti<0||tj<0||ti>uavs[i].duration||tj>uavs[j].duration) continue;
+        var pi=trajPos(uavs[i],ti), pj=trajPos(uavs[j],tj);
+        var d=Math.sqrt(Math.pow(pi.x-pj.x,2)+Math.pow(pi.y-pj.y,2)+Math.pow(pi.z-pj.z,2));
+        if(d<state.multiSafe){
+          conflicts.push({t:t,i:i,j:j,x:(pi.x+pj.x)/2,y:(pi.y+pj.y)/2,d:d});
+          if(conflicts.length>200) return conflicts;
+          break;
+        }
+      }
+    }
+    return conflicts;
+  }
+  function autoOffsets(uavs){
+    var order=[], i;
+    for(i=0;i<uavs.length;i++) order.push(i);
+    order.sort(function(a,b){ return (uavs[b]?uavs[b].duration:0)-(uavs[a]?uavs[a].duration:0); });
+    var offsets=new Array(uavs.length);
+    for(i=0;i<uavs.length;i++) offsets[i]=0;
+    var scheduled=[];
+    order.forEach(function(idx){
+      if(!uavs[idx]) return;
+      var hi=Math.max(600,2*(uavs[idx].duration+(scheduled.length?scheduled[scheduled.length-1].end:0)));
+      var lo=0, best=-1;
+      while(lo<=hi){
+        var mid=Math.floor((lo+hi)/2);
+        var ok=true;
+        for(var s=0;s<scheduled.length;s++){
+          var sidx=scheduled[s].idx;
+          var cf=multiConflicts([uavs[sidx],uavs[idx]],[offsets[sidx],mid]);
+          if(cf.length>0){ ok=false; break; }
+        }
+        if(ok){ best=mid; hi=mid-1; } else { lo=mid+1; }
+      }
+      if(best<0) best=hi;
+      offsets[idx]=best;
+      scheduled.push({idx:idx, end:best+uavs[idx].duration});
+    });
+    return offsets;
+  }
+  function renderMultiInfo(){
+    var m=state.multi;
+    if(!m) return;
+    els['multi-conflict-info'].textContent='错开前冲突 '+m.conflictsBefore.length+' 次 → 错开后 '+m.conflictsAfter.length+' 次；总完成时间 '+m.makespan.toFixed(0)+' s；安全间距 '+m.safe+' m';
+    var txt=m.conflictsAfter.length?('冲突详情：'+m.conflictsAfter.slice(0,5).map(function(cf){ return 't='+cf.t.toFixed(0)+'s UAV'+(cf.i+1)+'×UAV'+(cf.j+1)+' 相距 '+cf.d.toFixed(0)+'m'; }).join('；')):'错开后无冲突 ✓';
+    els['multi-conflict-list'].textContent=txt;
+    els['multi-clock'].textContent='t = '+state.multiPlay.toFixed(0)+' s';
+  }
+  function planMulti(){
+    readInputs();
+    var uav=resolveUav();
+    if(!uav){ els['multi-info'].textContent='无可用机型，无法进行多机协同规划。'; return; }
+    if(!uavFeasible(uav)){ els['multi-info'].textContent='所选机型不满足安全条件，无法进行多机协同规划。'; return; }
+    var grid=buildGrid();
+    var rows=multiRowsFromTable();
+    var N=Math.min(state.multiCount, rows.length);
+    var uavs=[], failed=0, i;
+    for(i=0;i<N;i++){
+      var r=rows[i];
+      var wz=clamp(state.flightAlt,0,state.region.z);
+      var s=snapCell(grid,r.x1,r.y1,wz);
+      var g=snapCell(grid,r.x2,r.y2,wz);
+      if(!s||!g){ uavs.push(null); failed++; continue; }
+      var res=plan(grid,s,g,true,uav);
+      if(!res){ uavs.push(null); failed++; continue; }
+      var tr=uavTrajectory(grid,res.cells,uav);
+      tr.start={x:r.x1,y:r.y1}; tr.goal={x:r.x2,y:r.y2};
+      uavs.push(tr);
+    }
+    if(!uavs.filter(function(x){return x;}).length){ els['multi-info'].textContent='协同规划失败：所有无人机均无法规划，请检查起终点与风况。'; return; }
+    var offsets;
+    if(state.multiMode==='serial'){
+      offsets=[]; var acc=0;
+      for(i=0;i<uavs.length;i++){ if(!uavs[i]){ offsets.push(0); continue; } offsets.push(acc); acc+=uavs[i].duration; }
+    } else if(state.multiMode==='fixed'){
+      offsets=[]; for(i=0;i<uavs.length;i++) offsets.push(i*state.multiDt);
+    } else {
+      offsets=autoOffsets(uavs);
+    }
+    var zOff=new Array(uavs.length);
+    for(i=0;i<uavs.length;i++) zOff[i]=0;
+    var conflictsBefore=multiConflicts(uavs,zOff);
+    var conflictsAfter=multiConflicts(uavs,offsets);
+    var makespan=0;
+    uavs.forEach(function(tr,idx){ if(tr) makespan=Math.max(makespan,offsets[idx]+tr.duration); });
+    state.multi={uavs:uavs,offsets:offsets,conflictsBefore:conflictsBefore,conflictsAfter:conflictsAfter,makespan:makespan,failed:failed,safe:state.multiSafe,grid:grid,uav:uav};
+    state.multiPlay=0;
+    els['multi-info'].textContent='多机协同（'+(uavs.filter(function(x){return x;}).length)+' 架）：总完成时间 '+makespan.toFixed(0)+' s · 错开前冲突 '+conflictsBefore.length+' 次 → 错开后 '+conflictsAfter.length+' 次'+(failed?(' · '+failed+' 架规划失败'):'');
+    els['multi-play-wrap'].style.display='';
+    els['multi-time'].max=Math.max(1,Math.round(makespan));
+    els['multi-time'].value=0;
+    renderMultiInfo();
+    renderAll();
+  }
+  function startMultiPlay(){
+    state.multiPlaying=true;
+    els['multi-play'].textContent='⏸ 暂停';
+    if(state.multiTimer) clearInterval(state.multiTimer);
+    state.multiTimer=setInterval(function(){
+      state.multiPlay+=0.5;
+      if(state.multiPlay>=state.multi.makespan){ state.multiPlay=state.multi.makespan; stopMultiPlay(); }
+      els['multi-time'].value=Math.round(state.multiPlay);
+      renderMultiInfo();
+      renderAll();
+    },100);
+  }
+  function stopMultiPlay(){
+    state.multiPlaying=false;
+    els['multi-play'].textContent='▶ 播放';
+    if(state.multiTimer){ clearInterval(state.multiTimer); state.multiTimer=null; }
+  }
+  function multiPlayToggle(){ if(state.multiPlaying){ stopMultiPlay(); } else { startMultiPlay(); } }
   function render2D(grid){
     var rx=state.region.x, ry=state.region.y;
     var sx=(W2-PAD2-XM2)/rx, sy=(H2-TOP2-YM2)/ry;
@@ -1771,6 +2232,46 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         out+='</g>';
       });
     }
+    if(state.smoothResult){
+      var spts=state.smoothResult.points;
+      var sline=spts.map(function(pt){ return mx(pt.x)+','+my(pt.y); });
+      out+='<polyline class="path-halo" points="'+sline.join(' ')+'"/>';
+      out+='<polyline class="smooth-line" points="'+sline.join(' ')+'"/>';
+      if(state.showCpts){
+        state.smoothResult.control.forEach(function(pt){
+          out+='<circle cx="'+mx(pt.x).toFixed(1)+'" cy="'+my(pt.y).toFixed(1)+'" r="3.5" class="smooth-cpt"/>';
+        });
+      }
+      if(state.smoothResult.minRadius<state.smoothResult.turnR){
+        var wp=state.smoothResult.points[state.smoothResult.worst];
+        out+='<circle cx="'+mx(wp.x).toFixed(1)+'" cy="'+my(wp.y).toFixed(1)+'" r="8" class="smooth-warn" data-tooltip="转弯半径不足"/>';
+      }
+    }
+    if(state.multi){
+      var mm=state.multi;
+      mm.uavs.forEach(function(tr,idx){
+        if(!tr) return;
+        var col=MULTI_COLORS[idx%4];
+        var mpts=tr.pts.map(function(p){ return mx(p.x)+','+my(p.y); });
+        out+='<polyline class="path-halo" points="'+mpts.join(' ')+'"/>';
+        out+='<polyline class="multi-path" points="'+mpts.join(' ')+'" style="stroke:'+col+'"/>';
+        out+='<circle cx="'+mx(tr.start.x).toFixed(1)+'" cy="'+my(tr.start.y).toFixed(1)+'" r="5" style="fill:'+col+';stroke:var(--foreground);stroke-width:1"/>';
+        out+='<circle cx="'+mx(tr.goal.x).toFixed(1)+'" cy="'+my(tr.goal.y).toFixed(1)+'" r="5" style="fill:none;stroke:'+col+';stroke-width:2"/>';
+        var tt=state.multiPlay-mm.offsets[idx];
+        if(tt>=0&&tt<=tr.duration){
+          var pp=trajPos(tr,tt);
+          var inC=mm.conflictsAfter.some(function(cf){ return Math.abs(cf.t-state.multiPlay)<1.5&&(cf.i===idx||cf.j===idx); });
+          out+='<circle cx="'+mx(pp.x).toFixed(1)+'" cy="'+my(pp.y).toFixed(1)+'" r="8" style="fill:'+col+';stroke:'+(inC?'var(--red)':'var(--foreground)')+';stroke-width:2"/>';
+          out+='<text class="preview-label" x="'+mx(pp.x).toFixed(1)+'" y="'+(my(pp.y)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">UAV'+(idx+1)+'</text>';
+        }
+      });
+      mm.conflictsAfter.forEach(function(cf){
+        out+='<g transform="translate('+mx(cf.x).toFixed(1)+','+my(cf.y).toFixed(1)+')">';
+        out+='<line x1="-5" y1="-5" x2="5" y2="5" style="stroke:var(--red);stroke-width:2.5"/>';
+        out+='<line x1="5" y1="-5" x2="-5" y2="5" style="stroke:var(--red);stroke-width:2.5"/>';
+        out+='</g>';
+      });
+    }
     var smx=mx(state.start.x), smy=my(state.start.y);
     out+='<circle cx="'+smx.toFixed(1)+'" cy="'+smy.toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
     out+='<text class="preview-label" x="'+smx.toFixed(1)+'" y="'+(smy-10)+'" text-anchor="middle">起点</text>';
@@ -1915,6 +2416,34 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         out+='</g>';
       });
     }
+    if(state.smoothResult){
+      var spts=state.smoothResult.points;
+      var sline3=spts.map(function(pt){ return P(pt.x,pt.y,pt.z); });
+      out+='<polyline class="path-halo" points="'+poly(sline3)+'"/>';
+      out+='<polyline class="smooth-line" points="'+poly(sline3)+'"/>';
+      if(state.showCpts){
+        state.smoothResult.control.forEach(function(pt){
+          var qc=P(pt.x,pt.y,pt.z);
+          out+='<circle cx="'+qc[0].toFixed(1)+'" cy="'+qc[1].toFixed(1)+'" r="3.5" class="smooth-cpt"/>';
+        });
+      }
+    }
+    if(state.multi){
+      var mm=state.multi;
+      mm.uavs.forEach(function(tr,idx){
+        if(!tr) return;
+        var col=MULTI_COLORS[idx%4];
+        var mpts3=tr.pts.map(function(p){ return P(p.x,p.y,p.z); });
+        out+='<polyline class="path-halo" points="'+poly(mpts3)+'"/>';
+        out+='<polyline class="multi-path" points="'+poly(mpts3)+'" style="stroke:'+col+'"/>';
+        var tt=state.multiPlay-mm.offsets[idx];
+        if(tt>=0&&tt<=tr.duration){
+          var pp=trajPos(tr,tt);
+          var qp=P(pp.x,pp.y,pp.z);
+          out+='<circle cx="'+qp[0].toFixed(1)+'" cy="'+qp[1].toFixed(1)+'" r="8" style="fill:'+col+';stroke:var(--foreground);stroke-width:2"/>';
+        }
+      });
+    }
     var sp=P(state.start.x,state.start.y,state.flightAlt);
     out+='<circle cx="'+sp[0].toFixed(1)+'" cy="'+sp[1].toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
     var gp=P(state.goal.x,state.goal.y,state.flightAlt);
@@ -1969,6 +2498,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     readInputs();
     if(!state.results){ els['valid-wrap'].style.display='none'; }
     var grid=buildGrid();
+    var awRun=state.results? state.results.runs.filter(function(x){return x.key==='aw';})[0]:null;
+    var sKey=(state.smoothMethod||'none')+'|'+(state.turnR||0)+'|'+(state.maxAcc||0)+'|'+(awRun&&awRun.res?awRun.res.cells.length:0)+'|'+(state.results?state.results.count:0);
+    if(sKey!==state.smoothKey){ state.smoothKey=sKey; smoothMainPath(grid, awRun); }
+    if(!awRun){ state.smoothResult=null; els['smooth-info'].textContent=''; }
     renderUavInfo();
     renderSummary(grid);
     renderTableBuildings();
@@ -2208,7 +2741,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['V-num'].addEventListener('change',function(){ els['V-range'].value=Math.min(25,Math.max(0,parseFloat(els['V-num'].value)||0)); inputChanged(); });
     els['dir-range'].addEventListener('input',function(){ els['dir-num'].value=els['dir-range'].value; inputChanged(); });
     els['dir-num'].addEventListener('change',function(){ var v=Math.min(360,Math.max(0,parseFloat(els['dir-num'].value)||0)); els['dir-range'].value=v; inputChanged(); });
-    ['wind-type','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','obj-select','uav-select','load-num','hover-min','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly'].forEach(function(id){
+    ['wind-type','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','obj-select','uav-select','load-num','hover-min','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-samples','multi-plan','multi-body','multi-info','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list'].forEach(function(id){
       els[id].addEventListener('input',inputChanged);
       els[id].addEventListener('change',inputChanged);
     });
@@ -2266,6 +2799,15 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['add-nf'].addEventListener('click',addNoFly);
     els['clear-nf'].addEventListener('click',function(){ state.noFly=[]; renderAll(); });
     els['pick-nf'].addEventListener('click',function(){ showStep(3); setPick('nf'); });
+    els['smooth-method'].addEventListener('change',renderAll);
+    els['turn-radius'].addEventListener('change',renderAll);
+    els['max-acc'].addEventListener('change',renderAll);
+    els['show-cpts'].addEventListener('change',renderAll);
+    els['multi-count'].addEventListener('change',multiSamples);
+    els['multi-samples'].addEventListener('click',multiSamples);
+    els['multi-plan'].addEventListener('click',planMulti);
+    els['multi-play'].addEventListener('click',multiPlayToggle);
+    els['multi-time'].addEventListener('input',function(){ state.multiPlay=parseFloat(els['multi-time'].value)||0; if(state.multi) renderMultiInfo(); renderAll(); });
     els['btn-plan'].addEventListener('click',planAll);
     els['pick-start'].addEventListener('click',function(){ showStep(4); setPick('start'); });
     els['pick-goal'].addEventListener('click',function(){ showStep(4); setPick('goal'); });
@@ -2308,6 +2850,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       renderAll();
     });
     loadPreset('mix');
+    multiSamples();
     showStep(1);
     renderAll();
   }
