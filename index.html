@@ -2015,6 +2015,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       var res=plan(grid,s,g,true,uav);
       if(!res){ uavs.push(null); failed++; continue; }
       var tr=uavTrajectory(grid,res.cells,uav);
+      tr.pts[0]={x:r.x1,y:r.y1,z:state.flightAlt};
+      tr.pts[tr.pts.length-1]={x:r.x2,y:r.y2,z:state.flightAlt};
       tr.start={x:r.x1,y:r.y1}; tr.goal={x:r.x2,y:r.y2};
       uavs.push(tr);
     }
