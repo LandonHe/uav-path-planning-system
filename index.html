@@ -1375,6 +1375,35 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     }
   }
 
+  function losClearCells(grid, aIdx, bIdx){
+    var da=decode(grid,aIdx), db=decode(grid,bIdx);
+    var x1=(da.ix+0.5)*state.res, y1=(da.iy+0.5)*state.res, z1=(da.iz+0.5)*state.res;
+    var x2=(db.ix+0.5)*state.res, y2=(db.iy+0.5)*state.res, z2=(db.iz+0.5)*state.res;
+    var d=Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2)+Math.pow(z2-z1,2));
+    var steps=Math.max(1,Math.ceil(d/(state.res/2)));
+    for(var i=0;i<=steps;i++){
+      var t=i/steps;
+      var cx=Math.floor((x1+(x2-x1)*t)/state.res), cy=Math.floor((y1+(y2-y1)*t)/state.res), cz=Math.floor((z1+(z2-z1)*t)/state.res);
+      if(cx<0||cy<0||cz<0||cx>=grid.nx||cy>=grid.ny||cz>=grid.nz) return false;
+      if(grid.occ[cellIndex(grid,cx,cy,cz)]) return false;
+    }
+    return true;
+  }
+  function pathCellsValid(run, grid, uav){
+    var bad=[], i, k;
+    for(i=0;i<run.res.cells.length;i++){
+      var idx=run.res.cells[i];
+      if(grid.occ[idx]){ bad.push('经过占用/禁飞格'); break; }
+      if(run.windAware){
+        var d=decode(grid,idx);
+        if(!windFeasibleAt((d.iz+0.5)*state.res,uav)){ bad.push('经过风速超限格'); break; }
+      }
+    }
+    for(k=1;k<run.res.cells.length;k++){
+      if(!losClearCells(grid, run.res.cells[k-1], run.res.cells[k])){ bad.push('航段穿过障碍/禁飞区'); break; }
+    }
+    return bad;
+  }
   function renderValidation(r){
     var uav=r.uav;
     var findings=[], okc=0, warn=0, err=0;
@@ -1401,6 +1430,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       else { add('ok',x.name+' 预计时间 '+tmin.toFixed(1)+' min ≤ 续航 '+uav.endurance+' min'); }
       if(x.m.clearance<state.margin-1e-9){ add('warn',x.name+' 最小净空 '+x.m.clearance.toFixed(1)+' m 小于安全膨胀 '+state.margin.toFixed(0)+' m'); }
       else { add('ok',x.name+' 最小净空 '+x.m.clearance.toFixed(1)+' m ≥ 安全膨胀 '+state.margin.toFixed(0)+' m'); }
+      var bads=pathCellsValid(x,r.grid,r.uav);
+      if(bads.length){ add('warn',x.name+' 路径合法性：'+bads.join('、')); }
+      else { add('ok',x.name+' 路径合法（无占用/禁飞/风速超限/断点）'); }
     });
     if(!anyOk){ add('err','没有成功生成的路径，无法完成时间/净空检验'); }
     if(state.smoothResult){
@@ -1409,6 +1441,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       else { add('ok','平滑轨迹转弯半径满足要求（≥'+sr.turnR+' m）'); }
       if(sr.maxAccel>sr.maxAcc){ add('warn','平滑轨迹最大加速度 '+sr.maxAccel.toFixed(2)+' m/s² 超过上限 '+sr.maxAcc+' m/s²'); }
       else { add('ok','平滑轨迹最大加速度 '+sr.maxAccel.toFixed(2)+' m/s² ≤ '+sr.maxAcc+' m/s²'); }
+      if(sr.blocked>0){ add('warn','平滑轨迹有 '+sr.blocked+' 个采样点穿过障碍/禁飞区（红×标注），建议改用“无”或减小平滑范围'); }
+      else { add('ok','平滑轨迹未穿过障碍/禁飞区'); }
     }
     els['valid-wrap'].style.display='';
     els['valid-summary'].textContent='检验结论：通过 '+okc+' 项 · 警告 '+warn+' 项 · 错误 '+err+' 项（对照机型：'+uav.name+'）';
@@ -1888,9 +1922,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     }
     var curv=curvatureInfo(res.points);
     var stats=profileStats(res.points,res.times);
-    state.smoothResult={method:state.smoothMethod, points:res.points, times:res.times, control:waypoints, minRadius:curv.minRadius, worst:curv.worst, maxSpeed:stats.maxSpeed, maxAccel:stats.maxAccel, turnR:state.turnR, maxAcc:state.maxAcc};
+    var blocked=0, firstBlock=-1, bi;
+    for(bi=0;bi<res.points.length;bi++){
+      var bpt=res.points[bi];
+      var bix=Math.floor(bpt.x/state.res), biy=Math.floor(bpt.y/state.res), biz=Math.floor(bpt.z/state.res);
+      if(bix<0||biy<0||biz<0||bix>=grid.nx||biy>=grid.ny||biz>=grid.nz) continue;
+      if(grid.occ[cellIndex(grid,bix,biy,biz)]){ blocked++; if(firstBlock<0) firstBlock=bi; }
+    }
+    state.smoothResult={method:state.smoothMethod, points:res.points, times:res.times, control:waypoints, minRadius:curv.minRadius, worst:curv.worst, maxSpeed:stats.maxSpeed, maxAccel:stats.maxAccel, turnR:state.turnR, maxAcc:state.maxAcc, blocked:blocked, firstBlock:firstBlock};
     var rTxt=curv.minRadius===Infinity?'∞':curv.minRadius.toFixed(1);
-    els['smooth-info'].textContent='平滑（'+state.smoothMethod+'）：采样 '+res.points.length+' 点 · 最小转弯半径 '+rTxt+' m（要求 ≥'+state.turnR+' m）'+(curv.minRadius<state.turnR?' ⚠ 转弯过急':' ✓')+' · 最大速度 '+stats.maxSpeed.toFixed(1)+' m/s · 最大加速度 '+stats.maxAccel.toFixed(2)+' m/s²（要求 ≤'+state.maxAcc+'）'+(stats.maxAccel>state.maxAcc?' ⚠ 超限':' ✓');
+    els['smooth-info'].textContent='平滑（'+state.smoothMethod+'）：采样 '+res.points.length+' 点 · 最小转弯半径 '+rTxt+' m（要求 ≥'+state.turnR+' m）'+(curv.minRadius<state.turnR?' ⚠ 转弯过急':' ✓')+' · 最大速度 '+stats.maxSpeed.toFixed(1)+' m/s · 最大加速度 '+stats.maxAccel.toFixed(2)+' m/s²（要求 ≤'+state.maxAcc+'）'+(stats.maxAccel>state.maxAcc?' ⚠ 超限':' ✓')+(blocked>0?' · ⚠ 穿过障碍 '+blocked+' 点':'');
   }
   var MULTI_COLORS=['var(--viz-series-1)','var(--viz-series-2)','var(--viz-series-4)','var(--viz-series-6)'];
   function ringPoints(cx,cy,r,N,startDeg){
@@ -1911,7 +1952,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       for(var f=0;f<4;f++){
         var td=document.createElement('td');
         var inp=document.createElement('input');
-        inp.type='number'; inp.className='form-control'; inp.min=0; inp.max=3000; inp.step=10; inp.value='0';
+        inp.type='number'; inp.className='form-control'; inp.min=0; inp.max=3000; inp.step=10; inp.value='';
         td.appendChild(inp); tr.appendChild(td);
       }
       tb.appendChild(tr);
@@ -1928,6 +1969,14 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       tds[1].style.color=MULTI_COLORS[i%4];
     }
   }
+  function getMultiInput(rowIdx, fieldIdx){
+    var rows=els['multi-body'].children, row=rows[rowIdx];
+    if(!row) return '';
+    var tds=row.children;
+    if(tds.length<6) return '';
+    var inp=tds[2+fieldIdx].firstChild;
+    return inp? inp.value : '';
+  }
   function setMultiInput(rowIdx, fieldIdx, val){
     var rows=els['multi-body'].children, row=rows[rowIdx];
     if(!row) return;
@@ -1940,17 +1989,23 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var N=state.multiCount;
     ensureMultiRows(N);
     var pts=ringPoints(250,250,140,N,225);
-    for(var i=0;i<N;i++){ setMultiInput(i,0,pts[i].x); setMultiInput(i,1,pts[i].y); }
+    var filled=0;
+    for(var i=0;i<N;i++){
+      if(!getMultiInput(i,0)||!getMultiInput(i,1)){ setMultiInput(i,0,pts[i].x); setMultiInput(i,1,pts[i].y); filled++; }
+    }
     relabelMultiRows();
-    els['multi-info'].textContent='已生成 '+N+' 架无人机及其起点（起点1…起点'+N+'），请再点击“生成终点”分配任务，或手动修改坐标。';
+    els['multi-info'].textContent='已生成 '+N+' 架无人机；已自动填入 '+filled+' 个空起点（起点1…起点'+N+'），已填写的数据不会被覆盖；可再点击“生成终点”或手动修改。';
   }
   function multiGenGoals(){
     var N=state.multiCount;
     ensureMultiRows(N);
     var pts=ringPoints(750,750,140,N,45);
-    for(var i=0;i<N;i++){ setMultiInput(i,2,pts[i].x); setMultiInput(i,3,pts[i].y); }
+    var filled=0;
+    for(var i=0;i<N;i++){
+      if(!getMultiInput(i,2)||!getMultiInput(i,3)){ setMultiInput(i,2,pts[i].x); setMultiInput(i,3,pts[i].y); filled++; }
+    }
     relabelMultiRows();
-    els['multi-info'].textContent='已生成 '+N+' 个终点（终点1…终点'+N+'），归属见各机“起点→终点”标注；可点击“开始协同规划”。';
+    els['multi-info'].textContent='已生成 '+N+' 个终点（终点1…终点'+N+'），自动填入 '+filled+' 个空终点，已填写数据不被覆盖；可点击“开始协同规划”。';
   }
   function resizeMultiRows(){
     var N=state.multiCount;
@@ -2352,6 +2407,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       if(state.smoothResult.minRadius<state.smoothResult.turnR){
         var wp=state.smoothResult.points[state.smoothResult.worst];
         out+='<circle cx="'+mx(wp.x).toFixed(1)+'" cy="'+my(wp.y).toFixed(1)+'" r="8" class="smooth-warn" data-tooltip="转弯半径不足"/>';
+      }
+      if(state.smoothResult.blocked>0&&state.smoothResult.firstBlock>=0){
+        var bp=state.smoothResult.points[state.smoothResult.firstBlock];
+        out+='<g transform="translate('+mx(bp.x).toFixed(1)+','+my(bp.y).toFixed(1)+')">';
+        out+='<line x1="-6" y1="-6" x2="6" y2="6" style="stroke:var(--red);stroke-width:2"/>';
+        out+='<line x1="6" y1="-6" x2="-6" y2="6" style="stroke:var(--red);stroke-width:2"/>';
+        out+='</g>';
       }
     }
     if(state.multi){
