@@ -1,0 +1,2346 @@
+OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings OK: sec OK: view OK: steps OK: root <div id="uavwind-sys">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+<style>
+  #uavwind-sys{
+    color-scheme:light dark;
+    --background:light-dark(rgb(255 255 255),rgb(24 24 24));
+    --foreground:light-dark(rgb(26 28 31),rgb(255 255 255));
+    --card:color-mix(in oklab, var(--foreground) 5%, var(--background));
+    --card-foreground:var(--foreground);
+    --popover:light-dark(rgb(255 255 255 / 96%),rgb(54 54 54 / 96%));
+    --popover-foreground:var(--foreground);
+    --primary:light-dark(rgb(51 156 255),rgb(131 195 255));
+    --primary-foreground:light-dark(rgb(255 255 255),rgb(13 13 13));
+    --secondary:light-dark(rgb(255 255 255 / 96%),rgb(54 54 54 / 96%));
+    --secondary-foreground:var(--foreground);
+    --muted:color-mix(in srgb, var(--foreground) 10%, transparent);
+    --muted-foreground:light-dark(rgb(26 28 31 / 49.4%),rgb(255 255 255 / 49.8%));
+    --accent:light-dark(rgb(229 242 255),rgb(13 39 63));
+    --accent-foreground:light-dark(rgb(51 156 255),rgb(131 195 255));
+    --destructive:light-dark(rgb(226 85 7),rgb(255 133 73));
+    --border:light-dark(rgb(26 28 31 / 8%),rgb(255 255 255 / 8.2%));
+    --input:light-dark(rgb(26 28 31 / 11.8%),color-mix(in oklab, rgb(0 0 0) 10%, transparent));
+    --ring:light-dark(rgb(51 156 255),rgb(131 195 255 / 76%));
+    --blue:light-dark(rgb(51 156 255),rgb(51 156 255));
+    --orange:light-dark(rgb(226 85 7),rgb(251 106 34));
+    --green:light-dark(rgb(0 162 64),rgb(64 201 119));
+    --red:light-dark(rgb(224 46 42),rgb(255 103 100));
+    --purple:light-dark(rgb(146 79 247),rgb(173 123 249));
+    --yellow:light-dark(rgb(255 195 0),rgb(255 210 64));
+    --viz-series-1:var(--primary);
+    --viz-series-2:light-dark(rgb(243 136 59),rgb(245 154 86));
+    --viz-series-3:light-dark(rgb(93 201 119),rgb(116 213 139));
+    --viz-series-4:light-dark(rgb(235 119 177),rgb(240 143 192));
+    --viz-series-5:light-dark(rgb(155 121 236),rgb(170 145 239));
+    --viz-series-6:light-dark(rgb(58 185 177),rgb(90 203 194));
+    --font-size-base:14px;
+    --font-size-small:12px;
+    --font-size-h2:20px;
+    --font-weight-medium:500;
+    --radius-sm:8px;
+    --radius-lg:12px;
+    --radius-2xl:20px;
+    --radius-full:9999px;
+    --shadow-sm:0 1px 2px -1px rgb(0 0 0/8%);
+    --checkmark-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 17 17'%3E%3Cpath d='M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z'/%3E%3C/svg%3E");
+    --cursor-interaction:pointer;
+    font-family:inherit;
+  }
+  #uavwind-sys svg{display:block;max-width:100%;height:auto;}
+  #uavwind-sys .btn,
+  #uavwind-sys .form-check-input,
+  #uavwind-sys .form-control,
+  #uavwind-sys .form-select{font:inherit;}
+  #uavwind-sys .btn{appearance:button;display:inline-flex;inline-size:fit-content;max-inline-size:100%;min-height:28px;align-items:center;justify-content:center;gap:4px;margin:0;padding:0 8px;border:1px solid var(--input);border-radius:var(--radius-lg);color:var(--secondary-foreground);background:var(--secondary);cursor:var(--cursor-interaction,pointer);text-align:center;text-decoration:none;white-space:nowrap;user-select:none;-webkit-font-smoothing:antialiased;}
+  #uavwind-sys .btn:not(:disabled):hover{background:color-mix(in srgb, var(--foreground) 6%, var(--secondary));}
+  #uavwind-sys .btn-primary{border-color:transparent;color:var(--primary-foreground);background:var(--foreground);background-clip:padding-box;}
+  #uavwind-sys .btn-primary:not(:disabled):hover{background:color-mix(in srgb, var(--foreground) 80%, transparent);background-clip:padding-box;}
+  #uavwind-sys .btn:disabled{cursor:not-allowed;opacity:.4;}
+  #uavwind-sys .btn:not(.btn-primary):is([aria-pressed="true"],[aria-selected="true"],.is-selected){border-color:var(--primary);color:var(--primary-foreground);background:var(--primary);}
+  #uavwind-sys .btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px;}
+  #uavwind-sys .form-label{display:block;margin-bottom:6px;color:var(--foreground);}
+  #uavwind-sys .form-control{display:block;width:100%;min-height:28px;padding:0 8px;outline:none;border:1px solid var(--input);border-radius:var(--radius-lg);color:var(--foreground);background:var(--secondary);}
+  #uavwind-sys .form-control::placeholder{color:var(--muted-foreground);}
+  #uavwind-sys .form-control[type="file"]{padding:0;overflow:hidden;cursor:var(--cursor-interaction,pointer);}
+  #uavwind-sys .form-control[type="file"]::file-selector-button{min-height:26px;margin-right:8px;padding:0 8px;border:0;border-right:1px solid var(--input);color:var(--secondary-foreground);background:var(--secondary);cursor:inherit;font:inherit;}
+  #uavwind-sys .form-control:focus-visible{border-color:var(--ring);box-shadow:inset 0 0 0 1px var(--ring);}
+  #uavwind-sys .form-control:disabled{opacity:.4;}
+  #uavwind-sys .form-select{appearance:none;display:block;width:100%;min-height:28px;margin:0;padding:0 32px 0 8px;outline:none;border:1px solid var(--input);border-radius:var(--radius-lg);color:var(--foreground);background-color:var(--secondary);background-image:linear-gradient(45deg, transparent 50%, var(--muted-foreground) 50%),linear-gradient(135deg, var(--muted-foreground) 50%, transparent 50%);background-position:calc(100% - 14px) 50%,calc(100% - 10px) 50%;background-repeat:no-repeat;background-size:4px 4px;cursor:default;}
+  #uavwind-sys .form-select:not(:disabled):hover{background-color:color-mix(in srgb, var(--foreground) 6%, var(--secondary));}
+  #uavwind-sys .form-select:focus-visible{border-color:var(--ring);box-shadow:inset 0 0 0 1px var(--ring);}
+  #uavwind-sys .form-check{display:flex;min-height:20px;align-items:center;gap:6px;}
+  #uavwind-sys .form-check-input[type="checkbox"]{appearance:auto;-webkit-appearance:checkbox;width:16px;height:16px;flex:0 0 auto;margin:0;accent-color:var(--blue);cursor:pointer;}
+  #uavwind-sys .form-check-input[type="radio"]{appearance:auto;-webkit-appearance:radio;accent-color:var(--blue);}
+  #uavwind-sys .form-check-label{color:var(--foreground);cursor:default;}
+  #uavwind-sys .card{min-width:0;padding:12px;overflow:hidden;overflow-wrap:break-word;border-radius:var(--radius-2xl);color:var(--card-foreground);background:var(--card);}
+  #uavwind-sys .viz-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(max(180px,24%),1fr));gap:10px;}
+  #uavwind-sys .viz-stat{display:flex;flex-direction:column;gap:2px;}
+  #uavwind-sys .viz-stat-value{font-size:var(--font-size-h2);font-weight:var(--font-weight-medium);line-height:1.25;}
+  #uavwind-sys .viz-badge{padding:3px 8px;border-radius:var(--radius-full);color:var(--accent-foreground);background:var(--accent);font-weight:var(--font-weight-medium);}
+  #uavwind-sys .text-small,#uavwind-sys .viz-badge{font-size:var(--font-size-small);line-height:calc(var(--font-size-small) + 4px);}
+  #uavwind-sys .text-muted{color:var(--muted-foreground);}
+  #uavwind-sys .table-responsive{width:100%;overflow-x:auto;scrollbar-width:thin;}
+  #uavwind-sys .table{width:100%;border-collapse:collapse;color:var(--foreground);font:inherit;text-align:start;}
+  #uavwind-sys .table :is(th,td){padding-block:10px;padding-inline:0 24px;overflow-wrap:anywhere;border-bottom:1px solid var(--border);text-align:start;vertical-align:top;}
+  #uavwind-sys .table :is(th,td):last-child{padding-inline-end:0;}
+  #uavwind-sys .table :is(caption,thead th){font-weight:600;}
+  #uavwind-sys .table thead th{padding-block:8px;border-bottom-color:color-mix(in srgb, var(--foreground) 16%, transparent);}
+  #uavwind-sys .table tbody tr:last-child :is(th,td){border-bottom:0;}
+  #uavwind-sys .table.table-sm :is(th,td){padding-block:6px;}
+  #uavwind-sys .table.table-sm :is(th,td):not(:last-child){padding-inline-end:16px;}  #uavwind-sys{display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,color-mix(in srgb,var(--blue) 7%,var(--background)),var(--background) 220px);border-radius:18px;padding:16px;}
+  #uavwind-sys .steps{display:flex;gap:8px;flex-wrap:wrap;padding:10px 12px;background:color-mix(in srgb,var(--blue) 8%,var(--background));border:1px solid color-mix(in srgb,var(--blue) 20%,var(--border));border-radius:14px;}
+  #uavwind-sys .steps .btn{border-radius:999px;padding:6px 14px;transition:transform .12s ease;}
+  #uavwind-sys .steps .btn:active{transform:translateY(1px);}
+  #uavwind-sys .steps .btn-primary{box-shadow:0 2px 10px color-mix(in srgb,var(--primary) 35%,transparent);}
+  #uavwind-sys .panel-grid{display:grid;grid-template-columns:minmax(300px,1fr) 1.6fr;gap:16px;}
+  @media(max-width:880px){#uavwind-sys .panel-grid{grid-template-columns:1fr;}}
+  #uavwind-sys .controls{display:flex;flex-direction:column;gap:12px;min-width:0;}
+  #uavwind-sys .view{display:flex;flex-direction:column;gap:10px;min-width:0;background:color-mix(in srgb,var(--blue) 5%,var(--background));border:1px solid color-mix(in srgb,var(--blue) 16%,var(--border));border-radius:14px;padding:12px;}
+  #uavwind-sys .sec{display:flex;flex-direction:column;gap:12px;background:color-mix(in srgb,var(--blue) 6%,var(--background));border:1px solid color-mix(in srgb,var(--blue) 20%,var(--border));border-radius:14px;padding:14px;}
+  #uavwind-sys h2{margin:0;display:flex;align-items:center;gap:10px;}
+  #uavwind-sys h2::before{content:'';width:5px;height:22px;border-radius:3px;background:linear-gradient(180deg,var(--blue),color-mix(in srgb,var(--blue) 45%,var(--background)));}
+  #uavwind-sys h3{margin:0;font-weight:600;display:flex;align-items:center;gap:6px;}
+  #uavwind-sys h3::before{content:'';width:4px;height:13px;border-radius:2px;background:var(--blue);opacity:.75;}
+  #uavwind-sys .ctl{display:flex;flex-direction:column;gap:4px;}
+  #uavwind-sys .pair{display:flex;align-items:center;gap:8px;}
+  #uavwind-sys .pair input[type=range]{flex:1;min-width:0;accent-color:var(--blue);}
+  #uavwind-sys .pair input[type=number],#uavwind-sys .inline input[type=number]{width:90px;border-radius:8px;}
+  #uavwind-sys .pair .unit{color:var(--muted-foreground);white-space:nowrap;}
+  #uavwind-sys .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  #uavwind-sys .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  #uavwind-sys .inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:color-mix(in srgb,var(--blue) 6%,var(--background));border-radius:10px;padding:8px 10px;}
+  #uavwind-sys .cap{color:var(--muted-foreground);}
+  #uavwind-sys .tb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  #uavwind-sys .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
+  #uavwind-sys .preview-label{fill:var(--muted-foreground);font-size:12px;}
+  #uavwind-sys .overlap-label{fill:var(--foreground);font-size:11px;font-weight:500;}
+  #uavwind-sys .grid-line{stroke:var(--border);stroke-width:1;}
+  #uavwind-sys .region-border{stroke:var(--foreground);stroke-width:1.5;fill:none;}
+  #uavwind-sys .wind-line{stroke:var(--blue);stroke-width:2.5;}
+  #uavwind-sys .wind-head{fill:var(--blue);}
+  #uavwind-sys .wind-field{stroke:var(--blue);stroke-opacity:0.45;stroke-width:1.4;fill:var(--blue);fill-opacity:0.5;}
+  #uavwind-sys .wind-badge{fill:var(--foreground);font-size:12px;font-weight:500;}
+  #uavwind-sys .nf-label{fill:var(--red);font-size:11px;font-weight:500;}
+  #uavwind-sys .uav-detail{display:flex;flex-direction:column;gap:8px;background:color-mix(in srgb,var(--blue) 6%,var(--background));border:1px solid color-mix(in srgb,var(--blue) 20%,var(--border));border-radius:12px;padding:10px 12px;}
+  #uavwind-sys .uav-head{font-weight:600;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  #uavwind-sys .uav-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 10px;}
+  @media(max-width:560px){#uavwind-sys .uav-grid{grid-template-columns:repeat(2,1fr);}}
+  #uavwind-sys .uav-item{display:flex;flex-direction:column;gap:1px;}
+  #uavwind-sys .uav-item span{color:var(--muted-foreground);font-size:var(--font-size-small);}
+  #uavwind-sys .uav-item b{font-weight:500;}
+  #uavwind-sys .uav-note{margin-top:2px;}
+  #uavwind-sys .path-halo{stroke:var(--background);stroke-width:9;fill:none;stroke-linejoin:round;stroke-linecap:round;opacity:.9;}
+  #uavwind-sys .path-main{stroke:var(--blue);stroke-width:4;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  #uavwind-sys .path-base{stroke:var(--muted-foreground);stroke-width:3;fill:none;stroke-linejoin:round;stroke-linecap:round;stroke-dasharray:6 4;}
+  #uavwind-sys .path-rrt{stroke:var(--purple);stroke-width:3;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  #uavwind-sys .path-pso{stroke:var(--viz-series-6);stroke-width:3;fill:none;stroke-linejoin:round;stroke-linecap:round;}
+  #uavwind-sys .tree-line{stroke:var(--purple);stroke-width:1;fill:none;opacity:.09;}
+  #uavwind-sys .pso-wp{fill:var(--viz-series-6);opacity:.75;}
+  #uavwind-sys .table-responsive{max-width:100%;border-radius:10px;}
+  #uavwind-sys .table thead th{background:color-mix(in srgb,var(--blue) 12%,var(--background));}
+  #uavwind-sys .table tbody tr:hover{background:color-mix(in srgb,var(--blue) 6%,transparent);}
+  #uavwind-sys .legend-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:color-mix(in srgb,var(--blue) 5%,var(--background));border-radius:10px;padding:8px 10px;}
+  #uavwind-sys .legend-row .cap{background:color-mix(in srgb,var(--blue) 8%,var(--background));border-radius:999px;padding:3px 9px;border:1px solid color-mix(in srgb,var(--blue) 18%,var(--border));}
+  #uavwind-sys .valid-row{display:flex;gap:6px;padding:3px 0;font-size:var(--font-size-small);}
+  #uavwind-sys #map{height:260px;width:100%;z-index:1;border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  #uavwind-sys .form-label{font-weight:500;}
+  #uavwind-sys .form-select,#uavwind-sys .form-control{border-radius:9px;}
+  #uavwind-sys .btn{border-radius:9px;transition:transform .12s ease, box-shadow .12s ease;}
+  #uavwind-sys .btn:hover{transform:translateY(-1px);}
+  #uavwind-sys .btn-primary{box-shadow:0 2px 8px color-mix(in srgb,var(--primary) 30%,transparent);}
+  #uavwind-sys #summary{background:color-mix(in srgb,var(--blue) 10%,var(--background));border:1px solid color-mix(in srgb,var(--blue) 22%,var(--border));border-radius:10px;padding:8px 12px;color:var(--foreground);}
+  #uavwind-sys #plan-msg{background:color-mix(in srgb,var(--blue) 8%,var(--background));border-radius:10px;padding:8px 12px;}
+  #uavwind-sys input[type=checkbox]{accent-color:var(--blue);}
+  #uavwind-sys .viz-badge{border-radius:999px;}
+</style>
+<h2>风扰环境下城市低空无人机路径规划系统</h2>
+<div class="steps" role="tablist">
+  <button type="button" id="step-1" class="btn btn-primary">① 环境参数</button>
+  <button type="button" id="step-2" class="btn">② 无人机</button>
+  <button type="button" id="step-3" class="btn">③ 空域建模</button>
+  <button type="button" id="step-4" class="btn">④ 路径规划</button>
+</div>
+<div class="panel-grid">
+  <div class="controls">
+    <div id="sec-env" class="sec">
+      <h3>风场类型与参数</h3>
+      <div class="ctl">
+        <label class="form-label" for="wind-type">风场类型</label>
+        <select id="wind-type" class="form-select">
+          <option value="uniform">均匀定常风</option>
+          <option value="gust">均匀风 + 阵风</option>
+          <option value="turbulent">均匀风 + 湍流（Dryden 谱）</option>
+          <option value="wake">均匀风 + 建筑尾流</option>
+          <option value="mix">复合风（均匀 + 阵风 + 湍流）</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label class="form-label" for="V-range">平均风速</label>
+        <div class="pair">
+          <input type="range" id="V-range" min="0" max="25" step="0.5" value="5">
+          <input type="number" id="V-num" class="form-control" min="0" max="25" step="0.5" value="5">
+          <span class="unit">m/s</span>
+        </div>
+      </div>
+      <div class="ctl">
+        <label class="form-label" for="dir-range">风向（来向）</label>
+        <div class="pair">
+          <input type="range" id="dir-range" min="0" max="360" step="1" value="90">
+          <input type="number" id="dir-num" class="form-control" min="0" max="360" step="1" value="90">
+          <span class="unit">°</span>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="ctl">
+          <label class="form-label" for="wz-num">垂直风分量</label>
+          <div class="pair"><input type="number" id="wz-num" class="form-control" min="-5" max="5" step="0.1" value="0"><span class="unit">m/s</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="gust-amp">阵风幅值</label>
+          <div class="pair"><input type="number" id="gust-amp" class="form-control" min="0" max="10" step="0.5" value="3"><span class="unit">m/s</span></div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="ctl">
+          <label class="form-label" for="turb-i">湍流强度</label>
+          <div class="pair"><input type="number" id="turb-i" class="form-control" min="0.01" max="0.6" step="0.01" value="0.15"><span class="unit">—</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="turb-l">湍流尺度</label>
+          <div class="pair"><input type="number" id="turb-l" class="form-control" min="10" max="1000" step="10" value="300"><span class="unit">m</span></div>
+        </div>
+      </div>
+      <div class="inline">
+        <input type="checkbox" id="profile-check" class="form-check-input" checked>
+        <label class="form-check-label" for="profile-check">风随高度变化（幂律）</label>
+        <span class="cap">指数 α</span>
+        <input type="number" id="alpha-num" class="form-control" min="0.05" max="0.6" step="0.01" value="0.28">
+        <span class="cap">参考高度</span>
+        <input type="number" id="href-num" class="form-control" min="1" max="200" step="1" value="10">
+        <span class="unit">m</span>
+      </div>
+      <div class="inline">
+        <input type="checkbox" id="wake-toggle" class="form-check-input" checked>
+        <label class="form-check-label" for="wake-toggle">显示建筑尾流风险区</label>
+        <span class="cap">长度系数</span>
+        <input type="number" id="wake-len" class="form-control" min="1" max="6" step="0.5" value="3">
+      </div>
+      <div class="inline">
+        <input type="checkbox" id="field-arrows" class="form-check-input" checked>
+        <label class="form-check-label" for="field-arrows">显示风场网格箭头</label>
+      </div>
+      <h3>空域范围</h3>
+      <div class="row3">
+        <div class="ctl">
+          <label class="form-label" for="region-x">长度 X</label>
+          <div class="pair"><input type="number" id="region-x" class="form-control" min="100" max="3000" step="50" value="1000"><span class="unit">m</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="region-y">宽度 Y</label>
+          <div class="pair"><input type="number" id="region-y" class="form-control" min="100" max="3000" step="50" value="1000"><span class="unit">m</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="region-z">高度 Z</label>
+          <div class="pair"><input type="number" id="region-z" class="form-control" min="20" max="300" step="10" value="120"><span class="unit">m</span></div>
+        </div>
+      </div>
+      <h3>障碍物与地图</h3>
+      <div class="ctl">
+        <label class="form-label" for="data-mode">数据来源</label>
+        <select id="data-mode" class="form-select">
+          <option value="offline" selected>离线模式（示例 / 导入）</option>
+          <option value="online">在线地图（OpenStreetMap）</option>
+        </select>
+      </div>
+      <div id="online-panel" class="ctl" style="display:none">
+        <div class="pair">
+          <input type="text" id="search-loc" class="form-control" placeholder="搜索地区，如：上海陆家嘴">
+          <button type="button" id="search-loc-btn" class="btn">搜索</button>
+        </div>
+        <div class="row2">
+          <div class="ctl">
+            <label class="form-label" for="lat-num">中心纬度</label>
+            <input type="number" id="lat-num" class="form-control" min="-90" max="90" step="0.0001" value="31.2397">
+          </div>
+          <div class="ctl">
+            <label class="form-label" for="lon-num">中心经度</label>
+            <input type="number" id="lon-num" class="form-control" min="-180" max="180" step="0.0001" value="121.4998">
+          </div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="span-num">无地图时视野跨度</label>
+          <div class="pair"><input type="number" id="span-num" class="form-control" min="0.2" max="5" step="0.1" value="1"><span class="unit">km</span></div>
+        </div>
+        <div class="btns">
+          <button type="button" id="locate-btn" class="btn">定位到坐标</button>
+          <button type="button" id="fetch-buildings" class="btn btn-primary">拉取视野内建筑</button>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="amap-key">高德 Key（可选，中文地址搜索用）</label>
+          <input type="text" id="amap-key" class="form-control" placeholder="如已申请高德 Web 服务 Key 可填入">
+        </div>
+        <div id="map"></div>
+        <span class="cap text-small" id="map-status"></span>
+        <span class="cap text-small">在线功能需要联网；对话内预览会拦截网络请求，请用浏览器打开本文件使用。</span>
+      </div>
+      <div class="ctl">
+        <label class="form-label" for="preset-select">离线示例区域</label>
+        <select id="preset-select" class="form-select">
+          <option value="mix">混合城区</option>
+          <option value="grid">规则街区</option>
+          <option value="canyon">街道峡谷</option>
+          <option value="lshaped">L 形建筑群</option>
+          <option value="empty">无障碍空地</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label class="form-label" for="file-buildings">导入建筑数据（JSON / CSV）</label>
+        <input type="file" id="file-buildings" accept=".json,.csv,application/json,text/csv">
+        <span class="cap text-small">格式：name,x,y,l,w,h 或 JSON 数组</span>
+      </div>
+      <div class="ctl">
+        <label class="form-label" for="file-map">导入地图底图（图片）</label>
+        <div class="pair">
+          <input type="file" id="file-map" accept="image/*">
+          <button type="button" id="remove-map" class="btn" style="display:none">移除底图</button>
+        </div>
+        <div class="pair">
+          <span class="cap">底图透明度</span>
+          <input type="range" id="bg-opacity" min="20" max="100" step="5" value="100">
+          <span class="cap" id="bg-opacity-val">100%</span>
+        </div>
+        <div class="row2">
+          <div class="ctl">
+            <label class="form-label" for="detect-mode">识别模式</label>
+            <select id="detect-mode" class="form-select">
+              <option value="both" selected>自动（深色+浅色）</option>
+              <option value="dark">深色建筑</option>
+              <option value="light">浅色建筑</option>
+            </select>
+          </div>
+          <div class="ctl">
+            <label class="form-label" for="detect-sens">识别灵敏度</label>
+            <input type="range" id="detect-sens" min="0" max="100" step="5" value="50">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="ctl">
+            <label class="form-label" for="detect-h">默认建筑高度</label>
+            <div class="pair"><input type="number" id="detect-h" class="form-control" min="3" max="200" step="1" value="30"><span class="unit">m</span></div>
+          </div>
+          <div class="ctl"><span class="cap text-small">识别高度若低于飞行高度，路径可越障（直线属正常）</span></div>
+        </div>
+        <div class="btns">
+          <button type="button" id="detect-btn" class="btn">自动识别建筑</button>
+        </div>
+        <span class="cap" id="map-import-status"></span>
+      </div>
+      <div class="row3">
+        <div class="ctl"><label class="form-label" for="obs-name">名称</label><input type="text" id="obs-name" class="form-control" placeholder="建筑"></div>
+        <div class="ctl"><label class="form-label" for="obs-x">X</label><input type="number" id="obs-x" class="form-control" min="0" max="3000" step="10" value="200"></div>
+        <div class="ctl"><label class="form-label" for="obs-y">Y</label><input type="number" id="obs-y" class="form-control" min="0" max="3000" step="10" value="200"></div>
+        <div class="ctl"><label class="form-label" for="obs-l">L</label><input type="number" id="obs-l" class="form-control" min="5" max="1000" step="5" value="80"></div>
+        <div class="ctl"><label class="form-label" for="obs-w">W</label><input type="number" id="obs-w" class="form-control" min="5" max="1000" step="5" value="80"></div>
+        <div class="ctl"><label class="form-label" for="obs-h">H</label><input type="number" id="obs-h" class="form-control" min="3" max="500" step="5" value="60"></div>
+      </div>
+      <div class="btns">
+        <button type="button" id="add-obs" class="btn">添加建筑</button>
+        <button type="button" id="clear-obs" class="btn">清空全部</button>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead><tr><th>名称</th><th>X</th><th>Y</th><th>长</th><th>宽</th><th>高</th><th></th></tr></thead>
+          <tbody id="obs-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="sec-uav" class="sec" style="display:none">
+      <h3>优化目标</h3>
+      <div class="ctl">
+        <label class="form-label" for="obj-select">决策目标（决定机型选型与代价权重）</label>
+        <select id="obj-select" class="form-select">
+          <option value="efficient">效率最高（时间最短）</option>
+          <option value="cost">效益最高（成本最低）</option>
+          <option value="safe">最安全（风险最低）</option>
+          <option value="balanced">平衡（综合）</option>
+        </select>
+      </div>
+      <div class="ctl">
+        <label class="form-label" for="uav-select">无人机机型</label>
+        <select id="uav-select" class="form-select">
+          <option value="auto" selected>自动推荐（按目标与风况）</option>
+          <option value="quad">四旋翼（抗风8 m/s · 巡航10 m/s）</option>
+          <option value="hexa">六旋翼（抗风10 m/s · 巡航12 m/s）</option>
+          <option value="fixed">固定翼（抗风12 m/s · 巡航18 m/s）</option>
+          <option value="vtol">复合翼（抗风12 m/s · 巡航20 m/s）</option>
+        </select>
+        <span class="cap" id="uav-reason"></span>
+        <div id="uav-detail"></div>
+      </div>
+      <div class="row2">
+        <div class="ctl">
+          <label class="form-label" for="load-num">任务载重</label>
+          <div class="pair"><input type="number" id="load-num" class="form-control" min="0" max="5" step="0.1" value="1"><span class="unit">kg</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="hover-min">悬停时长</label>
+          <div class="pair"><input type="number" id="hover-min" class="form-control" min="0" max="60" step="1" value="0"><span class="unit">min</span></div>
+        </div>
+      </div>
+      <h3>能耗估算（推荐机型）</h3>
+      <div class="viz-grid">
+        <div class="card viz-stat">
+          <div class="text-muted">悬停 1 分钟</div>
+          <div class="viz-stat-value"><span id="s-hover">—</span> Wh</div>
+        </div>
+        <div class="card viz-stat">
+          <div class="text-muted">巡航 100 米</div>
+          <div class="viz-stat-value"><span id="s-cruise">—</span> Wh</div>
+        </div>
+        <div class="card viz-stat">
+          <div class="text-muted">爬升 10 米</div>
+          <div class="viz-stat-value"><span id="s-climb">—</span> Wh</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="sec-air" class="sec" style="display:none">
+      <h3>栅格与飞行约束</h3>
+      <div class="row3">
+        <div class="ctl">
+          <label class="form-label" for="res-select">栅格分辨率</label>
+          <select id="res-select" class="form-select">
+            <option value="10">10 m（精细）</option>
+            <option value="20" selected>20 m（推荐）</option>
+            <option value="50">50 m（快速）</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="flight-alt">飞行高度</label>
+          <div class="pair"><input type="number" id="flight-alt" class="form-control" min="0" max="300" step="5" value="80"><span class="unit">m</span></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="margin-num">安全膨胀</label>
+          <div class="pair"><input type="number" id="margin-num" class="form-control" min="0" max="30" step="1" value="5"><span class="unit">m</span></div>
+        </div>
+      </div>
+      <h3>空域分析</h3>
+      <div class="ctl">
+        <label class="form-label" for="slice-alt">查看高度层（切片）</label>
+        <div class="pair">
+          <input type="range" id="slice-alt" min="0" max="300" step="5" value="80">
+          <span class="cap" id="slice-alt-val">80 m</span>
+          <button type="button" id="slice-sync" class="btn">= 飞行高度</button>
+        </div>
+      </div>
+      <div class="inline">
+        <input type="checkbox" id="show-risk" class="form-check-input">
+        <label class="form-check-label" for="show-risk">显示风风险热力图</label>
+        <input type="checkbox" id="show-fly" class="form-check-input">
+        <label class="form-check-label" for="show-fly">显示可飞性分析</label>
+      </div>
+      <span class="cap text-small">拖动切片查看不同高度层的占用/风险/可行域；路径仍按“飞行高度”规划。可飞性：绿色=可飞，红色=不可飞（风速超限/逆风过强）</span>
+      <h3>禁飞区</h3>
+      <div class="inline">
+        <input type="checkbox" id="nf-toggle" class="form-check-input" checked>
+        <label class="form-check-label" for="nf-toggle">显示禁飞区</label>
+        <button type="button" id="pick-nf" class="btn">拾取中心</button>
+        <button type="button" id="add-nf" class="btn btn-primary">添加禁飞区</button>
+        <button type="button" id="clear-nf" class="btn">清空全部</button>
+      </div>
+      <div class="row3">
+        <div class="ctl"><label class="form-label" for="nf-name">名称</label><input type="text" id="nf-name" class="form-control" placeholder="禁飞区"></div>
+        <div class="ctl"><label class="form-label" for="nf-x">中心 X</label><input type="number" id="nf-x" class="form-control" min="0" max="3000" step="10" value="500"></div>
+        <div class="ctl"><label class="form-label" for="nf-y">中心 Y</label><input type="number" id="nf-y" class="form-control" min="0" max="3000" step="10" value="500"></div>
+        <div class="ctl"><label class="form-label" for="nf-l">长度 L</label><input type="number" id="nf-l" class="form-control" min="5" max="2000" step="10" value="200"></div>
+        <div class="ctl"><label class="form-label" for="nf-w">宽度 W</label><input type="number" id="nf-w" class="form-control" min="5" max="2000" step="10" value="200"></div>
+        <div class="ctl"><label class="form-label" for="nf-z1">底部高度</label><div class="pair"><input type="number" id="nf-z1" class="form-control" min="0" max="300" step="5" value="0"><span class="unit">m</span></div></div>
+      </div>
+      <div class="inline">
+        <span class="cap">顶部高度</span>
+        <input type="number" id="nf-z2" class="form-control" min="5" max="300" step="5" value="120">
+        <span class="unit">m</span>
+        <span class="cap text-small">路径规划将完全避开禁飞区（按指定高度区间生效）</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm">
+          <thead><tr><th>名称</th><th>X</th><th>Y</th><th>长</th><th>宽</th><th>Z范围</th><th></th></tr></thead>
+          <tbody id="nf-body"></tbody>
+        </table>
+      </div>
+      <span class="cap text-small">平面图中深色格为占用栅格、浅色格为膨胀/风险栅格，虚线建筑表示低于飞行高度可越障；红色框为禁飞区；右侧 3D 视图可旋转检查体素布局。</span>
+    </div>
+
+    <div id="sec-plan" class="sec" style="display:none">
+      <h3>起点与终点（可点击平面图拾取）</h3>
+      <div class="row2">
+        <div class="ctl">
+          <label class="form-label" for="start-x">起点 X / Y</label>
+          <div class="pair"><input type="number" id="start-x" class="form-control" min="0" max="3000" step="10" value="150"><input type="number" id="start-y" class="form-control" min="0" max="3000" step="10" value="150"></div>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="goal-x">终点 X / Y</label>
+          <div class="pair"><input type="number" id="goal-x" class="form-control" min="0" max="3000" step="10" value="850"><input type="number" id="goal-y" class="form-control" min="0" max="3000" step="10" value="850"></div>
+        </div>
+      </div>
+      <h3>对比算法</h3>
+      <div class="inline">
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-aw" checked><label class="form-check-label" for="alg-aw">风感知 A*</label></div>
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-base" checked><label class="form-check-label" for="alg-base">传统 A*</label></div>
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-rrt" checked><label class="form-check-label" for="alg-rrt">RRT*</label></div>
+        <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-pso"><label class="form-check-label" for="alg-pso">PSO</label></div>
+      </div>
+      <div class="inline">
+        <input type="checkbox" id="seed-check" class="form-check-input" checked>
+        <label class="form-check-label" for="seed-check">固定随机种子（可复现）</label>
+        <span class="cap">种子</span>
+        <input type="number" id="seed-num" class="form-control" min="1" max="999999" step="1" value="42">
+        <span class="cap text-small">RRT*/PSO 为随机算法；勾选后重复规划结果一致，便于复现实验</span>
+      </div>
+      <div class="inline">
+        <input type="checkbox" id="auto-plan" class="form-check-input" checked>
+        <label class="form-check-label" for="auto-plan">修改参数后自动重规划</label>
+        <span class="cap text-small">取消勾选后需手动点击“开始规划”</span>
+      </div>
+      <div class="row3">
+        <div class="ctl">
+          <label class="form-label" for="rrt-iter">RRT* 迭代</label>
+          <select id="rrt-iter" class="form-select">
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+            <option value="2000" selected>2000</option>
+            <option value="4000">4000</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="pso-parts">PSO 粒子数</label>
+          <select id="pso-parts" class="form-select">
+            <option value="20">20</option>
+            <option value="30" selected>30</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="ctl">
+          <label class="form-label" for="pso-iter">PSO 迭代</label>
+          <select id="pso-iter" class="form-select">
+            <option value="30">30</option>
+            <option value="50" selected>50</option>
+            <option value="80">80</option>
+          </select>
+        </div>
+      </div>
+      <div class="btns">
+        <button type="button" id="pick-start" class="btn">拾取起点</button>
+        <button type="button" id="pick-goal" class="btn">拾取终点</button>
+        <button type="button" id="btn-plan" class="btn btn-primary">开始规划（运行所选算法）</button>
+      </div>
+      <span class="cap text-small">代价 = 时间 + λE×能耗 + λR×风风险 + λT×转弯惩罚；地速 = 空速 ± 风速分量，逆风绕行、顺风直行，必要时爬升越障。</span>
+    </div>
+  </div>
+
+  <div class="view">
+    <div class="tb">
+      <button type="button" id="btn3d" class="btn">3D 展示</button>
+      <span id="az-wrap" style="display:none" class="inline">
+        <label class="form-label" for="az-range">视角方位（← → 键切换）</label>
+        <input type="range" id="az-range" min="0" max="360" step="5" value="45">
+        <span class="cap" id="az-val">45°</span>
+      </span>
+      <span class="cap" id="mode-cap">平面图 · 俯视</span>
+    </div>
+    <div class="cap" id="summary" aria-live="polite"></div>
+    <div id="plan-msg" class="cap"></div>
+    <div id="view-2d">
+      <svg id="svg2d" viewBox="0 0 760 540" width="100%" height="auto" role="img" aria-label="系统平面图：栅格地图、风场与规划航迹"></svg>
+    </div>
+    <div id="view-3d" style="display:none">
+      <svg id="svg3d" viewBox="0 0 760 540" width="100%" height="auto" role="img" aria-label="系统三维视图"></svg>
+    </div>
+    <div class="legend-row">
+      <span class="cap text-small">· 蓝实线 = 风感知路径</span>
+      <span class="cap text-small">· 灰虚线 = 传统路径</span>
+      <span class="cap text-small">· 紫色 = RRT*（细线为其搜索树）</span>
+      <span class="cap text-small">· 青色 = PSO</span>
+      <span class="cap text-small">· 文字标注 = 路径重叠段</span>
+      <span class="cap text-small">· 绿点 = 起点 · 红点 = 终点</span>
+      <span class="cap text-small">· 深色格 = 占用 · 浅色格 = 膨胀/风险</span>
+      <span class="cap text-small">· 橙色区 = 尾流风险区 · 蓝箭头 = 风场分布与平均风</span>
+    </div>
+    <div class="table-responsive" id="metrics-wrap" style="display:none">
+      <table class="table table-sm">
+        <thead><tr><th>算法</th><th>状态</th><th>长度</th><th>时间</th><th>能耗</th><th>最小净空</th><th>风险穿越</th><th>规划耗时</th></tr></thead>
+        <tbody id="metrics-body"></tbody>
+      </table>
+    </div>
+    <div id="valid-wrap" style="display:none">
+      <h3>路径合理性检验（对照机型参数）</h3>
+      <div class="cap" id="valid-summary"></div>
+      <div id="valid-body"></div>
+    </div>
+    <div class="cap" id="concl"></div>
+  </div>
+</div>
+<script>(function(){
+  var TYPES=[
+    {id:'quad',name:'四旋翼',maxWind:8,load:0.5,cruise:10,hoverW:120,cruiseWh100:0.45,climbWh10:0.10,endurance:30,launchCost:0.5,canHover:true,altRange:{min:5,max:120}},
+    {id:'hexa',name:'六旋翼',maxWind:10,load:3,cruise:12,hoverW:500,cruiseWh100:1.30,climbWh10:0.20,endurance:25,launchCost:1.0,canHover:true,altRange:{min:5,max:120}},
+    {id:'fixed',name:'固定翼',maxWind:12,load:2,cruise:18,hoverW:0,cruiseWh100:0.32,climbWh10:0.15,endurance:60,launchCost:2.0,canHover:false,altRange:{min:30,max:200}},
+    {id:'vtol',name:'复合翼',maxWind:12,load:4,cruise:20,hoverW:600,cruiseWh100:0.50,climbWh10:0.30,endurance:50,launchCost:2.5,canHover:true,altRange:{min:5,max:300}}
+  ];
+  var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
+  var state={buildings:[],noFly:[],mode:'2d',azimuth:45,pick:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var els={};
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly']
+    .forEach(function(id){ els[id]=document.getElementById(id); });
+
+  var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
+
+  function num(id){ return parseFloat(els[id].value)||0; }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+  function heightColor(h){
+    if(h<=40) return 'var(--viz-series-1)';
+    if(h<=70) return 'var(--viz-series-2)';
+    if(h<=100) return 'var(--viz-series-3)';
+    if(h<=130) return 'var(--viz-series-4)';
+    return 'var(--viz-series-5)';
+  }
+  function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+  function presets(kind){
+    var a=[],n=0;
+    if(kind==='grid'){
+      var rows=[130,350,570,790], hs=[50,80,65,95];
+      rows.forEach(function(cx){ rows.forEach(function(cy){ n++; a.push({name:'B'+n,x:cx,y:cy,l:80,w:80,h:hs[(n-1)%4]}); }); });
+      return a;
+    }
+    if(kind==='canyon'){
+      return [
+        {name:'墙A',x:150,y:90,l:700,w:50,h:80},
+        {name:'墙B',x:150,y:660,l:700,w:50,h:90},
+        {name:'桥墩1',x:320,y:350,l:40,w:40,h:40},
+        {name:'桥墩2',x:500,y:350,l:40,w:40,h:45}
+      ];
+    }
+    if(kind==='lshaped'){
+      return [
+        {name:'L1长臂',x:200,y:160,l:220,w:60,h:75},
+        {name:'L1短臂',x:160,y:120,l:60,w:140,h:75},
+        {name:'L2长臂',x:620,y:560,l:180,w:55,h:60},
+        {name:'L2短臂',x:595,y:530,l:55,w:130,h:60},
+        {name:'塔楼',x:430,y:360,l:90,w:90,h:110}
+      ];
+    }
+    if(kind==='mix'){
+      return [
+        {name:'塔楼1',x:180,y:180,l:90,w:90,h:110},
+        {name:'塔楼2',x:700,y:200,l:110,w:110,h:130},
+        {name:'板楼',x:430,y:140,l:260,w:60,h:70},
+        {name:'厂房',x:180,y:520,l:200,w:100,h:35},
+        {name:'住宅',x:560,y:520,l:100,w:80,h:55},
+        {name:'地标',x:760,y:640,l:70,w:70,h:95},
+        {name:'连廊A',x:300,y:330,l:140,w:25,h:25}
+      ];
+    }
+    return a;
+  }
+
+  function readInputs(){
+    state.windType=els['wind-type'].value;
+    state.region={x:Math.max(10,num('region-x')),y:Math.max(10,num('region-y')),z:Math.max(5,num('region-z'))};
+    state.res=parseInt(els['res-select'].value,10)||20;
+    state.flightAlt=Math.max(0,num('flight-alt'));
+    state.margin=Math.max(0,num('margin-num'));
+    state.wind={
+      speed:Math.max(0,num('V-num')),
+      dir:((Math.round(num('dir-num'))%360)+360)%360,
+      wz:clamp(num('wz-num'),-5,5),
+      gust:Math.max(0,num('gust-amp')),
+      turb:Math.max(0,num('turb-i')),
+      profile:els['profile-check'].checked,
+      alpha:Math.max(0.05,num('alpha-num')),
+      href:Math.max(1,num('href-num'))
+    };
+    state.wind.instant=state.wind.speed+state.wind.gust;
+    state.wind.tAir=((state.wind.dir+180)%360)*Math.PI/180;
+    state.wakeOn=els['wake-toggle'].checked;
+    state.fieldArrows=els['field-arrows'].checked;
+    state.nfOn=els['nf-toggle'].checked;
+    state.sliceAlt=Math.max(0,Math.min(state.region.z,parseInt(els['slice-alt'].value,10)||0));
+    state.showRisk=els['show-risk'].checked;
+    state.showFly=els['show-fly'].checked;
+    state.bgOpacity=parseInt(els['bg-opacity'].value,10)||100;
+    state.wakeLen=Math.max(1,num('wake-len'));
+    state.obj=els['obj-select'].value;
+    state.load=Math.max(0,num('load-num'));
+    state.hoverMin=Math.max(0,num('hover-min'));
+    state.start={x:clamp(num('start-x'),0,state.region.x),y:clamp(num('start-y'),0,state.region.y)};
+    state.goal={x:clamp(num('goal-x'),0,state.region.x),y:clamp(num('goal-y'),0,state.region.y)};
+    var W={efficient:{wE:0.5,wR:0.4,wT:0.3},cost:{wE:2.0,wR:0.6,wT:0.2},safe:{wE:0.4,wR:2.5,wT:0.2},balanced:{wE:1.0,wR:1.0,wT:0.5}};
+    state.weights=W[state.obj]||W.balanced;
+    state.algs={aw:els['alg-aw'].checked,base:els['alg-base'].checked,rrt:els['alg-rrt'].checked,pso:els['alg-pso'].checked};
+    state.rrtIter=parseInt(els['rrt-iter'].value,10)||2000;
+    state.psoParts=parseInt(els['pso-parts'].value,10)||30;
+    state.psoIter=parseInt(els['pso-iter'].value,10)||50;
+  }
+  function windSpeedAt(z){
+    var s=state.wind.speed;
+    if(state.wind.profile&&state.wind.href>0&&z>0){
+      s=s*Math.pow(Math.max(z,1)/state.wind.href,state.wind.alpha);
+    }
+    return Math.min(25,s);
+  }
+  function vertTime(vert,up){
+    var base=3;
+    if(up) base+=state.wind.wz*0.5;
+    else base-=state.wind.wz*0.5;
+    return vert/Math.max(1.5,base);
+  }
+  function windFeasibleAt(z,uav){
+    var ws=windSpeedAt(z);
+    return ws<=uav.maxWind+1e-9 && ws<uav.cruise;
+  }
+
+  function recommendUav(){
+    var feas=TYPES.filter(function(t){
+      return state.wind.instant<=t.maxWind+1e-9 && state.load<=t.load+1e-9 && (state.hoverMin<=0||t.canHover);
+    });
+    if(!feas.length) return null;
+    var best;
+    if(state.obj==='efficient'){
+      best=feas.reduce(function(a,b){ return b.cruise-a.cruise>1e-9?b:a; });
+    } else if(state.obj==='safe'){
+      best=feas.reduce(function(a,b){ return (b.maxWind-state.wind.instant)-(a.maxWind-state.wind.instant)>1e-9?b:a; });
+    } else if(state.obj==='cost'){
+      best=feas.reduce(function(a,b){
+        var km=10;
+        var ca=a.launchCost+(a.cruiseWh100*km*10)/1000+(km*1000)/(a.cruise*60)*0.5;
+        var cb=b.launchCost+(b.cruiseWh100*km*10)/1000+(km*1000)/(b.cruise*60)*0.5;
+        return cb-ca<-1e-9?b:a;
+      });
+    } else {
+      var minC=Math.min.apply(null,feas.map(function(t){return t.cruise;})), maxC=Math.max.apply(null,feas.map(function(t){return t.cruise;}));
+      var minM=Math.min.apply(null,feas.map(function(t){return t.maxWind-state.wind.instant;})), maxM=Math.max.apply(null,feas.map(function(t){return t.maxWind-state.wind.instant;}));
+      var sc=-1, best2=feas[0];
+      feas.forEach(function(t){
+        var s=0.4*((t.maxWind-state.wind.instant-minM)/(maxM-minM||1))+0.3*((t.cruise-minC)/(maxC-minC||1))+0.3;
+        if(s>sc){ sc=s; best2=t; }
+      });
+      best=best2;
+    }
+    return best;
+  }
+  function resolveUav(){
+    var sel=els['uav-select'].value;
+    if(sel==='auto'){ return recommendUav(); }
+    for(var i=0;i<TYPES.length;i++){ if(TYPES[i].id===sel) return TYPES[i]; }
+    return null;
+  }
+  function uavFeasible(u){
+    return u&&state.wind.instant<=u.maxWind+1e-9&&state.load<=u.load+1e-9&&(state.hoverMin<=0||u.canHover);
+  }
+
+  function buildGrid(){
+    var rx=state.region.x, ry=state.region.y, rz=state.region.z, res=state.res;
+    var nx=Math.max(1,Math.ceil(rx/res)), ny=Math.max(1,Math.ceil(ry/res)), nz=Math.max(1,Math.ceil(rz/res));
+    var N=nx*ny*nz;
+    var occ=new Uint8Array(N), risk=new Float64Array(N);
+    function I(i,j,k){ return (k*ny+j)*nx+i; }
+    state.buildings.forEach(function(b){
+      var x0=Math.max(0,b.x-b.l/2), x1=Math.min(rx,b.x+b.l/2);
+      var y0=Math.max(0,b.y-b.w/2), y1=Math.min(ry,b.y+b.w/2);
+      var i0=Math.floor(x0/res), i1=Math.max(i0,Math.min(nx-1,Math.floor((x1-1e-9)/res)));
+      var j0=Math.floor(y0/res), j1=Math.max(j0,Math.min(ny-1,Math.floor((y1-1e-9)/res)));
+      var k1=Math.max(0,Math.min(nz-1,Math.floor((Math.min(b.h,rz)-1e-9)/res)));
+      var i,j,k;
+      for(k=0;k<=k1;k++){ for(i=i0;i<=i1;i++){ for(j=j0;j<=j1;j++){ occ[I(i,j,k)]=1; } } }
+      if(state.margin>0){
+        var ex0=Math.max(0,b.x-b.l/2-state.margin), ex1=Math.min(rx,b.x+b.l/2+state.margin);
+        var ey0=Math.max(0,b.y-b.w/2-state.margin), ey1=Math.min(ry,b.y+b.w/2+state.margin);
+        var a0=Math.floor(ex0/res), a1=Math.max(a0,Math.min(nx-1,Math.floor((ex1-1e-9)/res)));
+        var b0=Math.floor(ey0/res), b1=Math.max(b0,Math.min(ny-1,Math.floor((ey1-1e-9)/res)));
+        for(k=0;k<nz;k++){ for(i=a0;i<=a1;i++){ for(j=b0;j<=b1;j++){
+          var cx=(i+0.5)*res, cy=(j+0.5)*res;
+          if(cx>=ex0&&cx<=ex1&&cy>=ey0&&cy<=ey1 && !occ[I(i,j,k)]) risk[I(i,j,k)]+=2.0;
+        } } }
+      }
+      if(state.wakeOn&&state.wind.speed>0){
+        var ux=Math.sin(state.wind.tAir), uy=Math.cos(state.wind.tAir);
+        var L=state.wakeLen*Math.max(b.l,b.w);
+        var wx0=x0+ux*L, wx1=x1+ux*L, wy0=y0+uy*L, wy1=y1+uy*L;
+        var wa0=Math.max(0,Math.min(wx0,wx1)), wa1=Math.min(rx,Math.max(wx0,wx1));
+        var wb0=Math.max(0,Math.min(wy0,wy1)), wb1=Math.min(ry,Math.max(wy0,wy1));
+        var c0=Math.floor(wa0/res), c1=Math.max(c0,Math.min(nx-1,Math.floor((wa1-1e-9)/res)));
+        var d0=Math.floor(wb0/res), d1=Math.max(d0,Math.min(ny-1,Math.floor((wb1-1e-9)/res)));
+        var wk1=Math.max(0,Math.min(nz-1,Math.floor((Math.min(b.h,rz)-1e-9)/res)));
+        for(k=0;k<=wk1;k++){ for(i=c0;i<=c1;i++){ for(j=d0;j<=d1;j++){
+          var cx=(i+0.5)*res, cy=(j+0.5)*res;
+          if(cx>=wa0&&cx<=wa1&&cy>=wb0&&cy<=wb1 && !occ[I(i,j,k)]) risk[I(i,j,k)]+=1.5;
+        } } }
+      }
+    });
+    state.noFly.forEach(function(z){
+      var x0=Math.max(0,z.x-z.l/2), x1=Math.min(rx,z.x+z.l/2);
+      var y0=Math.max(0,z.y-z.w/2), y1=Math.min(ry,z.y+z.w/2);
+      var i0=Math.floor(x0/res), i1=Math.max(i0,Math.min(nx-1,Math.floor((x1-1e-9)/res)));
+      var j0=Math.floor(y0/res), j1=Math.max(j0,Math.min(ny-1,Math.floor((y1-1e-9)/res)));
+      var z1=Math.max(0,z.z1||0), z2=Math.min(rz,z.z2||rz);
+      for(var k=0;k<nz;k++){
+        if(!(k*res<z2&&(k+1)*res>z1)) continue;
+        for(var i=i0;i<=i1;i++){ for(var j=j0;j<=j1;j++){ occ[I(i,j,k)]=1; } }
+      }
+    });
+    var mult=1+state.wind.turb*3;
+    for(var idx=0;idx<N;idx++){ risk[idx]*=mult; }
+    return {nx:nx,ny:ny,nz:nz,occ:occ,risk:risk};
+  }
+
+  function cellIndex(grid,ix,iy,iz){ return (iz*grid.ny+iy)*grid.nx+ix; }
+  function decode(grid,idx){
+    var iz=Math.floor(idx/(grid.ny*grid.nx));
+    var r=idx%(grid.ny*grid.nx);
+    var iy=Math.floor(r/grid.nx);
+    var ix=r%grid.nx;
+    return {ix:ix,iy:iy,iz:iz};
+  }
+  function snapCell(grid, wx, wy, wz){
+    var ix=clamp(Math.floor(wx/state.res),0,grid.nx-1);
+    var iy=clamp(Math.floor(wy/state.res),0,grid.ny-1);
+    var iz=clamp(Math.floor(wz/state.res),0,grid.nz-1);
+    if(!grid.occ[cellIndex(grid,ix,iy,iz)]) return {ix:ix,iy:iy,iz:iz};
+    for(var r=1;r<=6;r++){
+      for(var dx=-r;dx<=r;dx++) for(var dy=-r;dy<=r;dy++) for(var dz=-r;dz<=r;dz++){
+        var a=ix+dx, b=iy+dy, c=iz+dz;
+        if(a<0||b<0||c<0||a>=grid.nx||b>=grid.ny||c>=grid.nz) continue;
+        if(!grid.occ[cellIndex(grid,a,b,c)]) return {ix:a,iy:b,iz:c};
+      }
+    }
+    return null;
+  }
+
+  var moveDir=new Int16Array(0);
+  function packMove(dx,dy,dz){ return (dx+1)*9+(dy+1)*3+(dz+1); }
+  function decodeMove(p){ return {dx:Math.floor(p/9)-1, dy:Math.floor((p%9)/3)-1, dz:(p%3)-1}; }
+  function moveCost(grid, cur, n, move, uav, windAware){
+    var d=Math.sqrt(move.dx*move.dx+move.dy*move.dy);
+    var horiz=d*state.res, vert=Math.abs(move.dz)*state.res;
+    var time=0, energy=0, risk=0, turn=0;
+    if(move.dz!==0){
+      time+=vertTime(vert,move.dz>0);
+      energy+=uav.climbWh10*(vert/10);
+    }
+    if(d>0){
+      var vg=uav.cruise;
+      if(windAware){
+        var dirX=move.dx/d, dirY=move.dy/d;
+        var zc=(decode(grid,n).iz+0.5)*state.res;
+        var ws=windSpeedAt(zc);
+        var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
+        vg=Math.max(0.5,uav.cruise+wAlong);
+        risk=grid.risk[n];
+      }
+      time+=horiz/vg;
+      energy+=uav.cruiseWh100*(horiz/100);
+      if(moveDir[cur]>=0){
+        var pm=decodeMove(moveDir[cur]);
+        if(pm.dx!==move.dx||pm.dy!==move.dy||pm.dz!==move.dz) turn=0.5*(horiz/vg);
+      }
+    }
+    return time+state.weights.wE*20*energy+state.weights.wR*risk+state.weights.wT*turn;
+  }
+
+  function plan(grid, s, g, windAware, uav){
+    var t0=performance.now();
+    var N=grid.nx*grid.ny*grid.nz;
+    var gScore=new Float64Array(N), fScore=new Float64Array(N), came=new Int32Array(N);
+    var i;
+    for(i=0;i<N;i++){ gScore[i]=Infinity; came[i]=-1; }
+    moveDir=new Int16Array(N);
+    for(i=0;i<N;i++){ moveDir[i]=-1; }
+    var sIdx=cellIndex(grid,s.ix,s.iy,s.iz), gIdx=cellIndex(grid,g.ix,g.iy,g.iz);
+    var wsMax=windSpeedAt(state.region.z);
+    var vgMax=Math.max(0.5,uav.cruise+wsMax);
+    var vMaxVert=3+0.5*Math.abs(state.wind.wz);
+    function heuristic(idx){
+      var a=decode(grid,idx), b=decode(grid,gIdx);
+      var dx=(a.ix-b.ix)*state.res, dy=(a.iy-b.iy)*state.res, dz=(a.iz-b.iz)*state.res;
+      var horiz=Math.sqrt(dx*dx+dy*dy), vert=Math.abs(dz);
+      var e=Math.sqrt(dx*dx+dy*dy+dz*dz);
+      return horiz/vgMax+vert/vMaxVert+state.weights.wE*20*(uav.cruiseWh100*(e/100));
+    }
+    var heap=[];
+    function heapPush(idx,f){
+      heap.push({idx:idx,f:f});
+      var k=heap.length-1;
+      while(k>0){
+        var p=Math.floor((k-1)/2);
+        if(heap[p].f<=heap[k].f) break;
+        var t=heap[p]; heap[p]=heap[k]; heap[k]=t; k=p;
+      }
+    }
+    function heapPop(){
+      var top=heap[0], last=heap.pop();
+      if(heap.length){
+        heap[0]=last;
+        var k=0;
+        for(;;){
+          var l=2*k+1, r=2*k+2, m=k;
+          if(l<heap.length&&heap[l].f<heap[m].f) m=l;
+          if(r<heap.length&&heap[r].f<heap[m].f) m=r;
+          if(m===k) break;
+          var t=heap[m]; heap[m]=heap[k]; heap[k]=t; k=m;
+        }
+      }
+      return top;
+    }
+    gScore[sIdx]=0; fScore[sIdx]=heuristic(sIdx);
+    heapPush(sIdx,fScore[sIdx]);
+    var moves=[];
+    for(var dx=-1;dx<=1;dx++) for(var dy=-1;dy<=1;dy++) for(var dz=-1;dz<=1;dz++){
+      if(dx===0&&dy===0&&dz===0) continue;
+      moves.push({dx:dx,dy:dy,dz:dz});
+    }
+    var found=false, iter=0;
+    var iterMax=Math.min(2000000,Math.max(200000,N*40));
+    while(heap.length&&iter<iterMax){
+      iter++;
+      var cur=heapPop();
+      if(cur.idx===gIdx){ found=true; break; }
+      var cd=decode(grid,cur.idx);
+      for(var m=0;m<moves.length;m++){
+        var mv=moves[m];
+        var a=cd.ix+mv.dx, b=cd.iy+mv.dy, c=cd.iz+mv.dz;
+        if(a<0||b<0||c<0||a>=grid.nx||b>=grid.ny||c>=grid.nz) continue;
+        var ni=cellIndex(grid,a,b,c);
+        if(grid.occ[ni]) continue;
+        if(windAware&&!windFeasibleAt((c+0.5)*state.res,uav)) continue;
+        var cost=moveCost(grid,cur.idx,ni,mv,uav,windAware);
+        var tent=gScore[cur.idx]+cost;
+        if(tent<gScore[ni]){
+          gScore[ni]=tent; came[ni]=cur.idx; moveDir[ni]=packMove(mv.dx,mv.dy,mv.dz);
+          fScore[ni]=tent+heuristic(ni);
+          heapPush(ni,fScore[ni]);
+        }
+      }
+    }
+    if(!found&&gIdx!==sIdx) return {timeout:true, exhausted:iter>=iterMax};
+    var cells=[gIdx], cur2=gIdx, guard=0;
+    while(cur2!==sIdx&&guard<N+10){ cur2=came[cur2]; if(cur2<0) break; cells.unshift(cur2); guard++; }
+    if(cells[0]!==sIdx) cells.unshift(sIdx);
+    return {cells:cells, ms:performance.now()-t0};
+  }
+  function computeMetrics(cells, grid, uav, windAware){
+    var len=0,time=0,energy=0,riskCells=0;
+    var pts=cells.map(function(idx){
+      var d=decode(grid,idx);
+      return {x:(d.ix+0.5)*state.res,y:(d.iy+0.5)*state.res,z:(d.iz+0.5)*state.res};
+    });
+    for(var i=0;i<pts.length;i++){
+      if(grid.risk[cells[i]]>0.5) riskCells++;
+      if(i>0){
+        var p=pts[i-1], q=pts[i];
+        var dx=q.x-p.x, dy=q.y-p.y, dz=q.z-p.z;
+        var horiz=Math.sqrt(dx*dx+dy*dy), vert=Math.abs(dz);
+        len+=Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(vert>1e-9){
+          time+=vertTime(vert,dz>0); energy+=uav.climbWh10*(vert/10);
+        }
+        if(horiz>1e-9){
+          var vg=uav.cruise;
+          if(windAware){
+            var dirX=dx/horiz, dirY=dy/horiz;
+            var ws=windSpeedAt(q.z);
+            var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
+            vg=Math.max(0.5,uav.cruise+wAlong);
+          }
+          time+=horiz/vg; energy+=uav.cruiseWh100*(horiz/100);
+        }
+      }
+    }
+    if(uav.canHover&&state.hoverMin>0){ time+=state.hoverMin*60; energy+=(uav.hoverW/60)*state.hoverMin; }
+    var clearance=Infinity;
+    pts.forEach(function(p){
+      state.buildings.forEach(function(b){
+        var nx2=clamp(p.x,b.x-b.l/2,b.x+b.l/2), ny2=clamp(p.y,b.y-b.w/2,b.y+b.w/2);
+        var d=Math.sqrt((p.x-nx2)*(p.x-nx2)+(p.y-ny2)*(p.y-ny2));
+        if(d<clearance) clearance=d;
+        if(p.x>=b.x-b.l/2&&p.x<=b.x+b.l/2&&p.y>=b.y-b.w/2&&p.y<=b.y+b.w/2){
+          var vc=Math.max(0,p.z-b.h);
+          if(vc<clearance) clearance=vc;
+        }
+      });
+    });
+    if(clearance===Infinity) clearance=Math.max(state.region.x,state.region.y);
+    return {len:len,time:time,energy:energy,riskCells:riskCells,clearance:clearance};
+  }
+
+  var rngSeed=null;
+  function resetRng(){
+    rngSeed=els['seed-check'].checked?((parseInt(els['seed-num'].value,10)||1)>>>0):null;
+  }
+  function rng(){
+    if(rngSeed!==null){
+      rngSeed=(Math.imul(rngSeed,1664525)+1013904223)>>>0;
+      return rngSeed/4294967296;
+    }
+    return Math.random();
+  }
+  function distCells(grid,a,b){
+    var da=decode(grid,a), db=decode(grid,b);
+    return Math.sqrt(Math.pow((da.ix-db.ix)*state.res,2)+Math.pow((da.iy-db.iy)*state.res,2)+Math.pow((da.iz-db.iz)*state.res,2));
+  }
+  function lineInfo(grid,a,b,uav,windAware){
+    var da=decode(grid,a), db=decode(grid,b);
+    var x1=(da.ix+0.5)*state.res, y1=(da.iy+0.5)*state.res, z1=(da.iz+0.5)*state.res;
+    var x2=(db.ix+0.5)*state.res, y2=(db.iy+0.5)*state.res, z2=(db.iz+0.5)*state.res;
+    var dx=x2-x1, dy=y2-y1, dz=z2-z1;
+    var dist=Math.sqrt(dx*dx+dy*dy+dz*dz);
+    var horiz=Math.sqrt(dx*dx+dy*dy), vert=Math.abs(dz);
+    var steps=Math.max(1,Math.ceil(dist/(state.res/2)));
+    var risk=0;
+    for(var i=0;i<=steps;i++){
+      var t=i/steps;
+      var px=x1+dx*t, py=y1+dy*t, pz=z1+dz*t;
+      var cx=clamp(Math.floor(px/state.res),0,grid.nx-1);
+      var cy=clamp(Math.floor(py/state.res),0,grid.ny-1);
+      var cz=clamp(Math.floor(pz/state.res),0,grid.nz-1);
+      var idx=cellIndex(grid,cx,cy,cz);
+      if(grid.occ[idx]) return null;
+      if(windAware&&!windFeasibleAt(pz,uav)) return null;
+      risk+=grid.risk[idx];
+    }
+    risk=risk/(steps+1);
+    var time=0, energy=0;
+    if(vert>1e-9){ time+=vertTime(vert,dz>0); energy+=uav.climbWh10*(vert/10); }
+    if(horiz>1e-9){
+      var vg=uav.cruise;
+      if(windAware){
+        var dirX=dx/horiz, dirY=dy/horiz;
+        var ws=windSpeedAt((z1+z2)/2);
+        var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
+        vg=Math.max(0.5,uav.cruise+wAlong);
+      }
+      time+=horiz/vg; energy+=uav.cruiseWh100*(horiz/100);
+    }
+    return {cost:time+state.weights.wE*20*energy+state.weights.wR*risk, risk:risk};
+  }
+  function shortcutPath(grid,cells,uav,windAware){
+    var pass=0, improved=true;
+    while(improved&&pass<2){
+      improved=false; pass++;
+      for(var i=0;i<cells.length-2;i++){
+        for(var j=cells.length-1;j>i+1;j--){
+          var li=lineInfo(grid,cells[i],cells[j],uav,windAware);
+          if(!li) continue;
+          var cur=0;
+          for(var k=i;k<j;k++){ var lk=lineInfo(grid,cells[k],cells[k+1],uav,windAware); if(lk) cur+=lk.cost; }
+          if(li.cost<cur*0.90-1e-9){
+            cells=cells.slice(0,i+1).concat(cells.slice(j));
+            improved=true;
+          }
+        }
+      }
+    }
+    return cells;
+  }
+  function rrtStar(grid, s, g, uav, windAware, maxIter){
+    var t0=performance.now();
+    var sIdx=cellIndex(grid,s.ix,s.iy,s.iz), gIdx=cellIndex(grid,g.ix,g.iy,g.iz);
+    if(sIdx===gIdx) return {cells:[sIdx], ms:0, nodes:1, tree:[{idx:sIdx,cost:0,parent:-1}]};
+    var nodes=[{idx:sIdx,cost:0,parent:-1}];
+    var children=[[]];
+    var nodeX=[(s.ix+0.5)*state.res], nodeY=[(s.iy+0.5)*state.res], nodeZ=[(s.iz+0.5)*state.res];
+    var gx=(g.ix+0.5)*state.res, gy=(g.iy+0.5)*state.res, gz=(g.iz+0.5)*state.res;
+    var goalR=state.res*4, goalParent=-1, goalCost=Infinity, iter=0;
+    while(iter<maxIter){
+      iter++;
+      var sample;
+      if(rng()<0.05){ sample={ix:g.ix,iy:g.iy,iz:g.iz}; }
+      else {
+        var tries=0;
+        do{
+          sample={ix:Math.floor(rng()*grid.nx),iy:Math.floor(rng()*grid.ny),iz:Math.floor(rng()*grid.nz)};
+          tries++;
+        } while(grid.occ[cellIndex(grid,sample.ix,sample.iy,sample.iz)]&&tries<50);
+        if(tries>=50) continue;
+      }
+      var sidx=cellIndex(grid,sample.ix,sample.iy,sample.iz);
+      var sx2=(sample.ix+0.5)*state.res, sy2=(sample.iy+0.5)*state.res, sz2=(sample.iz+0.5)*state.res;
+      var best=-1, bestD=Infinity;
+      for(var i=0;i<nodes.length;i++){
+        var dx=nodeX[i]-sx2, dy=nodeY[i]-sy2, dz=nodeZ[i]-sz2;
+        var d=Math.sqrt(dx*dx+dy*dy+dz*dz);
+        if(d<bestD){ bestD=d; best=i; }
+      }
+      if(best<0) continue;
+      var li=lineInfo(grid,nodes[best].idx,sidx,uav,windAware);
+      if(!li) continue;
+      var newCost=nodes[best].cost+li.cost;
+      var newNode=nodes.length;
+      nodes.push({idx:sidx,cost:newCost,parent:best});
+      nodeX.push(sx2); nodeY.push(sy2); nodeZ.push(sz2);
+      children[newNode]=[]; children[best].push(newNode);
+      var R=state.res*5;
+      for(var i2=0;i2<nodes.length-1;i2++){
+        var dx2=nodeX[i2]-sx2, dy2=nodeY[i2]-sy2, dz2=nodeZ[i2]-sz2;
+        var d2=Math.sqrt(dx2*dx2+dy2*dy2+dz2*dz2);
+        if(d2<=R){
+          var li2=lineInfo(grid,sidx,nodes[i2].idx,uav,windAware);
+          if(li2&&newCost+li2.cost<nodes[i2].cost-1e-9){
+            var oldP=nodes[i2].parent;
+            if(oldP>=0&&children[oldP]){
+              var pos=children[oldP].indexOf(i2);
+              if(pos>=0) children[oldP].splice(pos,1);
+            }
+            children[newNode].push(i2);
+            var delta=newCost+li2.cost-nodes[i2].cost;
+            nodes[i2].parent=newNode; nodes[i2].cost+=delta;
+            var stack=children[i2].slice();
+            while(stack.length){
+              var cc=stack.pop();
+              nodes[cc].cost+=delta;
+              for(var ci=0;ci<children[cc].length;ci++) stack.push(children[cc][ci]);
+            }
+          }
+        }
+      }
+      var dgx=nodeX[newNode]-gx, dgy=nodeY[newNode]-gy, dgz=nodeZ[newNode]-gz;
+      if(Math.sqrt(dgx*dgx+dgy*dgy+dgz*dgz)<=goalR){
+        var li3=lineInfo(grid,sidx,gIdx,uav,windAware);
+        if(li3){
+          var c3=newCost+li3.cost;
+          if(c3<goalCost){ goalCost=c3; goalParent=newNode; }
+        }
+      }
+    }
+    var bestGi=goalParent, bestGc=goalCost;
+    var R2=goalR*2.5;
+    for(var i=0;i<nodes.length;i++){
+      if(nodes[i].idx===gIdx) continue;
+      var ddx=nodeX[i]-gx, ddy=nodeY[i]-gy, ddz=nodeZ[i]-gz;
+      if(Math.sqrt(ddx*ddx+ddy*ddy+ddz*ddz)>R2) continue;
+      var lg=lineInfo(grid,nodes[i].idx,gIdx,uav,windAware);
+      if(!lg) continue;
+      var cg=nodes[i].cost+lg.cost;
+      if(cg<bestGc){ bestGc=cg; bestGi=i; }
+    }
+    if(bestGi<0) return null;
+    var cells=[gIdx], cur=bestGi;
+    while(cur>=0){ cells.unshift(nodes[cur].idx); cur=nodes[cur].parent; }
+    var raw=cells.slice();
+    cells=shortcutPath(grid,cells,uav,windAware);
+    return {cells:cells, ms:performance.now()-t0, nodes:nodes.length, tree:nodes, rawCells:raw, goalCost:bestGc};
+  }
+  function pso(grid, s, g, uav, windAware, parts, iters, seedCells){
+    var t0=performance.now();
+    var K=8;
+    var sIdx=cellIndex(grid,s.ix,s.iy,s.iz), gIdx=cellIndex(grid,g.ix,g.iy,g.iz);
+    if(sIdx===gIdx) return {cells:[sIdx], ms:0};
+    var dim=K*3;
+    var lb=[0,0,0], ub=[state.region.x,state.region.y,state.region.z];
+    function posToCells(p){
+      var cells=[sIdx];
+      for(var i=0;i<K;i++){
+        var cx=clamp(Math.floor(p[i*3]/state.res),0,grid.nx-1);
+        var cy=clamp(Math.floor(p[i*3+1]/state.res),0,grid.ny-1);
+        var cz=clamp(Math.floor(p[i*3+2]/state.res),0,grid.nz-1);
+        cells.push(cellIndex(grid,cx,cy,cz));
+      }
+      cells.push(gIdx);
+      return cells;
+    }
+    function fitness(p){
+      var cells=posToCells(p), total=0, blocked=0;
+      for(var i=0;i<cells.length-1;i++){
+        var li=lineInfo(grid,cells[i],cells[i+1],uav,windAware);
+        if(!li){ blocked++; total+=1e6; }
+        else total+=li.cost;
+      }
+      return total+blocked*1e6;
+    }
+    var swarm=[], gbest=null, gbestF=Infinity;
+    for(var i=0;i<parts;i++){
+      var pos=[], vel=[];
+      for(var d=0;d<dim;d++){
+        var sp=(d%3===0)?state.start.x:(d%3===1)?state.start.y:state.flightAlt;
+        var gp=(d%3===0)?state.goal.x:(d%3===1)?state.goal.y:state.flightAlt;
+        var v=(d%3===2)?state.flightAlt:(sp+(gp-sp)*(parts>1?i/(parts-1):0));
+        v+=(rng()-0.5)*state.res*2;
+        v=clamp(v,lb[d%3],ub[d%3]);
+        pos.push(v);
+        vel.push((rng()-0.5)*state.res*2);
+      }
+      var f=fitness(pos);
+      swarm.push({pos:pos,vel:vel,best:pos.slice(),bestF:f});
+      if(f<gbestF){ gbestF=f; gbest=pos.slice(); }
+    }
+    var w=0.6, c1=1.6, c2=1.6;
+    for(var it=0;it<iters;it++){
+      for(var i=0;i<parts;i++){
+        var p=swarm[i];
+        for(var d=0;d<dim;d++){
+          var r1=rng(), r2=rng();
+          p.vel[d]=w*p.vel[d]+c1*r1*(p.best[d]-p.pos[d])+c2*r2*(gbest[d]-p.pos[d]);
+          p.pos[d]=clamp(p.pos[d]+p.vel[d],lb[d%3],ub[d%3]);
+        }
+        var f=fitness(p.pos);
+        if(f<p.bestF){ p.bestF=f; p.best=p.pos.slice(); }
+        if(f<gbestF){ gbestF=f; gbest=p.pos.slice(); }
+      }
+    }
+    if(gbestF>=1e6) return null;
+    var cells=posToCells(gbest);
+    var wps=cells.slice(1,-1);
+    cells=shortcutPath(grid,cells,uav,windAware);
+    return {cells:cells, ms:performance.now()-t0, wps:wps};
+  }
+  function planAll(){
+    try{
+    if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
+    readInputs();
+    resetRng();
+    var uav=resolveUav();
+    if(!uav){
+      state.results=null;
+      els['metrics-wrap'].style.display='none';
+      els['plan-msg'].textContent='第'+((state.results?state.results.count:0)+1)+'次规划未执行：当前风况/载重下无可用机型（瞬时风 '+state.wind.instant.toFixed(1)+' m/s 超过所有机型抗风上限，或载重超限）。请降低风速/载重后再规划。';
+      renderAll();
+      return;
+    }
+    if(!uavFeasible(uav)){
+      state.results=null;
+      els['metrics-wrap'].style.display='none';
+      var reasons=[];
+      if(state.wind.instant>uav.maxWind) reasons.push('瞬时风 '+state.wind.instant.toFixed(1)+' m/s 超过该机型抗风上限 '+uav.maxWind+' m/s');
+      if(state.load>uav.load) reasons.push('载重 '+state.load.toFixed(1)+' kg 超过该机型上限 '+uav.load.toFixed(1)+' kg');
+      if(state.hoverMin>0&&!uav.canHover) reasons.push('任务含悬停作业，该机型无法悬停');
+      els['plan-msg'].textContent='第'+((state.results?state.results.count:0)+1)+'次规划未执行：所选机型“'+uav.name+'”不满足安全条件（'+reasons.join('；')+'）。请降低风速/载重、减少悬停作业或切换机型。';
+      renderAll();
+      return;
+    }
+    var grid=buildGrid();
+    var wz=clamp(state.flightAlt,0,state.region.z);
+    var s=snapCell(grid,state.start.x,state.start.y,wz);
+    var g=snapCell(grid,state.goal.x,state.goal.y,wz);
+    if(!s||!g){
+      state.results=null;
+      els['metrics-wrap'].style.display='none';
+      els['plan-msg'].textContent='起点或终点附近无可用栅格（被建筑包围），请调整位置。';
+      renderAll();
+      return;
+    }
+    var runs=[];
+    function addRun(key,name,cls,res,windAware,main){
+      if(!res){ runs.push({key:key,name:name,cls:cls,res:null,m:null,windAware:windAware,main:main,fail:null}); return; }
+      if(res.timeout){ runs.push({key:key,name:name,cls:cls,res:null,m:null,windAware:windAware,main:main,fail:res.exhausted?'搜索步数超限（请增大栅格分辨率或缩小空域）':'无可达路径（受障碍/禁飞区/风速约束）'}); return; }
+      var m=computeMetrics(res.cells,grid,uav,windAware);
+      runs.push({key:key,name:name,cls:cls,res:res,m:m,windAware:windAware,main:main,fail:null});
+    }
+    var any=false, r1=null;
+    if(state.algs.aw){ any=true; r1=plan(grid,s,g,true,uav); addRun('aw','风感知 A*（本文方法）','path-main',r1,true,true); }
+    if(state.algs.base){ any=true; addRun('base','传统 A*（无风代价）','path-base',plan(grid,s,g,false,uav),false,false); }
+    if(state.algs.rrt){ any=true; addRun('rrt','RRT*（风感知代价）','path-rrt',rrtStar(grid,s,g,uav,true,state.rrtIter),true,false); }
+    if(state.algs.pso){ any=true; var psoRes=pso(grid,s,g,uav,true,state.psoParts,state.psoIter,r1?r1.cells:null);
+    if(!psoRes&&r1&&r1.cells){ psoRes={cells:r1.cells.slice(),ms:0,wps:[]}; }
+    addRun('pso','PSO（风感知代价）','path-pso',psoRes,true,false); }
+    if(!any){
+      state.results=null;
+      els['metrics-wrap'].style.display='none';
+      els['plan-msg'].textContent='请至少选择一种对比算法。';
+      renderAll();
+      return;
+    }
+    var prev=state.results;
+    var sameShape=false;
+    if(prev&&prev.runs&&prev.runs.length===runs.length){
+      sameShape=true;
+      for(var i=0;i<runs.length;i++){
+        var a=runs[i].res, b=prev.runs[i].res;
+        if(!a||!b||a.cells.join(',')!==b.cells.join(',')){ sameShape=false; break; }
+      }
+    }
+    var flyNote=null;
+    if(uavFeasible(uav)){
+      var kkf=clamp(Math.floor(wz/state.res),0,grid.nz-1);
+      var fsF=flyStats(grid,kkf,uav);
+      var awOk2=runs.some(function(x){ return x.key==='aw'&&x.res; });
+      if(!awOk2&&fsF.fly===0){
+        flyNote='说明：飞行高度层 '+wz.toFixed(0)+' m 可飞性 0%（层风速 '+fsF.ws.toFixed(1)+' m/s > 机型上限 '+uav.maxWind+' m/s），风感知算法因此无可行路径；请降低飞行高度或切换更强抗风机型';
+      }
+    }
+    state.results={grid:grid,s:s,g:g,uav:uav,runs:runs,count:(prev?prev.count:0)+1,sameShape:sameShape,flyNote:flyNote};
+    renderResults();
+    renderAll();
+    }catch(err){
+      state.results=null;
+      els['metrics-wrap'].style.display='none';
+      els['plan-msg'].textContent='规划出错：'+(err&&err.message?err.message:String(err));
+      renderAll();
+    }
+  }
+
+  function renderValidation(r){
+    var uav=r.uav;
+    var findings=[], okc=0, warn=0, err=0;
+    function add(level,text){ findings.push({level:level,text:text}); if(level==='ok')okc++; else if(level==='warn')warn++; else err++; }
+    if(uav.altRange){
+      if(state.flightAlt<uav.altRange.min-1e-9){ add('err','飞行高度 '+state.flightAlt.toFixed(0)+' m 低于该机型推荐最低高度 '+uav.altRange.min+' m'); }
+      else if(state.flightAlt>uav.altRange.max+1e-9){ add('warn','飞行高度 '+state.flightAlt.toFixed(0)+' m 高于该机型推荐上限 '+uav.altRange.max+' m'); }
+      else { add('ok','飞行高度 '+state.flightAlt.toFixed(0)+' m 在该机型推荐高度范围 '+uav.altRange.min+'–'+uav.altRange.max+' m 内'); }
+    }
+    var ws=windSpeedAt(state.flightAlt);
+    var margin=uav.maxWind-ws;
+    if(ws>uav.maxWind+1e-9){ add('err','飞行层风速 '+ws.toFixed(1)+' m/s 超过该机型抗风上限 '+uav.maxWind+' m/s'); }
+    else if(margin<2){ add('warn','抗风裕度偏小：层风速 '+ws.toFixed(1)+' m/s，距上限仅 '+margin.toFixed(1)+' m/s'); }
+    else { add('ok','层风速 '+ws.toFixed(1)+' m/s ≤ 抗风上限 '+uav.maxWind+' m/s，裕度 '+margin.toFixed(1)+' m/s'); }
+    if(state.wind.instant>uav.maxWind+1e-9){ add('err','瞬时风（含阵风）'+state.wind.instant.toFixed(1)+' m/s 超过抗风上限 '+uav.maxWind+' m/s'); }
+    if(state.load>uav.load+1e-9){ add('err','任务载重 '+state.load.toFixed(1)+' kg 超过该机型上限 '+uav.load.toFixed(1)+' kg'); }
+    if(state.hoverMin>0&&!uav.canHover){ add('err','任务含悬停作业，但该机型无法悬停'); }
+    var anyOk=false;
+    r.runs.forEach(function(x){
+      if(!x.res||!x.m) return;
+      anyOk=true;
+      var tmin=x.m.time/60;
+      if(tmin>uav.endurance+1e-9){ add('warn',x.name+' 预计飞行时间 '+tmin.toFixed(1)+' min 超过该机型续航 '+uav.endurance+' min'); }
+      else { add('ok',x.name+' 预计时间 '+tmin.toFixed(1)+' min ≤ 续航 '+uav.endurance+' min'); }
+      if(x.m.clearance<state.margin-1e-9){ add('warn',x.name+' 最小净空 '+x.m.clearance.toFixed(1)+' m 小于安全膨胀 '+state.margin.toFixed(0)+' m'); }
+      else { add('ok',x.name+' 最小净空 '+x.m.clearance.toFixed(1)+' m ≥ 安全膨胀 '+state.margin.toFixed(0)+' m'); }
+    });
+    if(!anyOk){ add('err','没有成功生成的路径，无法完成时间/净空检验'); }
+    els['valid-wrap'].style.display='';
+    els['valid-summary'].textContent='检验结论：通过 '+okc+' 项 · 警告 '+warn+' 项 · 错误 '+err+' 项（对照机型：'+uav.name+'）';
+    var tb=els['valid-body'];
+    tb.innerHTML='';
+    findings.forEach(function(f){
+      var row=document.createElement('div');
+      row.className='valid-row';
+      var mark=f.level==='ok'?'✓':(f.level==='warn'?'⚠':'✗');
+      row.textContent=mark+' '+f.text;
+      row.style.color=f.level==='ok'?'var(--green)':(f.level==='warn'?'var(--orange)':'var(--red)');
+      tb.appendChild(row);
+    });
+  }
+  function renderResults(){
+    var r=state.results;
+    if(!r) return;
+    els['metrics-wrap'].style.display='';
+    var ok=r.runs.filter(function(x){ return x.res; });
+    var aw=null;
+    r.runs.forEach(function(x){ if(x.main) aw=x; });
+    var msgs=[];
+    if(!ok.length){ msgs.push('所选算法均未找到可行路径：起点与终点之间存在不可逾越的障碍或空域过小。'); }
+    if(aw&&aw.m){
+      r.runs.forEach(function(x){
+        if(x===aw||!x.res||!x.m) return;
+        var dE=aw.m.energy>1e-9?(x.m.energy-aw.m.energy)/aw.m.energy*100:0;
+        var dT=aw.m.time>1e-9?(x.m.time-aw.m.time)/aw.m.time*100:0;
+        var dR=x.m.riskCells-aw.m.riskCells;
+        msgs.push(x.name+' vs 风感知A*：能耗 '+(dE<=0?'−':'+')+Math.abs(dE).toFixed(1)+'% · 时间 '+(dT<=0?'−':'+')+Math.abs(dT).toFixed(1)+'% · 风险穿越 '+(dR<=0?'−':'+')+Math.abs(dR).toFixed(0)+' 次');
+      });
+    }
+    r.runs.forEach(function(x){
+      if(!x.res) msgs.push(x.name+' 失败（'+(x.fail||'无可达路径')+'）');
+    });
+    var prefix='第'+(r.count||1)+'次规划'+(r.sameShape?' · 路径形状与上次相同（指标已更新）':' · 已重新规划');
+    if(r.flyNote) msgs.push(r.flyNote);
+    els['plan-msg'].textContent=prefix+'：'+msgs.join('；');
+    var tb=els['metrics-body'];
+    tb.innerHTML='';
+    r.runs.forEach(function(x){
+      var tr=document.createElement('tr');
+      var vals=x.res&&x.m?
+        [x.name,'成功',x.m.len.toFixed(0)+' m',(x.m.time/60).toFixed(1)+' min',x.m.energy.toFixed(1)+' Wh',x.m.clearance.toFixed(1)+' m',String(x.m.riskCells),x.res.ms.toFixed(0)+' ms']:
+        [x.name,'失败（无可达路径）','—','—','—','—','—','—'];
+      vals.forEach(function(v,vi){
+        var td=document.createElement('td');
+        if(vi===0){
+          var sp=document.createElement('span');
+          sp.textContent=v;
+          if(x.main){ sp.style.fontWeight='500'; }
+          td.appendChild(sp);
+          if(x.main){ var bg=document.createElement('span'); bg.className='viz-badge'; bg.textContent='推荐'; td.appendChild(bg); }
+        } else { td.textContent=v; }
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    renderValidation(r);
+  }
+
+  function renderNfTable(){
+    var tb=els['nf-body'];
+    tb.innerHTML='';
+    state.noFly.forEach(function(z,i){
+      var tr=document.createElement('tr');
+      [z.name,z.x.toFixed(0),z.y.toFixed(0),z.l.toFixed(0),z.w.toFixed(0),z.z1.toFixed(0)+'–'+z.z2.toFixed(0)].forEach(function(cv){
+        var td=document.createElement('td'); td.textContent=cv; tr.appendChild(td);
+      });
+      var td=document.createElement('td');
+      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删';
+      bd.addEventListener('click',function(){ state.noFly.splice(i,1); renderAll(); });
+      td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
+    });
+  }
+  function addNoFly(){
+    var name=els['nf-name'].value.trim()||'禁飞区';
+    var x=parseFloat(els['nf-x'].value)||0, y=parseFloat(els['nf-y'].value)||0;
+    var l=Math.max(5,parseFloat(els['nf-l'].value)||50), w=Math.max(5,parseFloat(els['nf-w'].value)||50);
+    var z1=Math.max(0,parseFloat(els['nf-z1'].value)||0);
+    var z2=Math.max(z1+1,parseFloat(els['nf-z2'].value)||state.region.z);
+    state.noFly.push({name:name,x:x,y:y,l:l,w:w,z1:z1,z2:z2});
+    renderAll();
+  }
+  function renderTableBuildings(){
+    var tb=els['obs-body'];
+    tb.innerHTML='';
+    state.buildings.forEach(function(o,i){
+      var tr=document.createElement('tr');
+      [o.name,o.x.toFixed(0),o.y.toFixed(0),o.l.toFixed(0),o.w.toFixed(0),o.h.toFixed(0)].forEach(function(c){
+        var td=document.createElement('td'); td.textContent=c; tr.appendChild(td);
+      });
+      var td=document.createElement('td');
+      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删';
+      bd.addEventListener('click',function(){ state.buildings.splice(i,1); inputChanged(); });
+      td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
+    });
+  }
+
+  function windTypeName(t){
+    var m={uniform:'均匀定常风',gust:'均匀风+阵风',turbulent:'均匀风+湍流',wake:'均匀风+建筑尾流',mix:'复合风'};
+    return m[t]||t;
+  }
+  function renderUavInfo(){
+    var rec=recommendUav();
+    var sel=els['uav-select'].value;
+    var uav=resolveUav();
+    var txt='';
+    var srcLabel='';
+    if(sel==='auto'){
+      srcLabel=rec?('自动推荐 · '+OBJ[state.obj]):'自动推荐（无可用机型）';
+      txt=rec?('自动推荐：'+rec.name+'（目标：'+OBJ[state.obj]+'，抗风裕度 '+(rec.maxWind-state.wind.instant).toFixed(1)+' m/s）'):'当前风况/载重下无可用机型';
+    } else {
+      srcLabel='手动选择';
+      txt=uav?('已手动选择：'+uav.name+'（抗风上限 '+uav.maxWind+' m/s）'):'';
+    }
+    if(uav&&state.wind.instant>uav.maxWind){
+      txt+=' · 警告：瞬时风 '+state.wind.instant.toFixed(1)+' m/s 超过该机型抗风上限 '+uav.maxWind+' m/s，已阻止规划，请切换机型';
+    }
+    els['uav-reason'].textContent=txt;
+    var det=els['uav-detail'];
+    if(!uav){
+      det.innerHTML='<div class="uav-head">无可用机型</div><div class="cap">当前风况/载重下没有满足安全条件的机型，无法规划。</div>';
+      els['s-hover'].textContent='—'; els['s-cruise'].textContent='—'; els['s-climb'].textContent='—';
+      return;
+    }
+    var margin=uav.maxWind-state.wind.instant;
+    var items=[
+      ['抗风上限',uav.maxWind+' m/s'],
+      ['载重上限',uav.load.toFixed(1)+' kg'],
+      ['巡航速度',uav.cruise+' m/s'],
+      ['续航',uav.endurance+' min'],
+      ['悬停功率',uav.canHover?(uav.hoverW+' W'):'—'],
+      ['巡航能耗',uav.cruiseWh100.toFixed(2)+' Wh/100m'],
+      ['爬升能耗',uav.climbWh10.toFixed(2)+' Wh/10m'],
+      ['起降成本',uav.launchCost.toFixed(1)+' 元/次'],
+      ['悬停能力',uav.canHover?'支持':'不支持']
+    ];
+    var html='<div class="uav-head">'+esc(uav.name)+' <span class="viz-badge">'+esc(srcLabel)+'</span></div>';
+    html+='<div class="uav-grid">';
+    items.forEach(function(it){
+      html+='<div class="uav-item"><span>'+it[0]+'</span><b>'+it[1]+'</b></div>';
+    });
+    html+='</div>';
+    html+='<div class="cap uav-note">当前瞬时风 '+state.wind.instant.toFixed(1)+' m/s · 抗风裕度 '+(margin>=0?'+':'')+margin.toFixed(1)+' m/s · 路径规划将使用该机型的参数</div>';
+    det.innerHTML=html;
+    els['s-hover'].textContent=uav.canHover?(uav.hoverW/60).toFixed(1):'—';
+    els['s-cruise'].textContent=uav.cruiseWh100.toFixed(2);
+    els['s-climb'].textContent=uav.climbWh10.toFixed(2);
+  }
+
+  function pathLabel(key){
+    return {aw:'风感知A*',base:'传统A*',rrt:'RRT*',pso:'PSO'}[key]||key;
+  }
+  function overlapLabels(grid){
+    var labels=[];
+    var runs=state.results.runs.filter(function(x){ return x.res; });
+    var i,j;
+    for(i=0;i<runs.length;i++){
+      for(j=i+1;j<runs.length;j++){
+        var a=runs[i], b=runs[j];
+        var setB={};
+        b.res.cells.forEach(function(c){ setB[c]=1; });
+        var seg=null;
+        function flush(){
+          if(seg&&seg.cells.length>=3){
+            var n=seg.cells.length, cx=0, cy=0, cz=0;
+            seg.cells.forEach(function(c){
+              var d=decode(grid,c);
+              cx+=(d.ix+0.5)*state.res; cy+=(d.iy+0.5)*state.res; cz+=(d.iz+0.5)*state.res;
+            });
+            labels.push({x:cx/n,y:cy/n,z:cz/n,len:n,text:pathLabel(a.key)+'+'+pathLabel(b.key)+' 重叠'});
+          }
+          seg=null;
+        }
+        for(var k=0;k<a.res.cells.length;k++){
+          var cell=a.res.cells[k];
+          if(setB[cell]){ if(!seg) seg={cells:[]}; seg.cells.push(cell); }
+          else flush();
+        }
+        flush();
+      }
+    }
+    labels.sort(function(x,y){ return y.len-x.len; });
+    return labels.slice(0,6);
+  }
+  function otsuThreshold(gray,n){
+    var hist=new Array(256),i;
+    for(i=0;i<256;i++) hist[i]=0;
+    for(i=0;i<n;i++) hist[gray[i]]++;
+    var total=n, sum=0;
+    for(i=0;i<256;i++) sum+=i*hist[i];
+    var sumB=0,wB=0,maxVar=-1,th=127;
+    for(i=0;i<256;i++){
+      wB+=hist[i];
+      if(wB===0) continue;
+      var wF=total-wB;
+      if(wF===0) break;
+      sumB+=i*hist[i];
+      var mB=sumB/wB, mF=(sum-sumB)/wF;
+      var between=wB*wF*(mB-mF)*(mB-mF);
+      if(between>=maxVar){ maxVar=between; th=i; }
+    }
+    return th;
+  }
+  function analyzeBuildings(cb){
+    if(!state.bg){ if(cb) cb(0); return; }
+    var img=new Image();
+    img.onload=function(){
+      try{
+        var W=Math.min(480,img.width||640);
+        var H=Math.max(1,Math.round((img.height||480)*W/(img.width||640)));
+        var cv=document.createElement('canvas');
+        cv.width=W; cv.height=H;
+        var ctx=cv.getContext('2d');
+        ctx.drawImage(img,0,0,W,H);
+        var d=ctx.getImageData(0,0,W,H).data;
+        var n=W*H, gray=new Uint8Array(n), blur=new Uint8Array(n), i,x,y;
+        for(i=0;i<n;i++){ gray[i]=(d[i*4]*299+d[i*4+1]*587+d[i*4+2]*114)/1000; }
+        for(y=0;y<H;y++){ for(x=0;x<W;x++){
+          var s=0,c=0;
+          for(var dy=-1;dy<=1;dy++){ for(var dx=-1;dx<=1;dx++){
+            var xx=x+dx, yy=y+dy;
+            if(xx>=0&&xx<W&&yy>=0&&yy<H){ s+=gray[yy*W+xx]; c++; }
+          }}
+          blur[y*W+x]=s/c;
+        }}
+        var sens=parseInt(els['detect-sens'].value,10)||50;
+        var th=otsuThreshold(blur,n)-(sens-50)*1.2;
+        var mode=els['detect-mode'].value||'both';
+        function isCand(ii){
+          if(mode==='dark') return blur[ii]<th;
+          if(mode==='light') return blur[ii]>(255-th);
+          return blur[ii]<th||blur[ii]>(255-th);
+        }
+        var mask=new Uint8Array(n);
+        var comps=[];
+        for(i=0;i<n;i++){
+          if(mask[i]||!isCand(i)) continue;
+          var stack=[i], cnt=0, minX=W, maxX=0, minY=H, maxY=0;
+          while(stack.length){
+            var idx=stack.pop();
+            if(mask[idx]) continue;
+            mask[idx]=1; cnt++;
+            var cx=idx%W, cy=(idx/W)|0;
+            if(cx<minX)minX=cx; if(cx>maxX)maxX=cx;
+            if(cy<minY)minY=cy; if(cy>maxY)maxY=cy;
+            for(var dy2=-1;dy2<=1;dy2++){ for(var dx2=-1;dx2<=1;dx2++){
+              var nx=cx+dx2, ny=cy+dy2;
+              if(nx<0||nx>=W||ny<0||ny>=H) continue;
+              var ni=ny*W+nx;
+              if(!mask[ni]&&isCand(ni)) stack.push(ni);
+            }}
+          }
+          if(cnt>=Math.max(8,n*0.0003)&&cnt<=n*0.4){
+            var bw=maxX-minX+1, bh=maxY-minY+1;
+            if(bw>=3&&bh>=3&&cnt/(bw*bh)>0.4) comps.push({minX:minX,minY:minY,maxX:maxX,maxY:maxY});
+          }
+        }
+        var imgW=img.width||W, imgH=img.height||H;
+        var rx=state.region.x, ry=state.region.y;
+        var scale=Math.max(rx/imgW, ry/imgH);
+        var dw=imgW*scale, dh=imgH*scale;
+        var ox=(rx-dw)/2, oy=(ry-dh)/2;
+        var hh=parseFloat(els['detect-h'].value)||15;
+        var list=[];
+        comps.forEach(function(cp){
+          var wx0=ox+(cp.minX/W)*dw, wx1=ox+((cp.maxX+1)/W)*dw;
+          var wy0=(oy+dh)-(cp.minY/H)*dh, wy1=(oy+dh)-((cp.maxY+1)/H)*dh;
+          var l=wx1-wx0, w=wy0-wy1;
+          if(l<5||w<5||l>rx||w>ry) return;
+          list.push({name:'识别建筑'+(list.length+1), x:(wx0+wx1)/2, y:(wy0+wy1)/2, l:l, w:w, h:hh});
+        });
+        state.buildings=list;
+        if(cb) cb(list.length);
+      }catch(err){
+        if(cb) cb(0);
+      }
+    };
+    img.src=state.bg;
+  }
+  function runDetect(){
+    if(!state.bg){ els['map-import-status'].textContent='请先导入地图底图。'; return; }
+    els['map-import-status'].textContent='正在分析底图中的建筑…';
+    analyzeBuildings(function(cnt){
+      if(cnt===0){
+        els['map-import-status'].textContent='未识别到建筑：可能图片对比度不足或建筑为浅色。请调高灵敏度、切换识别模式（深色/浅色），或手动添加建筑；若识别高度低于飞行高度，路径会直线越障（属正常）。';
+      } else {
+        els['map-import-status'].textContent='自动识别到 '+cnt+' 栋建筑（高度按 '+els['detect-h'].value+' m 估算）。若识别高度低于飞行高度，路径可越障呈直线（属正常）；可提高默认高度或降低飞行高度观察绕行，也可用在线地图获取真实数据。';
+      }
+      renderAll();
+    });
+  }
+  function render2D(grid){
+    var rx=state.region.x, ry=state.region.y;
+    var sx=(W2-PAD2-XM2)/rx, sy=(H2-TOP2-YM2)/ry;
+    var ox=PAD2, oy=TOP2;
+    function mx(x){ return ox+x*sx; }
+    function my(y){ return oy+(ry-y)*sy; }
+    var out='';
+    if(state.bg){
+      out+='<image href="'+state.bg+'" x="'+ox+'" y="'+oy+'" width="'+(rx*sx).toFixed(1)+'" height="'+(ry*sy).toFixed(1)+'" preserveAspectRatio="xMidYMid slice" opacity="'+(state.bgOpacity/100)+'"/>';
+    }
+    var step=state.res<=20?100:200,gx,gy;
+    for(gx=0;gx<=rx;gx+=step){
+      var px=mx(gx);
+      out+='<line class="grid-line" x1="'+px.toFixed(1)+'" y1="'+oy+'" x2="'+px.toFixed(1)+'" y2="'+(oy+ry*sy).toFixed(1)+'"/>';
+      out+='<text class="preview-label" x="'+px.toFixed(1)+'" y="'+(oy+ry*sy+16)+'" text-anchor="middle">'+gx+'</text>';
+    }
+    for(gy=0;gy<=ry;gy+=step){
+      var py=my(gy);
+      out+='<line class="grid-line" x1="'+ox+'" y1="'+py.toFixed(1)+'" x2="'+(ox+rx*sx).toFixed(1)+'" y2="'+py.toFixed(1)+'"/>';
+      out+='<text class="preview-label" x="'+(ox-6)+'" y="'+(py+4).toFixed(1)+'" text-anchor="end">'+gy+'</text>';
+    }
+    out+='<rect class="region-border" x="'+ox+'" y="'+oy+'" width="'+(rx*sx).toFixed(1)+'" height="'+(ry*sy).toFixed(1)+'"/>';
+    out+='<text class="preview-label" x="'+(ox+8)+'" y="'+(oy+16)+'">N ↑</text>';
+    if(state.fieldArrows&&state.wind.speed>0){
+      var wsD=windSpeedAt(state.sliceAlt);
+      var step=Math.max(120,Math.min(240,(rx+ry)/14));
+      var tA=state.wind.tAir;
+      for(var fx=step/2;fx<rx;fx+=step){
+        for(var fy=step/2;fy<ry;fy+=step){
+          var h1=Math.sin(fx*0.13+fy*0.29+state.wind.dir)*10000; h1=h1-Math.floor(h1);
+          var h2=Math.sin(fx*0.37-fy*0.11+state.wind.dir*2)*10000; h2=h2-Math.floor(h2);
+          var sp=wsD;
+          if(state.windType==='gust'||state.windType==='mix') sp=wsD+(state.wind.gust*0.5)*(h1*2-1);
+          if(state.windType==='turbulent'||state.windType==='mix') sp=wsD*(1+state.wind.turb*(h2*2-1)*0.6);
+          sp=Math.max(0,sp);
+          var dirA=tA;
+          if(state.windType==='turbulent'||state.windType==='mix') dirA=tA+(h2*2-1)*state.wind.turb*50*Math.PI/180;
+          var px=mx(fx), py=my(fy);
+          var len=Math.min(46,8+sp*4.5);
+          var ux=Math.sin(dirA), uy=-Math.cos(dirA);
+          var ax=px-ux*len/2, ay=py-uy*len/2, bx=px+ux*len/2, by=py+uy*len/2;
+          out+='<line class="wind-field" x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'"/>';
+          var ah=4, pxp=-uy, pyp=ux;
+          var b0x=bx-ux*ah, b0y=by-uy*ah;
+          out+='<polygon class="wind-field" points="'+bx.toFixed(1)+','+by.toFixed(1)+' '+(b0x+pxp*ah*0.7).toFixed(1)+','+(b0y+pyp*ah*0.7).toFixed(1)+' '+(b0x-pxp*ah*0.7).toFixed(1)+','+(b0y-pyp*ah*0.7).toFixed(1)+'"/>';
+        }
+      }
+    }
+    if(state.wakeOn&&state.wind.speed>0){
+      var t=state.wind.tAir;
+      var ux=Math.sin(t), uy=Math.cos(t);
+      state.buildings.forEach(function(b){
+        if(b.h<=state.sliceAlt) return;
+        var x0=b.x-b.l/2, x1=b.x+b.l/2, y0=b.y-b.w/2, y1=b.y+b.w/2;
+        var L=state.wakeLen*Math.max(b.l,b.w);
+        var c1=mx(x0)+ux*L*sx, c2=my(y0)-uy*L*sy;
+        var d1=mx(x1)+ux*L*sx, d2=my(y0)-uy*L*sy;
+        var pts=[mx(x0)+','+my(y0),mx(x1)+','+my(y0),d1+','+d2,c1+','+c2];
+        out+='<polygon points="'+pts.join(' ')+'" style="fill:var(--orange);fill-opacity:0.14;stroke:var(--orange);stroke-opacity:0.5;stroke-width:1;stroke-dasharray:5 3"/>';
+      });
+    }
+    var occCells={}, inflCells={};
+    (function(){
+      var res=state.res, nx=grid.nx, ny=grid.ny;
+      for(var i=0;i<nx;i++) for(var j=0;j<ny;j++){
+        var k=clamp(Math.floor(state.sliceAlt/res),0,grid.nz-1);
+        if(grid.occ[cellIndex(grid,i,j,k)]) occCells[i+','+j]=1;
+        else if(grid.risk[cellIndex(grid,i,j,k)]>0.5) inflCells[i+','+j]=1;
+      }
+    })();
+    Object.keys(occCells).forEach(function(key){
+      var p=key.split(','), i=+p[0], j=+p[1];
+      var px=mx(i*state.res), py=my((j+1)*state.res), pw=state.res*sx, ph=state.res*sy;
+      out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:var(--viz-series-2);fill-opacity:0.45"/>';
+    });
+    Object.keys(inflCells).forEach(function(key){
+      var p=key.split(','), i=+p[0], j=+p[1];
+      var px=mx(i*state.res), py=my((j+1)*state.res), pw=state.res*sx, ph=state.res*sy;
+      out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:var(--viz-series-3);fill-opacity:0.22"/>';
+    });
+    if(state.showRisk){
+      var kk=clamp(Math.floor(state.sliceAlt/state.res),0,grid.nz-1);
+      for(var i=0;i<grid.nx;i++) for(var j=0;j<grid.ny;j++){
+        var idx=cellIndex(grid,i,j,kk);
+        if(grid.occ[idx]) continue;
+        var rv=grid.risk[idx];
+        if(rv<0.3) continue;
+        var px=mx(i*state.res), py=my((j+1)*state.res), pw=state.res*sx, ph=state.res*sy;
+        var col=rv<1?'var(--yellow)':(rv<2?'var(--orange)':'var(--red)');
+        var op=rv<1?0.22:(rv<2?0.35:0.5);
+        out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:'+col+';fill-opacity:'+op+'" data-tooltip="风风险 '+rv.toFixed(1)+'"/>';
+      }
+    }
+    if(state.showFly){
+      var fuav=resolveUav();
+      var kk2=clamp(Math.floor(state.sliceAlt/state.res),0,grid.nz-1);
+      var ws2=windSpeedAt((kk2+0.5)*state.res);
+      var fyBad=false, fyWhy='';
+      if(fuav&&(ws2>fuav.maxWind||state.wind.instant>fuav.maxWind)){ fyBad=true; fyWhy='风速超过该机型承受上限'; }
+      if(fuav&&!fyBad&&ws2>=fuav.cruise){ fyBad=true; fyWhy='逆风太强（接近/超过巡航速度）'; }
+      for(var i=0;i<grid.nx;i++) for(var j=0;j<grid.ny;j++){
+        var idx=cellIndex(grid,i,j,kk2);
+        if(grid.occ[idx]) continue;
+        var px=mx(i*state.res), py=my((j+1)*state.res), pw=state.res*sx, ph=state.res*sy;
+        if(!fuav){
+          out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:var(--muted-foreground);fill-opacity:0.12" data-tooltip="无法评估：当前没有满足安全条件的机型"/>';
+        } else if(fyBad){
+          out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:var(--red);fill-opacity:0.22" data-tooltip="不可飞：'+fyWhy+'"/>';
+        } else {
+          out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:var(--green);fill-opacity:0.10" data-tooltip="可飞"/>';
+        }
+      }
+    }
+    if(state.nfOn){
+      state.noFly.forEach(function(z){
+        var x0=Math.max(0,z.x-z.l/2), x1=Math.min(rx,z.x+z.l/2);
+        var y0=Math.max(0,z.y-z.w/2), y1=Math.min(ry,z.y+z.w/2);
+        if(x1<=x0||y1<=y0) return;
+        var active=state.flightAlt>z.z1-1e-9&&state.flightAlt<z.z2+1e-9;
+        var px=mx(x0), py=my(y1), pw=(x1-x0)*sx, ph=(y1-y0)*sy;
+        out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:var(--red);fill-opacity:'+(active?0.18:0.08)+';stroke:var(--red);stroke-opacity:0.85;stroke-width:1.5;stroke-dasharray:'+(active?'none':'6 4')+'" data-tooltip="'+esc(z.name+' 禁飞区：'+z.l.toFixed(0)+'×'+z.w.toFixed(0)+' m，高度 '+z.z1.toFixed(0)+'–'+z.z2.toFixed(0)+' m')+'"/>';
+        out+='<text class="nf-label" x="'+(px+pw/2).toFixed(1)+'" y="'+(py+ph/2+4).toFixed(1)+'" text-anchor="middle">'+esc(z.name)+' 禁飞</text>';
+      });
+    }
+    state.buildings.forEach(function(b){
+      var x0=Math.max(0,b.x-b.l/2), y0=Math.max(0,b.y-b.w/2);
+      var x1=Math.min(rx,b.x+b.l/2), y1=Math.min(ry,b.y+b.w/2);
+      if(x1<=x0||y1<=y0) return;
+      var px=mx(x0), py=my(y1), pw=(x1-x0)*sx, ph=(y1-y0)*sy;
+      var low=b.h<=state.sliceAlt;
+      var over=b.h>state.region.z;
+      out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:'+heightColor(b.h)+';fill-opacity:'+(low?0.35:0.6)+';stroke:'+(over?'var(--destructive)':'var(--foreground)')+';stroke-width:'+(over?1.5:1)+';stroke-opacity:'+(over?0.9:(low?0.4:0.6))+';stroke-dasharray:'+(low?'5 3':'none')+'" data-tooltip="'+esc(b.name+'：'+b.l.toFixed(0)+'×'+b.w.toFixed(0)+'×'+b.h.toFixed(0)+' m')+'"/>';
+    });
+    if(state.results){
+      state.results.runs.forEach(function(run){
+        var res=run.res; if(!res) return;
+        if(res.tree&&res.tree.length>1){
+          var stride=Math.max(1,Math.ceil(res.tree.length/1500));
+          for(var ti=1;ti<res.tree.length;ti+=stride){
+            var tn=res.tree[ti];
+            if(tn.parent<0) continue;
+            var pa=decode(grid,res.tree[tn.parent].idx), pb=decode(grid,tn.idx);
+            out+='<line class="tree-line" x1="'+mx((pa.ix+0.5)*state.res).toFixed(1)+'" y1="'+my((pa.iy+0.5)*state.res).toFixed(1)+'" x2="'+mx((pb.ix+0.5)*state.res).toFixed(1)+'" y2="'+my((pb.iy+0.5)*state.res).toFixed(1)+'"/>';
+          }
+        }
+        if(res.wps){
+          res.wps.forEach(function(idx){
+            var d=decode(grid,idx);
+            out+='<circle class="pso-wp" cx="'+mx((d.ix+0.5)*state.res).toFixed(1)+'" cy="'+my((d.iy+0.5)*state.res).toFixed(1)+'" r="4"/>';
+          });
+        }
+        var pts=res.cells.map(function(idx){
+          var d=decode(grid,idx);
+          return mx((d.ix+0.5)*state.res)+','+my((d.iy+0.5)*state.res);
+        });
+        if(pts.length>1){
+          pts[0]=mx(state.start.x).toFixed(1)+','+my(state.start.y).toFixed(1);
+          pts[pts.length-1]=mx(state.goal.x).toFixed(1)+','+my(state.goal.y).toFixed(1);
+          out+='<polyline class="path-halo" points="'+pts.join(' ')+'"/>';
+          out+='<polyline class="'+run.cls+'" points="'+pts.join(' ')+'"/>';
+        }
+      });
+      var labels=overlapLabels(grid);
+      labels.forEach(function(lb){
+        var px=mx(lb.x), py=my(lb.y);
+        out+='<g transform="translate('+px.toFixed(1)+','+py.toFixed(1)+')">';
+        out+='<rect x="-75" y="-16" width="150" height="19" rx="9" style="fill:var(--background);fill-opacity:0.85;stroke:var(--border);stroke-width:1"/>';
+        out+='<text class="overlap-label" x="0" y="0" text-anchor="middle">'+esc(lb.text)+'</text>';
+        out+='</g>';
+      });
+    }
+    var smx=mx(state.start.x), smy=my(state.start.y);
+    out+='<circle cx="'+smx.toFixed(1)+'" cy="'+smy.toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
+    out+='<text class="preview-label" x="'+smx.toFixed(1)+'" y="'+(smy-10)+'" text-anchor="middle">起点</text>';
+    var gmx=mx(state.goal.x), gmy=my(state.goal.y);
+    out+='<circle cx="'+gmx.toFixed(1)+'" cy="'+gmy.toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
+    out+='<text class="preview-label" x="'+gmx.toFixed(1)+'" y="'+(gmy-10)+'" text-anchor="middle">终点</text>';
+    var cx=ox+rx*sx/2, cy=oy+ry*sy/2;
+    if(state.wind.speed>0){
+      var t2=state.wind.tAir;
+      var len=Math.min(120,24+state.wind.speed*11);
+      var ux2=Math.sin(t2), uy2=-Math.cos(t2);
+      var ax=cx-ux2*len/2, ay=cy-uy2*len/2, bx=cx+ux2*len/2, by=cy+uy2*len/2;
+      var ah=9, pxp=-uy2, pyp=ux2;
+      var bx0=bx-ux2*ah, by0=by-uy2*ah;
+      out+='<line class="wind-line" x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'"/>';
+      out+='<polygon class="wind-head" points="'+bx.toFixed(1)+','+by.toFixed(1)+' '+(bx0+pxp*ah*0.6).toFixed(1)+','+(by0+pyp*ah*0.6).toFixed(1)+' '+(bx0-pxp*ah*0.6).toFixed(1)+','+(by0-pyp*ah*0.6).toFixed(1)+'"/>';
+      out+='<text class="preview-label" x="'+cx.toFixed(1)+'" y="'+(cy-16)+'" text-anchor="middle" style="fill:var(--blue)">平均风 '+state.wind.speed.toFixed(1)+' m/s · 来向 '+state.wind.dir+'°</text>';
+    }
+    var badge='风场：'+windTypeName(state.windType)+' · 平均 '+state.wind.speed.toFixed(1)+' m/s · 来向 '+state.wind.dir+'°';
+    if(state.wind.gust>0&&(state.windType==='gust'||state.windType==='mix')) badge+=' · 阵风±'+state.wind.gust.toFixed(1)+' m/s';
+    if(state.wind.turb>0&&(state.windType==='turbulent'||state.windType==='mix')) badge+=' · 湍流I='+state.wind.turb.toFixed(2);
+    if(state.wakeOn&&(state.windType==='wake'||state.windType==='mix')) badge+=' · 建筑尾流';
+    var bw=badge.length*12+28;
+    out+='<g transform="translate('+((ox+rx*sx)-bw-10).toFixed(1)+','+(oy+2)+')">';
+    out+='<rect x="0" y="0" width="'+bw+'" height="22" rx="11" style="fill:color-mix(in srgb,var(--blue) 16%,var(--background));stroke:color-mix(in srgb,var(--blue) 40%,var(--border));stroke-width:1"/>';
+    out+='<text class="wind-badge" x="10" y="15">'+esc(badge)+'</text>';
+    out+='</g>';
+    els['svg2d'].innerHTML=out;
+  }
+
+  function render3D(grid){
+    var W=760,H=540,PAD=50;
+    var a=state.azimuth*Math.PI/180;
+    var cos=Math.cos(a), sin=Math.sin(a);
+    var rx=state.region.x, ry=state.region.y, rz=state.region.z;
+    function proj(x,y,z){
+      var xr=x*cos-y*sin, yr=x*sin+y*cos;
+      return {x:xr, y:yr*0.58-z*1.0};
+    }
+    var ext=[[0,0,0],[rx,0,0],[0,ry,0],[rx,ry,0],[rx/2,ry/2,rz]];
+    var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+    ext.forEach(function(p){ var q=proj(p[0],p[1],p[2]); minX=Math.min(minX,q.x); maxX=Math.max(maxX,q.x); minY=Math.min(minY,q.y); maxY=Math.max(maxY,q.y); });
+    var s=Math.min((W-2*PAD)/(maxX-minX),(H-2*PAD)/(maxY-minY));
+    function P(x,y,z){ var q=proj(x,y,z); return [(q.x-minX)*s+PAD,(q.y-minY)*s+PAD]; }
+    function poly(pts){ return pts.map(function(p){ return p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' '); }
+    var out='';
+    var g=[P(0,0,0),P(rx,0,0),P(rx,ry,0),P(0,ry,0)];
+    out+='<polygon points="'+poly(g)+'" style="fill:var(--secondary);fill-opacity:0.18;stroke:var(--foreground);stroke-opacity:0.5;stroke-width:1"/>';
+    var step=rx>1500?200:100,gx,gy;
+    for(gx=0;gx<=rx;gx+=step){
+      var p1=P(gx,0,0), p2=P(gx,ry,0);
+      out+='<line class="grid-line" x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'"/>';
+    }
+    for(gy=0;gy<=ry;gy+=step){
+      var p1=P(0,gy,0), p2=P(rx,gy,0);
+      out+='<line class="grid-line" x1="'+p1[0].toFixed(1)+'" y1="'+p1[1].toFixed(1)+'" x2="'+p2[0].toFixed(1)+'" y2="'+p2[1].toFixed(1)+'"/>';
+    }
+    if(state.flightAlt>0&&state.flightAlt<rz){
+      var f=[P(0,0,state.flightAlt),P(rx,0,state.flightAlt),P(rx,ry,state.flightAlt),P(0,ry,state.flightAlt)];
+      out+='<polygon points="'+poly(f)+'" style="fill:var(--blue);fill-opacity:0.07;stroke:var(--blue);stroke-opacity:0.5;stroke-width:1;stroke-dasharray:6 4"/>';
+    }
+    if(state.sliceAlt>0&&state.sliceAlt<rz&&Math.abs(state.sliceAlt-state.flightAlt)>1e-6){
+      var sl=[P(0,0,state.sliceAlt),P(rx,0,state.sliceAlt),P(rx,ry,state.sliceAlt),P(0,ry,state.sliceAlt)];
+      out+='<polygon points="'+poly(sl)+'" style="fill:var(--orange);fill-opacity:0.05;stroke:var(--orange);stroke-opacity:0.6;stroke-width:1;stroke-dasharray:4 3" data-tooltip="查看层 '+state.sliceAlt.toFixed(0)+' m"/>';
+    }
+    var np=P(0,ry,0);
+    out+='<text class="preview-label" x="'+(np[0]-8)+'" y="'+(np[1]+4)+'" text-anchor="end">N</text>';
+    var bs=state.buildings.filter(function(b){ return b.x+b.l/2>=0&&b.x-b.l/2<=rx&&b.y+b.w/2>=0&&b.y-b.w/2<=ry; });
+    bs.sort(function(a,b2){ return (a.x*sin+a.y*cos)-(b2.x*sin+b2.y*cos); });
+    bs.forEach(function(b){
+      var x0=b.x-b.l/2, x1=b.x+b.l/2, y0=b.y-b.w/2, y1=b.y+b.w/2;
+      var col=heightColor(b.h);
+      var colS1='color-mix(in srgb,'+col+' 62%,var(--background))';
+      var colS2='color-mix(in srgb,'+col+' 42%,var(--background))';
+      var base=[P(x0,y0,0),P(x1,y0,0),P(x1,y1,0),P(x0,y1,0)];
+      out+='<polygon points="'+poly(base.map(function(pt){ return [pt[0]+3,pt[1]+4]; }))+'" style="fill:var(--foreground);fill-opacity:0.08;stroke:none"/>';
+      var sides=[];
+      if(cos+sin>1e-4) sides.push([[x1,y0],[x1,y1]]);
+      if(-(cos+sin)>1e-4) sides.push([[x0,y0],[x0,y1]]);
+      if(cos-sin>1e-4) sides.push([[x0,y1],[x1,y1]]);
+      if(-(cos-sin)>1e-4) sides.push([[x0,y0],[x1,y0]]);
+      sides.forEach(function(side,idx){
+        var q1=P(side[0][0],side[0][1],0), q2=P(side[1][0],side[1][1],0), q3=P(side[1][0],side[1][1],b.h), q4=P(side[0][0],side[0][1],b.h);
+        out+='<polygon points="'+poly([q1,q2,q3,q4])+'" style="fill:'+(idx===0?colS1:colS2)+';stroke:var(--foreground);stroke-opacity:0.5;stroke-width:1"/>';
+      });
+      var top=[P(x0,y0,b.h),P(x1,y0,b.h),P(x1,y1,b.h),P(x0,y1,b.h)];
+      var over=b.h>rz;
+      var tip2=b.name+'：'+b.l.toFixed(0)+'×'+b.w.toFixed(0)+'×'+b.h.toFixed(0)+' m'+(over?'（超出区域高度）':'');
+      out+='<polygon points="'+poly(top)+'" style="fill:'+col+';fill-opacity:0.92;stroke:'+(over?'var(--destructive)':'var(--foreground)')+';stroke-opacity:'+(over?0.9:0.7)+';stroke-width:1.2" data-tooltip="'+esc(tip2)+'"/>';
+    });
+    if(state.nfOn){
+      state.noFly.forEach(function(z){
+        var x0=z.x-z.l/2, x1=z.x+z.l/2, y0=z.y-z.w/2, y1=z.y+z.w/2;
+        var z1=Math.max(0,z.z1||0), z2=Math.min(rz,z.z2||rz);
+        if(z2<=z1) return;
+        var b0=P(x0,y0,z1), b1=P(x1,y0,z1), b2=P(x1,y1,z1), b3=P(x0,y1,z1);
+        var t0=P(x0,y0,z2), t1=P(x1,y0,z2), t2=P(x1,y1,z2), t3=P(x0,y1,z2);
+        [[b0,b1,t1,t0],[b1,b2,t2,t1],[b2,b3,t3,t2],[b3,b0,t0,t3]].forEach(function(face){
+          out+='<polygon points="'+poly(face)+'" style="fill:var(--red);fill-opacity:0.12;stroke:var(--red);stroke-opacity:0.7;stroke-width:1"/>';
+        });
+        out+='<polygon points="'+poly([t0,t1,t2,t3])+'" style="fill:var(--red);fill-opacity:0.2;stroke:var(--red);stroke-opacity:0.85;stroke-width:1" data-tooltip="'+esc(z.name+' 禁飞区：'+z.l.toFixed(0)+'×'+z.w.toFixed(0)+' m，高度 '+z.z1.toFixed(0)+'–'+z.z2.toFixed(0)+' m')+'"/>';
+      });
+    }
+    if(state.results){
+      state.results.runs.forEach(function(run){
+        var res=run.res; if(!res) return;
+        if(res.tree&&res.tree.length>1){
+          var stride=Math.max(1,Math.ceil(res.tree.length/1500));
+          for(var ti=1;ti<res.tree.length;ti+=stride){
+            var tn=res.tree[ti];
+            if(tn.parent<0) continue;
+            var pa=decode(grid,res.tree[tn.parent].idx), pb=decode(grid,tn.idx);
+            var q1=P((pa.ix+0.5)*state.res,(pa.iy+0.5)*state.res,(pa.iz+0.5)*state.res);
+            var q2=P((pb.ix+0.5)*state.res,(pb.iy+0.5)*state.res,(pb.iz+0.5)*state.res);
+            out+='<line class="tree-line" x1="'+q1[0].toFixed(1)+'" y1="'+q1[1].toFixed(1)+'" x2="'+q2[0].toFixed(1)+'" y2="'+q2[1].toFixed(1)+'"/>';
+          }
+        }
+        if(res.wps){
+          res.wps.forEach(function(idx){
+            var d=decode(grid,idx);
+            var q=P((d.ix+0.5)*state.res,(d.iy+0.5)*state.res,(d.iz+0.5)*state.res);
+            out+='<circle class="pso-wp" cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="4"/>';
+          });
+        }
+        var pts=res.cells.map(function(idx){
+          var d=decode(grid,idx);
+          return P((d.ix+0.5)*state.res,(d.iy+0.5)*state.res,(d.iz+0.5)*state.res);
+        });
+        if(pts.length>1){
+          pts[0]=P(state.start.x,state.start.y,state.flightAlt);
+          pts[pts.length-1]=P(state.goal.x,state.goal.y,state.flightAlt);
+          out+='<polyline class="path-halo" points="'+poly(pts)+'"/>';
+          out+='<polyline class="'+run.cls+'" points="'+poly(pts)+'"/>';
+        }
+      });
+      var labels=overlapLabels(grid);
+      labels.forEach(function(lb){
+        var q=P(lb.x,lb.y,lb.z);
+        out+='<g transform="translate('+q[0].toFixed(1)+','+q[1].toFixed(1)+')">';
+        out+='<rect x="-75" y="-16" width="150" height="19" rx="9" style="fill:var(--background);fill-opacity:0.85;stroke:var(--border);stroke-width:1"/>';
+        out+='<text class="overlap-label" x="0" y="0" text-anchor="middle">'+esc(lb.text)+'</text>';
+        out+='</g>';
+      });
+    }
+    var sp=P(state.start.x,state.start.y,state.flightAlt);
+    out+='<circle cx="'+sp[0].toFixed(1)+'" cy="'+sp[1].toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
+    var gp=P(state.goal.x,state.goal.y,state.flightAlt);
+    out+='<circle cx="'+gp[0].toFixed(1)+'" cy="'+gp[1].toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
+    els['svg3d'].innerHTML=out;
+  }
+
+  function flyStats(grid, layerK, uav){
+    var ws=windSpeedAt((layerK+0.5)*state.res);
+    var instant=state.wind.instant;
+    var total=0, fly=0, windExceed=0, headwind=0, i,j;
+    for(i=0;i<grid.nx;i++){ for(j=0;j<grid.ny;j++){
+      var idx=cellIndex(grid,i,j,layerK);
+      if(grid.occ[idx]) continue;
+      total++;
+      if(ws>uav.maxWind||instant>uav.maxWind){ windExceed++; }
+      else if(ws>=uav.cruise){ headwind++; }
+      else fly++;
+    }}
+    return {total:total,fly:fly,windExceed:windExceed,headwind:headwind,ws:ws};
+  }
+  function renderSummary(grid){
+    var occCount=0,riskCount=0;
+    for(var i=0;i<grid.occ.length;i++){
+      if(grid.occ[i]) occCount++;
+      else if(grid.risk[i]>0.5) riskCount++;
+    }
+    var s='风场：'+windTypeName(state.windType)+' · 平均 '+state.wind.speed.toFixed(1)+' m/s（来向 '+state.wind.dir+'°）· 瞬时 '+state.wind.instant.toFixed(1)+' m/s';
+    if(Math.abs(state.wind.wz)>1e-9) s+=' · 垂直风 '+state.wind.wz.toFixed(1)+' m/s';
+    if(state.wind.profile) s+=' · 幂律 α='+state.wind.alpha.toFixed(2);
+    s+='；空域 '+state.region.x.toFixed(0)+'×'+state.region.y.toFixed(0)+'×'+state.region.z.toFixed(0)+' m · 栅格 '+state.res+' m（'+grid.nx+'×'+grid.ny+'×'+grid.nz+'）· 占用格 '+occCount+' · 风险格 '+riskCount+' · 障碍物 '+state.buildings.length+' 个 · 禁飞区 '+state.noFly.length+' 个';
+    s+=' · 查看层 '+state.sliceAlt.toFixed(0)+' m';
+    if(state.showFly){
+      var fuav=resolveUav();
+      var kk=clamp(Math.floor(state.sliceAlt/state.res),0,grid.nz-1);
+      if(fuav){
+        var fs=flyStats(grid,kk,fuav);
+        var pct=fs.total?(fs.fly/fs.total*100):0;
+        s+=' · 可飞性：'+pct.toFixed(0)+'% 区域可飞（'+fs.fly+'/'+fs.total+'）';
+        if(fs.windExceed) s+=' · 风速超限 '+fs.windExceed+' 格';
+        if(fs.headwind) s+=' · 逆风过强 '+fs.headwind+' 格';
+        s+=' · 该层风速 '+fs.ws.toFixed(1)+' m/s（机型上限 '+fuav.maxWind+' m/s）';
+      } else {
+        s+=' · 可飞性：无可用机型，无法评估';
+      }
+    }
+    if(grid.occ.length>250000) s+=' · 提示：栅格数较大，规划较慢，建议增大栅格分辨率';
+    els['summary'].textContent=s;
+  }
+
+  function renderAll(){
+    readInputs();
+    if(!state.results){ els['valid-wrap'].style.display='none'; }
+    var grid=buildGrid();
+    renderUavInfo();
+    renderSummary(grid);
+    renderTableBuildings();
+    renderNfTable();
+    if(state.results){ renderResults(); }
+    if(state.mode==='3d'){
+      els['view-2d'].style.display='none';
+      els['view-3d'].style.display='';
+      els['mode-cap'].textContent='三维视图 · 视角 '+state.azimuth+'° · 按 ← → 切换视角';
+      render3D(grid);
+    } else {
+      els['view-2d'].style.display='';
+      els['view-3d'].style.display='none';
+      els['mode-cap'].textContent='平面图 · 俯视（步骤④可点击拾取起终点）';
+      render2D(grid);
+    }
+  }
+
+  function svgWorld(ev){
+    var rect=els['svg2d'].getBoundingClientRect();
+    var vx=(ev.clientX-rect.left)/rect.width*W2;
+    var vy=(ev.clientY-rect.top)/rect.height*H2;
+    var rx=state.region.x, ry=state.region.y;
+    var sx=(W2-PAD2-XM2)/rx, sy=(H2-TOP2-YM2)/ry;
+    var wx=(vx-PAD2)/sx;
+    var wy=ry-(vy-TOP2)/sy;
+    return {x:clamp(wx,0,rx),y:clamp(wy,0,ry)};
+  }
+
+  function setPick(mode){
+    state.pick=mode;
+    els['pick-start'].classList.toggle('btn-primary',mode==='start');
+    els['pick-goal'].classList.toggle('btn-primary',mode==='goal');
+    els['pick-nf'].classList.toggle('btn-primary',mode==='nf');
+  }
+
+  function showStep(n){
+    state.step=n;
+    var secs={1:'sec-env',2:'sec-uav',3:'sec-air',4:'sec-plan'};
+    for(var k in secs){
+      els[secs[k]].style.display=(+k===n)?'':'none';
+    }
+    for(var i=1;i<=4;i++){
+      els['step-'+i].classList.toggle('btn-primary',i===n);
+    }
+  }
+
+  function setStatus(txt){ els['map-status'].textContent=txt; }
+  var LEAFLET_CDN=[
+    'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js',
+    'https://unpkg.com/leaflet@1.9.4/dist/leaflet.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js'
+  ];
+  function ensureLeaflet(cb){
+    if(typeof L!=='undefined'){ cb(true); return; }
+    var i=0;
+    function next(){
+      if(i>=LEAFLET_CDN.length){ cb(false); return; }
+      var s=document.createElement('script');
+      s.src=LEAFLET_CDN[i++];
+      s.onload=function(){ if(typeof L!=='undefined'){ cb(true); } else { next(); } };
+      s.onerror=function(){ next(); };
+      document.head?document.head.appendChild(s):document.body.appendChild(s);
+    }
+    next();
+  }
+  function toggleDataMode(){
+    state.mapMode=els['data-mode'].value;
+    els['online-panel'].style.display=(state.mapMode==='online')?'':'none';
+    if(state.mapMode==='online'){ initOnlineMap(); }
+  }
+  function initOnlineMap(){
+    if(state.map) return;
+    ensureLeaflet(function(ok){
+      if(!ok){
+        els['map'].style.display='none';
+        setStatus('地图组件加载失败（CDN 被拦截或网络不可用）。仍可按中心坐标+视野跨度直接拉取建筑，但无地图预览。');
+        return;
+      }
+      els['map'].style.display='';
+      var lat=parseFloat(els['lat-num'].value)||31.2397;
+      var lon=parseFloat(els['lon-num'].value)||121.4998;
+      state.lastCenter={lat:lat,lon:lon};
+      state.map=L.map('map').setView([lat,lon],16);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(state.map);
+      state.layer=L.layerGroup().addTo(state.map);
+      setTimeout(function(){ if(state.map) state.map.invalidateSize(); },150);
+      setStatus('地图已加载；拖动/缩放后点击“拉取视野内建筑”。');
+    });
+  }
+  function osmProject(lat,lon){
+    var c=state.lastCenter||{lat:31.2397,lon:121.4998};
+    var x=(lon-c.lon)*111320*Math.cos(c.lat*Math.PI/180);
+    var y=(c.lat-lat)*110540;
+    return {x:x,y:y};
+  }
+  function parseOsmHeight(tags){
+    var h=NaN;
+    if(tags.height){ h=parseFloat(String(tags.height).replace(/[^0-9.\-]/g,'')); }
+    if(!isFinite(h)||h<=0){
+      var lv=parseInt(tags['building:levels'],10);
+      if(isFinite(lv)&&lv>0) h=lv*3.5;
+    }
+    if(!isFinite(h)||h<=0) h=15;
+    return Math.min(300,Math.max(3,h));
+  }
+  function buildFromOsm(elements){
+    var list=[], minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,count=0;
+    elements.forEach(function(e){
+      if(!e.tags||!e.tags.building) return;
+      var g=e.geometry||[];
+      if(g.length<3) return;
+      var xs=[], ys=[];
+      g.forEach(function(pt){ var p=osmProject(pt.lat,pt.lon); xs.push(p.x); ys.push(p.y); });
+      var x0=Math.min.apply(null,xs), x1=Math.max.apply(null,xs);
+      var y0=Math.min.apply(null,ys), y1=Math.max.apply(null,ys);
+      var l=x1-x0, w=y1-y0;
+      if(l<3||w<3) return;
+      list.push({name:(e.tags.name||('OSM-'+e.type+'-'+e.id)),x:(x0+x1)/2,y:(y0+y1)/2,l:l,w:w,h:parseOsmHeight(e.tags)});
+      if(state.layer&&typeof L!=='undefined'){
+        var ring=g.map(function(pt){ return [pt.lat,pt.lon]; });
+        var f=ring[0], las=ring[ring.length-1];
+        if(f[0]!==las[0]||f[1]!==las[1]) ring.push(f);
+        L.polygon(ring,{color:'#3b82f6',weight:1,fillOpacity:0.15}).addTo(state.layer);
+      }
+      minX=Math.min(minX,x0); maxX=Math.max(maxX,x1); minY=Math.min(minY,y0); maxY=Math.max(maxY,y1);
+      count++;
+    });
+    return {list:list,minX:minX,maxX:maxX,minY:minY,maxY:maxY,count:count};
+  }
+  function geocodeSearch(){
+    var q=els['search-loc'].value.trim();
+    if(!q){ setStatus('请输入要搜索的地区名称。'); return; }
+    setStatus('正在搜索“'+q+'”…');
+    var key=els['amap-key'].value.trim();
+    if(key){
+      fetch('https://restapi.amap.com/v3/geocode/geo?key='+encodeURIComponent(key)+'&address='+encodeURIComponent(q))
+        .then(function(r){ return r.json(); })
+        .then(function(d){
+          if(d&&d.geocodes&&d.geocodes.length){
+            var loc=d.geocodes[0].location.split(',');
+            var lon=parseFloat(loc[0]), lat=parseFloat(loc[1]);
+            els['lon-num'].value=lon.toFixed(6); els['lat-num'].value=lat.toFixed(6);
+            state.lastCenter={lat:lat,lon:lon};
+            if(state.map) state.map.setView([lat,lon],17);
+            setStatus('已定位：'+(d.geocodes[0].formatted_address||q));
+          } else { setStatus('高德未找到该地址，请尝试手动输入经纬度。'); }
+        })
+        .catch(function(){ setStatus('高德接口调用失败，请检查 Key 或网络。'); });
+      return;
+    }
+    var ctrl=new AbortController();
+    var timer=setTimeout(function(){ ctrl.abort(); },8000);
+    fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q='+encodeURIComponent(q),{signal:ctrl.signal,headers:{'Accept':'application/json'}})
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if(d&&d.length){
+          var lat=parseFloat(d[0].lat), lon=parseFloat(d[0].lon);
+          els['lon-num'].value=lon.toFixed(6); els['lat-num'].value=lat.toFixed(6);
+          state.lastCenter={lat:lat,lon:lon};
+          if(state.map) state.map.setView([lat,lon],17);
+          setStatus('已定位：'+(d[0].display_name||q));
+        } else { setStatus('未找到该地区；可尝试手动输入经纬度或配置高德 Key。'); }
+      })
+      .catch(function(){ setStatus('搜索失败（网络被拦截或不可用）；可手动输入经纬度或配置高德 Key。'); })
+      .finally(function(){ clearTimeout(timer); });
+  }
+  function locateCenter(){
+    var lat=parseFloat(els['lat-num'].value), lon=parseFloat(els['lon-num'].value);
+    if(!isFinite(lat)||!isFinite(lon)){ setStatus('请输入有效的经纬度。'); return; }
+    state.lastCenter={lat:lat,lon:lon};
+    if(state.map) state.map.setView([lat,lon],16);
+    setStatus('已定位到 '+lat.toFixed(4)+', '+lon.toFixed(4)+'，点击“拉取视野内建筑”。');
+  }
+  function currentBBox(){
+    if(state.map){
+      var b=state.map.getBounds();
+      return {s:b.getSouth(),w:b.getWest(),n:b.getNorth(),e:b.getEast(),src:'map'};
+    }
+    var lat=parseFloat(els['lat-num'].value), lon=parseFloat(els['lon-num'].value);
+    if(!isFinite(lat)||!isFinite(lon)) return null;
+    var spanKm=Math.max(0.2,parseFloat(els['span-num'].value)||1);
+    var dLat=spanKm/111, dLon=spanKm/(111*Math.cos(lat*Math.PI/180));
+    return {s:lat-dLat,w:lon-dLon,n:lat+dLat,e:lon+dLon,src:'center'};
+  }
+  function fetchBuildingsOnline(){
+    var bb=currentBBox();
+    if(!bb){
+      setStatus('请先搜索地区或填写中心经纬度，再拉取建筑。');
+      return;
+    }
+    setStatus(bb.src==='map'?'正在从 OpenStreetMap 拉取视野内建筑…':'正在按中心坐标拉取建筑（无地图模式，跨度 '+els['span-num'].value+' km）…');
+    var south=bb.s.toFixed(5), west=bb.w.toFixed(5), north=bb.n.toFixed(5), east=bb.e.toFixed(5);
+    var query='[out:json][timeout:25];(way["building"]('+south+','+west+','+north+','+east+');relation["building"]('+south+','+west+','+north+','+east+'););out body geom;';
+    var mirrors=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://overpass.private.coffee/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
+    var idx=0;
+    function attempt(){
+      if(idx>=mirrors.length){ setStatus('所有 Overpass 服务器均繁忙/不可达，或当前环境拦截了联网请求；请稍后重试，或用浏览器直接打开本文件。'); return; }
+      var url=mirrors[idx]; idx++;
+      var ctrl=new AbortController();
+      var timer=setTimeout(function(){ ctrl.abort(); },30000);
+      fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:'data='+encodeURIComponent(query),signal:ctrl.signal})
+        .then(function(r){ return r.text(); })
+        .then(function(txt){
+          clearTimeout(timer);
+          var data=null;
+          try{ data=JSON.parse(txt); }catch(e){ data=null; }
+          if(!data||!data.elements){ attempt(); return; }
+          if(state.layer) state.layer.clearLayers();
+          var res=buildFromOsm(data.elements);
+          if(!res.count){ setStatus('视野内未发现建筑轮廓（该区域 OSM 数据可能缺失），请放大或移动视野后重试。'); return; }
+          var pad=100;
+          var dx=pad-res.minX, dy=pad-res.minY;
+          state.buildings=res.list.map(function(o){ return {name:o.name,x:o.x+dx,y:o.y+dy,l:o.l,w:o.w,h:o.h}; });
+          var rx=Math.max(100,Math.ceil((res.maxX-res.minX+2*pad)/50)*50);
+          var ry=Math.max(100,Math.ceil((res.maxY-res.minY+2*pad)/50)*50);
+          els['region-x'].value=rx; els['region-y'].value=ry;
+          state.lastCenter={lat:(bb.n+bb.s)/2,lon:(bb.e+bb.w)/2};
+          setStatus('已生成 '+res.count+' 个建筑障碍物（来自 OSM，高度按标签/层数估算）；空域自动调整为 '+rx+'×'+ry+' m。');
+          renderAll();
+        })
+        .catch(function(){ clearTimeout(timer); attempt(); });
+    }
+    attempt();
+  }
+  var autoTimer=null;
+  function scheduleAutoPlan(){
+    if(!state.results) return;
+    if(!els['auto-plan'].checked) return;
+    if(autoTimer) clearTimeout(autoTimer);
+    els['plan-msg'].textContent='参数已修改，正在自动重新规划…';
+    autoTimer=setTimeout(planAll,500);
+  }
+  function inputChanged(){ renderAll(); scheduleAutoPlan(); }
+  function init(){
+    els['V-range'].addEventListener('input',function(){ els['V-num'].value=els['V-range'].value; inputChanged(); });
+    els['V-num'].addEventListener('change',function(){ els['V-range'].value=Math.min(25,Math.max(0,parseFloat(els['V-num'].value)||0)); inputChanged(); });
+    els['dir-range'].addEventListener('input',function(){ els['dir-num'].value=els['dir-range'].value; inputChanged(); });
+    els['dir-num'].addEventListener('change',function(){ var v=Math.min(360,Math.max(0,parseFloat(els['dir-num'].value)||0)); els['dir-range'].value=v; inputChanged(); });
+    ['wind-type','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','obj-select','uav-select','load-num','hover-min','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly'].forEach(function(id){
+      els[id].addEventListener('input',inputChanged);
+      els[id].addEventListener('change',inputChanged);
+    });
+    els['preset-select'].addEventListener('change',function(){ state.buildings=presets(els['preset-select'].value).slice(); inputChanged(); });
+    els['add-obs'].addEventListener('click',function(){
+      var name=els['obs-name'].value.trim()||'建筑';
+      var x=parseFloat(els['obs-x'].value)||0, y=parseFloat(els['obs-y'].value)||0;
+      var l=Math.max(1,parseFloat(els['obs-l'].value)||10), w=Math.max(1,parseFloat(els['obs-w'].value)||10);
+      var h=Math.max(1,parseFloat(els['obs-h'].value)||10);
+      state.buildings.push({name:name,x:x,y:y,l:l,w:w,h:h});
+      inputChanged();
+    });
+    els['clear-obs'].addEventListener('click',function(){ state.buildings=[]; inputChanged(); });
+    els['file-buildings'].addEventListener('change',function(ev){
+      var f=ev.target.files[0]; if(!f) return;
+      var reader=new FileReader();
+      reader.onload=function(){
+        var arr=parseBuildings(String(reader.result));
+        if(arr){ state.buildings=arr; inputChanged(); }
+        els['file-buildings'].value='';
+      };
+      reader.readAsText(f);
+    });
+    els['file-map'].addEventListener('change',function(ev){
+      var f=ev.target.files[0]; if(!f) return;
+      var reader=new FileReader();
+      reader.onload=function(){
+        state.bg=String(reader.result);
+        state.buildings=[];
+        els['preset-select'].value='empty';
+        els['remove-map'].style.display='';
+        runDetect();
+        inputChanged();
+        els['file-map'].value='';
+      };
+      reader.readAsDataURL(f);
+    });
+    els['detect-btn'].addEventListener('click',runDetect);
+    els['bg-opacity'].addEventListener('input',function(){ els['bg-opacity-val'].textContent=els['bg-opacity'].value+'%'; inputChanged(); });
+    els['remove-map'].addEventListener('click',function(){
+      state.bg=null;
+      els['remove-map'].style.display='none';
+      els['map-import-status'].textContent='底图已移除。';
+      inputChanged();
+    });
+    els['data-mode'].addEventListener('change',toggleDataMode);
+    els['search-loc-btn'].addEventListener('click',geocodeSearch);
+    els['search-loc'].addEventListener('keydown',function(e){ if(e.key==='Enter'){ geocodeSearch(); } });
+    els['locate-btn'].addEventListener('click',locateCenter);
+    els['fetch-buildings'].addEventListener('click',fetchBuildingsOnline);
+    els['slice-alt'].addEventListener('input',function(){ els['slice-alt-val'].textContent=els['slice-alt'].value+' m'; renderAll(); });
+    els['slice-sync'].addEventListener('click',function(){ els['slice-alt'].value=els['flight-alt'].value; els['slice-alt-val'].textContent=els['flight-alt'].value+' m'; renderAll(); });
+    els['show-risk'].addEventListener('change',renderAll);
+    els['show-fly'].addEventListener('change',renderAll);
+    els['add-nf'].addEventListener('click',addNoFly);
+    els['clear-nf'].addEventListener('click',function(){ state.noFly=[]; renderAll(); });
+    els['pick-nf'].addEventListener('click',function(){ showStep(3); setPick('nf'); });
+    els['btn-plan'].addEventListener('click',planAll);
+    els['pick-start'].addEventListener('click',function(){ showStep(4); setPick('start'); });
+    els['pick-goal'].addEventListener('click',function(){ showStep(4); setPick('goal'); });
+    els['svg2d'].addEventListener('click',function(ev){
+      if(!state.pick) return;
+      var p=svgWorld(ev);
+      if(state.pick==='start'){ els['start-x'].value=p.x.toFixed(0); els['start-y'].value=p.y.toFixed(0); }
+      else if(state.pick==='goal'){ els['goal-x'].value=p.x.toFixed(0); els['goal-y'].value=p.y.toFixed(0); }
+      else if(state.pick==='nf'){ els['nf-x'].value=p.x.toFixed(0); els['nf-y'].value=p.y.toFixed(0); }
+      setPick(null);
+      inputChanged();
+    });
+    els['btn3d'].addEventListener('click',function(){
+      state.mode=(state.mode==='2d')?'3d':'2d';
+      els['btn3d'].textContent=(state.mode==='3d')?'返回平面图':'3D 展示';
+      els['btn3d'].classList.toggle('btn-primary',state.mode==='3d');
+      els['az-wrap'].style.display=(state.mode==='3d')?'':'none';
+      renderAll();
+    });
+    els['az-range'].addEventListener('input',function(){
+      state.azimuth=parseInt(els['az-range'].value,10)||0;
+      els['az-val'].textContent=state.azimuth+'°';
+      if(state.mode==='3d'){ renderAll(); }
+    });
+    for(var i=1;i<=4;i++){
+      (function(n){ els['step-'+n].addEventListener('click',function(){ showStep(n); }); })(i);
+    }
+    document.addEventListener('keydown',function(e){
+      var code=e.keyCode||(e.key?e.key.charCodeAt(0):0);
+      var isLeft=(e.key==='ArrowLeft'||code===37), isRight=(e.key==='ArrowRight'||code===39);
+      if(!isLeft&&!isRight) return;
+      if(state.mode!=='3d') return;
+      e.preventDefault();
+      var step=15;
+      var az=state.azimuth+(isRight?step:-step);
+      az=((az%360)+360)%360;
+      state.azimuth=Math.round(az);
+      els['az-range'].value=state.azimuth;
+      els['az-val'].textContent=state.azimuth+'°';
+      renderAll();
+    });
+    loadPreset('mix');
+    showStep(1);
+    renderAll();
+  }
+
+  function normBuilding(b){
+    var x=parseFloat(b.x), y=parseFloat(b.y);
+    var l=parseFloat(b.l!=null?b.l:b.len), w=parseFloat(b.w!=null?b.w:b.width), h=parseFloat(b.h!=null?b.h:b.height);
+    if(!isFinite(x)||!isFinite(y)||!isFinite(l)||!isFinite(w)||!isFinite(h)||l<=0||w<=0||h<=0) return null;
+    return {name:String(b.name||('建筑'+Math.round(x)+'_'+Math.round(y))),x:x,y:y,l:l,w:w,h:h};
+  }
+  function parseBuildings(txt){
+    var arr=[], data=null;
+    try{ data=JSON.parse(txt); }catch(e){ data=null; }
+    if(data){
+      var list=Array.isArray(data)?data:(data.buildings||[]);
+      list.forEach(function(b){ var ob=normBuilding(b); if(ob) arr.push(ob); });
+      return arr.length?arr:null;
+    }
+    var lines=txt.split(/\r?\n/).filter(function(l){ return l.trim().length>0; });
+    lines.forEach(function(line,idx){
+      var parts=line.split(',');
+      if(idx===0&&/name/i.test(parts[0])) return;
+      if(parts.length<6) return;
+      var ob=normBuilding({name:parts[0],x:parseFloat(parts[1]),y:parseFloat(parts[2]),l:parseFloat(parts[3]),w:parseFloat(parts[4]),h:parseFloat(parts[5])});
+      if(ob) arr.push(ob);
+    });
+    return arr.length?arr:null;
+  }
+  function loadPreset(kind){
+    state.buildings=presets(kind).slice();
+    renderAll();
+  }
+  init();
+})();
+</script>
+</div>
