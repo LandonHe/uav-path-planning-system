@@ -332,5 +332,17 @@ test('3D 视图：左键拖拽旋转（方位角与俯仰）', () => {
   assert.ok(el('mode-cap').textContent.includes('俯仰'), '应显示俯仰角');
 });
 
+test('UI 精简：冗余按钮移除、备注标签简化、机型详情支持换行', () => {
+  assert.equal(el('multi-plan'), null, '开始协同规划按钮应移除');
+  assert.equal(el('multi-gen-starts'), null, '生成起点按钮应移除');
+  assert.equal(el('multi-gen-goals'), null, '生成终点按钮应移除');
+  assert.equal(el('pick-start'), null, '拾取起点按钮应移除');
+  assert.equal(el('pick-goal'), null, '拾取终点按钮应移除');
+  const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
+  assert.ok(htmlSrc.includes('来源 / 备注（选填）'), '备注标签应简化为选填');
+  assert.ok(!htmlSrc.includes('便于溯源与答辩说明'), '备注标签不应再提溯源答辩');
+  assert.ok(htmlSrc.includes('.uav-item{display:flex;flex-direction:column;gap:1px;min-width:0;'), '机型详情应支持长文本换行');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
