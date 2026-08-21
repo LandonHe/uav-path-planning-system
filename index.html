@@ -784,7 +784,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(state.wind.profile&&state.wind.href>0&&z>0){
       s=s*Math.pow(Math.max(z,1)/state.wind.href,state.wind.alpha);
     }
-    return Math.min(25,s);
+    s=Math.min(25,s);
+    if(state.windType==='gust'||state.windType==='mix'){ s=Math.min(25,s+state.wind.gust); }
+    return s;
   }
   function vertTime(vert,up){
     var base=3;
@@ -860,7 +862,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
           if(cx>=ex0&&cx<=ex1&&cy>=ey0&&cy<=ey1 && !occ[I(i,j,k)]) risk[I(i,j,k)]+=2.0;
         } } }
       }
-      if(state.wakeOn&&state.wind.speed>0){
+      if((state.wakeOn||state.windType==='wake'||state.windType==='mix')&&state.wind.speed>0){
         var ux=Math.sin(state.wind.tAir), uy=Math.cos(state.wind.tAir);
         var L=state.wakeLen*Math.max(b.l,b.w);
         var wx0=x0+ux*L, wx1=x1+ux*L, wy0=y0+uy*L, wy1=y1+uy*L;
@@ -886,7 +888,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         for(var i=i0;i<=i1;i++){ for(var j=j0;j<=j1;j++){ occ[I(i,j,k)]=1; } }
       }
     });
-    var mult=1+state.wind.turb*3;
+    var mult=1+state.wind.turb*((state.windType==='turbulent'||state.windType==='mix')?6:3);
     for(var idx=0;idx<N;idx++){ risk[idx]*=mult; }
     return {nx:nx,ny:ny,nz:nz,occ:occ,risk:risk};
   }
@@ -932,7 +934,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var zc=(decode(grid,n).iz+0.5)*state.res;
         var ws=windSpeedAt(zc);
         var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
-        vg=Math.max(0.5,uav.cruise+wAlong);
+        vg=Math.max(0.5,uav.cruise+wAlong); if(state.windType==='turbulent'||state.windType==='mix'){ vg=Math.max(0.5,vg*(1-state.wind.turb*0.6)); }
         risk=grid.risk[n];
       }
       time+=horiz/vg;
@@ -1047,7 +1049,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
             var dirX=dx/horiz, dirY=dy/horiz;
             var ws=windSpeedAt(q.z);
             var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
-            vg=Math.max(0.5,uav.cruise+wAlong);
+            vg=Math.max(0.5,uav.cruise+wAlong); if(state.windType==='turbulent'||state.windType==='mix'){ vg=Math.max(0.5,vg*(1-state.wind.turb*0.6)); }
           }
           time+=horiz/vg; energy+=uav.cruiseWh100*(horiz/100);
         }
@@ -1114,7 +1116,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var dirX=dx/horiz, dirY=dy/horiz;
         var ws=windSpeedAt((z1+z2)/2);
         var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
-        vg=Math.max(0.5,uav.cruise+wAlong);
+        vg=Math.max(0.5,uav.cruise+wAlong); if(state.windType==='turbulent'||state.windType==='mix'){ vg=Math.max(0.5,vg*(1-state.wind.turb*0.6)); }
       }
       time+=horiz/vg; energy+=uav.cruiseWh100*(horiz/100);
     }
@@ -2035,7 +2037,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var dirX=dx/horiz, dirY=dy/horiz;
         var ws=windSpeedAt(q.z);
         var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
-        vg=Math.max(0.5,uav.cruise+wAlong);
+        vg=Math.max(0.5,uav.cruise+wAlong); if(state.windType==='turbulent'||state.windType==='mix'){ vg=Math.max(0.5,vg*(1-state.wind.turb*0.6)); }
         t+=horiz/vg;
       }
       times.push(t);
@@ -2271,7 +2273,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         }
       }
     }
-    if(state.wakeOn&&state.wind.speed>0){
+    if((state.wakeOn||state.windType==='wake'||state.windType==='mix')&&state.wind.speed>0){
       var t=state.wind.tAir;
       var ux=Math.sin(t), uy=Math.cos(t);
       state.buildings.forEach(function(b){
