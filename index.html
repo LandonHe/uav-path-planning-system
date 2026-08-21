@@ -283,6 +283,38 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys.hud ::-webkit-scrollbar-thumb:hover{background:rgba(47,214,255,0.5);}
   #uavwind-sys.hud ::-webkit-scrollbar-track{background:rgba(10,20,40,0.5);}
   @keyframes hudBlink{0%,100%{opacity:1;}50%{opacity:0.55;}}
+
+  /* ========== 经典主题优化（更清晰、更精致） ========== */
+  #uavwind-sys{
+    --foreground:light-dark(rgb(24 27 32),rgb(242 246 252));
+    --muted-foreground:light-dark(rgb(24 27 32 / 64%),rgb(255 255 255 / 68%));
+    --card:light-dark(rgb(255 255 255 / 94%),rgb(30 34 42 / 96%));
+    --border:light-dark(rgb(24 27 32 / 11%),rgb(255 255 255 / 11%));
+    --font-size-base:14.5px;
+    --font-size-small:12.5px;
+    letter-spacing:0.01em;
+  }
+  #uavwind-sys h2{font-weight:700;letter-spacing:0.5px;}
+  #uavwind-sys h3{font-weight:650;}
+  #uavwind-sys .form-label{font-weight:600;letter-spacing:0.02em;}
+  #uavwind-sys .form-control,#uavwind-sys .form-select{min-height:30px;border-radius:10px;background:light-dark(rgb(255 255 255),rgb(38 43 53));}
+  #uavwind-sys .form-control:focus-visible,#uavwind-sys .form-select:focus-visible{border-color:var(--ring);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 18%,transparent);}
+  #uavwind-sys .btn{min-height:30px;border-radius:10px;}
+  #uavwind-sys .btn-primary{background:linear-gradient(135deg,rgb(64 158 255),rgb(41 128 233));box-shadow:0 2px 10px color-mix(in srgb,var(--blue) 28%,transparent);}
+  #uavwind-sys .btn-primary:hover{box-shadow:0 4px 16px color-mix(in srgb,var(--blue) 38%,transparent);}
+  #uavwind-sys .sec,#uavwind-sys .view{
+    background:light-dark(color-mix(in srgb,var(--blue) 4%,rgb(255 255 255)),color-mix(in srgb,var(--blue) 6%,rgb(24 26 31)));
+    border:1px solid var(--border);
+    box-shadow:0 1px 2px rgb(16 24 40 / 4%),0 10px 28px rgb(16 24 40 / 7%);
+  }
+  #uavwind-sys .card{box-shadow:0 1px 2px rgb(16 24 40 / 4%),0 8px 20px rgb(16 24 40 / 6%);}
+  #uavwind-sys .table thead th{font-weight:650;color:light-dark(rgb(30 34 40),rgb(226 232 240));}
+  #uavwind-sys .steps{box-shadow:inset 0 1px 0 rgb(255 255 255 / 60%),0 4px 16px rgb(16 24 40 / 6%);}
+  #uavwind-sys .legend-row,#uavwind-sys .inline{background:light-dark(rgb(255 255 255 / 70%),rgb(255 255 255 / 4%));}
+  #uavwind-sys .viz-stat-value{font-weight:650;}
+  #uavwind-sys ::-webkit-scrollbar{width:9px;height:9px;}
+  #uavwind-sys ::-webkit-scrollbar-thumb{background:light-dark(rgb(24 27 32 / 18%),rgb(255 255 255 / 18%));border-radius:5px;}
+  #uavwind-sys ::-webkit-scrollbar-track{background:transparent;}
 </style>
 <h2>风扰环境下城市低空无人机路径规划系统 <span class="hud-status">● 系统在线</span></h2>
 <div class="hud-bar" id="hud-bar"></div>
