@@ -430,5 +430,12 @@ test('主题切换：HUD 与经典主题一键切换并记忆', () => {
   assert.ok(!root.classList.contains('hud'), '应切回经典主题');
 });
 
+test('自定义机型表单：双列布局且输入框可伸缩，避免裁切', () => {
+  const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
+  assert.ok(htmlSrc.includes('row3 cu-form'), '自定义机型表单应使用双列布局');
+  assert.ok(htmlSrc.includes('#uavwind-sys #cu-panel .pair input[type=number]{width:auto;flex:1;min-width:0;'), '输入框应可伸缩');
+  assert.ok(htmlSrc.includes('推荐高度范围（m）'), '推荐高度范围应占整行并带单位说明');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
