@@ -3088,6 +3088,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['multi-plan'].addEventListener('click',planMulti);
     els['multi-play'].addEventListener('click',multiPlayToggle);
     els['multi-time'].addEventListener('input',function(){ state.multiPlay=parseFloat(els['multi-time'].value)||0; if(state.multi) renderMultiInfo(); renderAll(); });
+    els['cu-toggle'].addEventListener('click',toggleCuPanel);
+    els['cu-save'].addEventListener('click',saveCustomUav);
+    els['cu-clear'].addEventListener('click',cuClearForm);
     els['btn-plan'].addEventListener('click',planAll);
     els['pick-start'].addEventListener('click',function(){ showStep(4); setPick('start'); });
     els['pick-goal'].addEventListener('click',function(){ showStep(4); setPick('goal'); });
