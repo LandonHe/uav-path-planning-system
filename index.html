@@ -162,13 +162,136 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys #plan-msg{background:color-mix(in srgb,var(--blue) 8%,var(--background));border-radius:10px;padding:8px 12px;}
   #uavwind-sys input[type=checkbox]{accent-color:var(--blue);}
   #uavwind-sys .viz-badge{border-radius:999px;}
+#uavwind-sys .hud-bar,#uavwind-sys .hud-status{display:none;}
+/* ========== HUD 深空蓝预览主题（方案一） ========== */
+  #uavwind-sys.hud{
+    color-scheme:dark;
+    color:var(--foreground);
+    --background:#060b18;
+    --foreground:#eaf3ff;
+    --card:rgba(13,26,50,0.78);
+    --card-foreground:#eaf3ff;
+    --popover:rgba(10,20,40,0.95);
+    --popover-foreground:#eaf3ff;
+    --primary:#2fd6ff;
+    --primary-foreground:#04131f;
+    --secondary:rgba(18,36,68,0.85);
+    --secondary-foreground:#dff0ff;
+    --muted:rgba(140,180,230,0.12);
+    --muted-foreground:#aec9ef;
+    --accent:rgba(47,214,255,0.14);
+    --accent-foreground:#7fe3ff;
+    --destructive:#ff6b57;
+    --border:rgba(110,180,255,0.26);
+    --input:rgba(110,180,255,0.3);
+    --ring:rgba(47,214,255,0.8);
+    --blue:#2fd6ff;
+    --orange:#ffb25e;
+    --green:#39e6a0;
+    --red:#ff5c7a;
+    --purple:#b48cff;
+    --yellow:#ffd166;
+    --viz-series-1:#2fd6ff;
+    --viz-series-2:#ffb25e;
+    --viz-series-3:#39e6a0;
+    --viz-series-4:#ff7ab8;
+    --viz-series-5:#b48cff;
+    --viz-series-6:#4ee6d8;
+    background:radial-gradient(1200px 620px at 18% -5%,rgba(47,130,255,0.24),transparent 60%),linear-gradient(180deg,#050a16 0%,#0a1530 55%,#04070f 100%);
+    background-image:linear-gradient(rgba(47,214,255,0.05) 1px,transparent 1px),linear-gradient(90deg,rgba(47,214,255,0.05) 1px,transparent 1px),radial-gradient(1200px 620px at 18% -5%,rgba(47,130,255,0.24),transparent 60%),linear-gradient(180deg,#050a16 0%,#0a1530 55%,#04070f 100%);
+    background-size:34px 34px,34px 34px,auto,auto;
+  }
+  #uavwind-sys.hud h2,#uavwind-sys.hud h3,#uavwind-sys.hud .uav-head{color:var(--foreground);}
+  #uavwind-sys.hud .sec,#uavwind-sys.hud .view,#uavwind-sys.hud .card{
+    background:rgba(13,26,50,0.78);
+    border-color:rgba(110,180,255,0.3);
+    box-shadow:0 0 0 1px rgba(47,214,255,0.06),0 10px 34px rgba(0,0,0,0.45),inset 0 0 24px rgba(47,214,255,0.05);
+    backdrop-filter:blur(10px);
+  }
+  #uavwind-sys.hud .sec::before,#uavwind-sys.hud .sec::after,#uavwind-sys.hud .view::before,#uavwind-sys.hud .view::after{
+    content:'';position:absolute;width:14px;height:14px;pointer-events:none;opacity:.9;
+  }
+  #uavwind-sys.hud .sec::before{top:8px;left:8px;border-top:2px solid var(--primary);border-left:2px solid var(--primary);}
+  #uavwind-sys.hud .sec::after{top:8px;right:8px;border-top:2px solid var(--primary);border-right:2px solid var(--primary);}
+  #uavwind-sys.hud .view::before{bottom:8px;left:8px;border-bottom:2px solid var(--primary);border-left:2px solid var(--primary);}
+  #uavwind-sys.hud .view::after{bottom:8px;right:8px;border-bottom:2px solid var(--primary);border-right:2px solid var(--primary);}
+  #uavwind-sys.hud .view{background-image:repeating-linear-gradient(0deg,rgba(47,214,255,0.05) 0 1px,transparent 1px 4px),radial-gradient(900px 400px at 50% 0%,rgba(47,214,255,0.1),transparent 70%);animation:hudPulse 5s ease-in-out infinite;}
+  @keyframes hudPulse{
+    0%,100%{box-shadow:0 0 0 1px rgba(47,214,255,0.06),0 10px 34px rgba(0,0,0,0.45),inset 0 0 24px rgba(47,214,255,0.05);}
+    50%{box-shadow:0 0 0 1px rgba(47,214,255,0.14),0 10px 34px rgba(0,0,0,0.45),inset 0 0 38px rgba(47,214,255,0.13);}
+  }
+  #uavwind-sys.hud h2{font-family:Consolas,Menlo,monospace;letter-spacing:2px;text-shadow:0 0 20px rgba(47,214,255,0.5);}
+  #uavwind-sys.hud h2::before{background:linear-gradient(180deg,var(--primary),#0a6fb8);box-shadow:0 0 12px var(--primary);}
+  #uavwind-sys.hud h3::before{box-shadow:0 0 8px var(--primary);}
+  #uavwind-sys.hud .btn-primary{background:linear-gradient(135deg,#16aee8,#2fd6ff);color:#031220;box-shadow:0 0 16px rgba(47,214,255,0.5),0 2px 8px rgba(0,0,0,0.3);}
+  #uavwind-sys.hud .btn-primary:hover{box-shadow:0 0 26px rgba(47,214,255,0.85),0 2px 8px rgba(0,0,0,0.3);}
+  #uavwind-sys.hud .btn:not(.btn-primary){background:rgba(24,46,86,0.7);border-color:rgba(110,180,255,0.35);color:#cfe4ff;}
+  #uavwind-sys.hud .btn:not(.btn-primary):hover{box-shadow:0 0 12px rgba(47,214,255,0.35);}
+  #uavwind-sys.hud .form-control,#uavwind-sys.hud .form-select{background:rgba(8,16,34,0.8);border-color:rgba(110,180,255,0.35);color:var(--foreground);}
+  #uavwind-sys.hud .form-control::placeholder,#uavwind-sys.hud .form-select::placeholder{color:#8fb2dd;opacity:1;}
+  #uavwind-sys.hud .form-control:focus-visible,#uavwind-sys.hud .form-select:focus-visible{box-shadow:0 0 0 1px var(--ring),0 0 12px rgba(47,214,255,0.35);}
+  #uavwind-sys.hud .table thead th{background:rgba(47,214,255,0.12);color:#9fd8ff;}
+  #uavwind-sys.hud .table :is(th,td){border-bottom-color:rgba(110,180,255,0.16);}
+  #uavwind-sys.hud .viz-stat-value,#uavwind-sys.hud #summary,#uavwind-sys.hud #multi-clock,#uavwind-sys.hud .preview-label,#uavwind-sys.hud .nf-label{font-family:Consolas,Menlo,monospace;}
+  #uavwind-sys.hud .viz-stat-value{text-shadow:0 0 14px rgba(47,214,255,0.55);}
+  #uavwind-sys.hud .grid-line{stroke:rgba(120,190,255,0.13);}
+  #uavwind-sys.hud .path-main{filter:drop-shadow(0 0 5px rgba(47,214,255,0.85));}
+  #uavwind-sys.hud .path-rrt{filter:drop-shadow(0 0 5px rgba(180,140,255,0.7));}
+  #uavwind-sys.hud .path-pso{filter:drop-shadow(0 0 5px rgba(78,230,216,0.7));}
+  #uavwind-sys.hud .multi-path{filter:drop-shadow(0 0 4px rgba(47,214,255,0.6));}
+  #uavwind-sys.hud .smooth-line{filter:drop-shadow(0 0 5px rgba(47,214,255,0.7));}
+  #uavwind-sys.hud .wind-line{filter:drop-shadow(0 0 3px rgba(47,214,255,0.9));}
+  #uavwind-sys.hud .legend-row,#uavwind-sys.hud .inline{background:rgba(20,40,78,0.55);border-color:rgba(110,180,255,0.25);}
+  #uavwind-sys.hud .steps{background:rgba(16,32,64,0.6);border-color:rgba(110,180,255,0.3);}
+  #uavwind-sys.hud .steps .btn-primary{box-shadow:0 0 14px rgba(47,214,255,0.5);}
+  #uavwind-sys.hud .viz-badge{background:rgba(47,214,255,0.16);color:#7fe3ff;box-shadow:0 0 8px rgba(47,214,255,0.25);}
+  #uavwind-sys.hud #plan-msg,#uavwind-sys.hud #summary{background:rgba(20,40,78,0.6);border-color:rgba(110,180,255,0.28);}
+  #uavwind-sys.hud #map{background:#0a1428;}
+  #uavwind-sys.hud .leaflet-tile{filter:brightness(0.72) saturate(0.85) contrast(1.05);}
+  #uavwind-sys.hud #ctx-menu,#uavwind-sys.hud .edit-pop{background:rgba(10,20,40,0.96);border-color:rgba(110,180,255,0.4);box-shadow:0 10px 30px rgba(0,0,0,0.6),0 0 18px rgba(47,214,255,0.15);}
+  #uavwind-sys.hud .hud-status{display:inline-block;font-family:Consolas,Menlo,monospace;font-size:12px;letter-spacing:1px;color:#39e6a0;background:rgba(57,230,160,0.12);border:1px solid rgba(57,230,160,0.4);border-radius:999px;padding:3px 10px;box-shadow:0 0 10px rgba(57,230,160,0.3);animation:hudBlink 2s infinite;}
+  #uavwind-sys.hud .hud-bar{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-family:Consolas,Menlo,monospace;font-size:12px;letter-spacing:1px;color:#aec9ef;background:rgba(10,22,44,0.75);border:1px solid rgba(110,180,255,0.32);border-radius:10px;padding:7px 14px;box-shadow:inset 0 0 20px rgba(47,214,255,0.08);}
+  #uavwind-sys.hud .hud-bar b{color:#eaf6ff;font-weight:600;text-shadow:0 0 8px rgba(47,214,255,0.5);}
+  #uavwind-sys.hud .hud-bar i{color:rgba(47,214,255,0.55);font-style:normal;}
+  #uavwind-sys.hud .hud-meters{display:inline-flex;gap:8px;align-items:center;font-family:Consolas,Menlo,monospace;font-size:11px;color:#8fb2dd;letter-spacing:1px;}
+  #uavwind-sys.hud .hud-meters>i{position:relative;display:inline-block;width:64px;height:5px;background:rgba(47,214,255,0.12);border:1px solid rgba(47,214,255,0.35);border-radius:3px;overflow:hidden;color:transparent;}
+  #uavwind-sys.hud .hud-meters b{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#16aee8,#2fd6ff);box-shadow:0 0 8px rgba(47,214,255,0.8);animation:hudMeter 2.4s ease-in-out infinite;}
+  @keyframes hudMeter{0%,100%{opacity:0.65;}50%{opacity:1;}}
+  #uavwind-sys.hud h2::after{content:'';flex:1;min-width:40px;height:2px;background:linear-gradient(90deg,var(--primary),rgba(47,214,255,0));box-shadow:0 0 10px rgba(47,214,255,0.7);animation:hudLine 2.6s ease-in-out infinite;}
+  @keyframes hudLine{0%,100%{opacity:0.35;}50%{opacity:1;}}
+  #uavwind-sys.hud #view-2d{position:relative;overflow:hidden;}
+  #uavwind-sys.hud #view-2d::after{content:'';position:absolute;left:0;right:0;top:-10%;height:80px;pointer-events:none;z-index:5;background:linear-gradient(180deg,transparent,rgba(47,214,255,0.12),transparent);animation:scanY 5s linear infinite;}
+  @keyframes scanY{0%{top:-10%;}100%{top:110%;}}
+  #uavwind-sys.hud .path-main{stroke-dasharray:14 7;animation:dashFlow 0.9s linear infinite;}
+  #uavwind-sys.hud .path-rrt{stroke-dasharray:10 6;animation:dashFlow 1.1s linear infinite;}
+  #uavwind-sys.hud .path-pso{stroke-dasharray:8 6;animation:dashFlow 1.3s linear infinite;}
+  #uavwind-sys.hud .multi-path{stroke-dasharray:12 7;animation:dashFlow 1s linear infinite;}
+  #uavwind-sys.hud .smooth-line{stroke-dasharray:10 6;animation:dashFlow 0.8s linear infinite;}
+  @keyframes dashFlow{to{stroke-dashoffset:-21;}}
+  #uavwind-sys.hud .dmark,#uavwind-sys.hud .smark{animation:markPulse 2.2s ease-in-out infinite;}
+  #uavwind-sys.hud .dgoal,#uavwind-sys.hud .gmark{animation:markPulse 2.2s ease-in-out infinite 0.4s;}
+  @keyframes markPulse{0%,100%{opacity:1;}50%{opacity:0.55;}}
+  #uavwind-sys.hud .dmark{filter:drop-shadow(0 0 4px rgba(47,214,255,0.75));}
+  #uavwind-sys.hud .dlabel{filter:drop-shadow(0 0 3px rgba(47,214,255,0.85));}
+  #uavwind-sys.hud .smark{filter:drop-shadow(0 0 5px rgba(57,230,160,0.85));}
+  #uavwind-sys.hud .gmark{filter:drop-shadow(0 0 5px rgba(255,92,122,0.85));}
+  #uavwind-sys.hud .sec,#uavwind-sys.hud .view,#uavwind-sys.hud .card{transition:border-color .3s ease,box-shadow .3s ease;}
+  #uavwind-sys.hud .sec:hover,#uavwind-sys.hud .view:hover,#uavwind-sys.hud .card:hover{border-color:rgba(110,180,255,0.5);}
+  #uavwind-sys.hud .btn:active{transform:translateY(1px) scale(0.98);}
+  #uavwind-sys.hud ::-webkit-scrollbar{width:8px;height:8px;}
+  #uavwind-sys.hud ::-webkit-scrollbar-thumb{background:rgba(47,214,255,0.3);border-radius:4px;}
+  #uavwind-sys.hud ::-webkit-scrollbar-thumb:hover{background:rgba(47,214,255,0.5);}
+  #uavwind-sys.hud ::-webkit-scrollbar-track{background:rgba(10,20,40,0.5);}
+  @keyframes hudBlink{0%,100%{opacity:1;}50%{opacity:0.55;}}
 </style>
-<h2>风扰环境下城市低空无人机路径规划系统</h2>
+<h2>风扰环境下城市低空无人机路径规划系统 <span class="hud-status">● 系统在线</span></h2>
+<div class="hud-bar" id="hud-bar"></div>
 <div class="steps" role="tablist">
   <button type="button" id="step-1" class="btn btn-primary">① 环境参数</button>
   <button type="button" id="step-2" class="btn">② 无人机</button>
   <button type="button" id="step-3" class="btn">③ 空域建模</button>
   <button type="button" id="step-4" class="btn">④ 路径规划</button>
+  <button type="button" id="theme-toggle" class="btn" style="margin-left:auto">切换到 HUD 主题</button>
 </div>
 <div class="panel-grid">
   <div class="controls">
@@ -765,7 +888,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -2720,10 +2843,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     }
     state.drones.forEach(function(d,i){
       var col=MULTI_COLORS[i%4];
-      out+='<circle cx="'+mx(d.sx).toFixed(1)+'" cy="'+my(d.sy).toFixed(1)+'" r="8" style="fill:'+col+';stroke:var(--foreground);stroke-width:2"/>';
-      out+='<text class="preview-label" x="'+mx(d.sx).toFixed(1)+'" y="'+(my(d.sy)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">无人机'+(i+1)+'</text>';
+      out+='<circle class="dmark" cx="'+mx(d.sx).toFixed(1)+'" cy="'+my(d.sy).toFixed(1)+'" r="8" style="fill:'+col+';stroke:var(--foreground);stroke-width:2"/>';
+      out+='<text class="preview-label dlabel" x="'+mx(d.sx).toFixed(1)+'" y="'+(my(d.sy)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">无人机'+(i+1)+'</text>';
       if(d.gx!=null){
-        out+='<circle cx="'+mx(d.gx).toFixed(1)+'" cy="'+my(d.gy).toFixed(1)+'" r="9" style="fill:none;stroke:'+col+';stroke-width:2.5"/>';
+        out+='<circle class="dgoal" cx="'+mx(d.gx).toFixed(1)+'" cy="'+my(d.gy).toFixed(1)+'" r="9" style="fill:none;stroke:'+col+';stroke-width:2.5"/>';
         out+='<circle cx="'+mx(d.gx).toFixed(1)+'" cy="'+my(d.gy).toFixed(1)+'" r="2.5" style="fill:'+col+'"/>';
       }
     });
@@ -2837,10 +2960,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       });
     }
     var smx=mx(state.start.x), smy=my(state.start.y);
-    out+='<circle cx="'+smx.toFixed(1)+'" cy="'+smy.toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
+    out+='<circle class="smark" cx="'+smx.toFixed(1)+'" cy="'+smy.toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
     out+='<text class="preview-label" x="'+smx.toFixed(1)+'" y="'+(smy-10)+'" text-anchor="middle">起点</text>';
     var gmx=mx(state.goal.x), gmy=my(state.goal.y);
-    out+='<circle cx="'+gmx.toFixed(1)+'" cy="'+gmy.toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
+    out+='<circle class="gmark" cx="'+gmx.toFixed(1)+'" cy="'+gmy.toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
     out+='<text class="preview-label" x="'+gmx.toFixed(1)+'" y="'+(gmy-10)+'" text-anchor="middle">终点</text>';
     var cx=ox+rx*sx/2, cy=oy+ry*sy/2;
     if(state.wind.speed>0){
@@ -3019,9 +3142,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       });
     }
     var sp=P(state.start.x,state.start.y,state.flightAlt);
-    out+='<circle cx="'+sp[0].toFixed(1)+'" cy="'+sp[1].toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
+    out+='<circle class="smark" cx="'+sp[0].toFixed(1)+'" cy="'+sp[1].toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
     var gp=P(state.goal.x,state.goal.y,state.flightAlt);
-    out+='<circle cx="'+gp[0].toFixed(1)+'" cy="'+gp[1].toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
+    out+='<circle class="gmark" cx="'+gp[0].toFixed(1)+'" cy="'+gp[1].toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
     els['svg3d'].innerHTML=out;
   }
 
@@ -3067,9 +3190,33 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(grid.occ.length>250000) s+=' · 提示：栅格数较大，规划较慢，建议增大栅格分辨率';
     els['summary'].textContent=s;
   }
+  function renderHudBar(){
+    var b=document.getElementById('hud-bar');
+    if(!b) return;
+    var items=[
+      ['SYS','<b style="color:var(--green)">ONLINE</b>'],
+      ['SEC','01'],
+      ['WIND',state.wind.speed.toFixed(1)+' m/s'],
+      ['DIR',state.wind.dir.toFixed(0)+'°'],
+      ['ALT',Math.round(state.flightAlt||0)+' m'],
+      ['GRID',state.res+' m'],
+      ['UAV',state.drones.length>0?(state.drones.length+' 架'):'单机']
+    ];
+    b.innerHTML=items.map(function(it){ return '<span>'+it[0]+' '+it[1]+'</span>'; }).join('<i>·</i>')
+      +'<span class="hud-meters"><span>PWR</span><i><b style="width:86%"></b></i><span>LINK</span><i><b style="width:97%"></b></i><span>CPU</span><i><b style="width:52%"></b></i></span>';
+  }
+  function toggleTheme(){
+    var root=document.getElementById('uavwind-sys');
+    if(!root) return;
+    var hud=root.classList.toggle('hud');
+    els['theme-toggle'].textContent=hud?'切换到经典主题':'切换到 HUD 主题';
+    try{ if(typeof localStorage!=='undefined') localStorage.setItem('uav_theme',hud?'hud':'classic'); }catch(e){}
+    renderAll();
+  }
 
   function renderAll(){
     readInputs();
+    renderHudBar();
     if(!state.results){ els['valid-wrap'].style.display='none'; }
     var grid=buildGrid();
     var awRun=state.results? state.results.runs.filter(function(x){return x.key==='aw';})[0]:null;
@@ -3638,6 +3785,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     for(var i=1;i<=4;i++){
       (function(n){ els['step-'+n].addEventListener('click',function(){ showStep(n); }); })(i);
     }
+    els['theme-toggle'].addEventListener('click',toggleTheme);
     document.addEventListener('keydown',function(e){
       var code=e.keyCode||(e.key?e.key.charCodeAt(0):0);
       var isLeft=(e.key==='ArrowLeft'||code===37), isRight=(e.key==='ArrowRight'||code===39);
@@ -3668,6 +3816,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     renderCuTable();
     updatePlanMode();
     updateModeCap();
+    try{
+      var savedTheme=typeof localStorage!=='undefined'?localStorage.getItem('uav_theme'):null;
+      if(savedTheme==='hud'){
+        var root=document.getElementById('uavwind-sys');
+        if(root){ root.classList.add('hud'); els['theme-toggle'].textContent='切换到经典主题'; }
+      }
+    }catch(e2){}
     renderAll();
     showStep(1);
     renderAll();

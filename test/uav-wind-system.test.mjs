@@ -61,7 +61,22 @@ function makeEl(tag) {
     querySelectorAll() { return []; },
     querySelector() { return null; },
     getBoundingClientRect() { return { left: 0, top: 0, width: 760, height: 540, right: 760, bottom: 540 }; },
-    classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
+    classList: (() => {
+      const s = new Set();
+      return {
+        add(c) { s.add(c); },
+        remove(c) { s.delete(c); },
+        toggle(c, force) {
+          if (force === undefined) {
+            if (s.has(c)) { s.delete(c); return false; }
+            s.add(c); return true;
+          }
+          if (force) s.add(c); else s.delete(c);
+          return !!force;
+        },
+        contains(c) { return s.has(c); },
+      };
+    })(),
   };
   Object.defineProperty(el, 'textContent', {
     configurable: true,
@@ -360,6 +375,18 @@ test('UI 精简：冗余按钮移除、备注标签简化、机型详情支持�
   assert.ok(htmlSrc.includes('来源 / 备注（选填）'), '备注标签应简化为选填');
   assert.ok(!htmlSrc.includes('便于溯源与答辩说明'), '备注标签不应再提溯源答辩');
   assert.ok(htmlSrc.includes('.uav-item{display:flex;flex-direction:column;gap:1px;min-width:0;'), '机型详情应支持长文本换行');
+});
+
+test('主题切换：HUD 与经典主题一键切换并记忆', () => {
+  const root = documentStub.getElementById('uavwind-sys');
+  if (root.classList.contains('hud')) click('theme-toggle');
+  click('theme-toggle');
+  assert.ok(root.classList.contains('hud'), '应切到 HUD 主题');
+  assert.ok(el('theme-toggle').textContent.includes('经典'), '按钮应显示切换到经典');
+  assert.equal(localStorageStub.getItem('uav_theme'), 'hud', '应记忆 HUD 主题');
+  assert.ok(el('hud-bar').innerHTML.length > 0, 'HUD 模式下遥测栏应有内容');
+  click('theme-toggle');
+  assert.ok(!root.classList.contains('hud'), '应切回经典主题');
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
