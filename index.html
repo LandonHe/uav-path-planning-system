@@ -2909,11 +2909,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     bs.forEach(function(b){
       var x0=b.x-b.l/2, x1=b.x+b.l/2, y0=b.y-b.w/2, y1=b.y+b.w/2;
       var col=heightColor(b.h);
-      var colS1='color-mix(in srgb,'+col+' 70%,var(--background))';
-      var colS2='color-mix(in srgb,'+col+' 48%,var(--background))';
       var base=[P(x0,y0,0),P(x1,y0,0),P(x1,y1,0),P(x0,y1,0)];
       out+='<polygon points="'+poly(base.map(function(pt){ return [pt[0]+4,pt[1]+6]; }))+'" style="fill:var(--foreground);fill-opacity:0.14;stroke:none"/>';
-      var sides=[];
       var light={x:cos,y:sin};
       var faces=[
         {a:[x1,y0],b:[x1,y1],n:{x:1,y:0}},
@@ -2922,18 +2919,18 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         {a:[x0,y0],b:[x1,y0],n:{x:0,y:-1}}
       ];
       faces.forEach(function(face){
-        var nrm=face.n.x*light.x+face.n.y*light.y;
-        if(nrm<-1e-4) sides.push({a:face.a,b:face.b,shade:colS2});
-        else if(nrm>1e-4) sides.push({a:face.a,b:face.b,shade:colS1});
+        face.depth=face.n.x*light.x+face.n.y*light.y;
       });
-      sides.forEach(function(side){
-        var q1=P(side.a[0],side.a[1],0), q2=P(side.b[0],side.b[1],0), q3=P(side.b[0],side.b[1],b.h), q4=P(side.a[0],side.a[1],b.h);
-        out+='<polygon points="'+poly([q1,q2,q3,q4])+'" style="fill:'+side.shade+';stroke:var(--foreground);stroke-opacity:0.55;stroke-width:1"/>';
+      faces.sort(function(f1,f2){ return f1.depth-f2.depth; });
+      faces.forEach(function(face){
+        var shade=face.depth>1e-4?'color-mix(in srgb,'+col+' 92%,var(--background))':(face.depth<-1e-4?'color-mix(in srgb,'+col+' 55%,var(--background))':'color-mix(in srgb,'+col+' 74%,var(--background))');
+        var q1=P(face.a[0],face.a[1],0), q2=P(face.b[0],face.b[1],0), q3=P(face.b[0],face.b[1],b.h), q4=P(face.a[0],face.a[1],b.h);
+        out+='<polygon points="'+poly([q1,q2,q3,q4])+'" style="fill:'+shade+';fill-opacity:1;stroke:var(--foreground);stroke-opacity:0.6;stroke-width:1"/>';
       });
       var top=[P(x0,y0,b.h),P(x1,y0,b.h),P(x1,y1,b.h),P(x0,y1,b.h)];
       var over=b.h>rz;
       var tip2=b.name+'：'+b.l.toFixed(0)+'×'+b.w.toFixed(0)+'×'+b.h.toFixed(0)+' m'+(over?'（超出区域高度）':'');
-      out+='<polygon points="'+poly(top)+'" style="fill:'+col+';fill-opacity:0.96;stroke:'+(over?'var(--destructive)':'var(--foreground)')+';stroke-opacity:'+(over?0.9:0.75)+';stroke-width:1.3" data-tooltip="'+esc(tip2)+'"/>';
+      out+='<polygon points="'+poly(top)+'" style="fill:'+col+';fill-opacity:1;stroke:'+(over?'var(--destructive)':'var(--foreground)')+';stroke-opacity:'+(over?0.9:0.8)+';stroke-width:1.3" data-tooltip="'+esc(tip2)+'"/>';
     });
     if(state.nfOn){
       state.noFly.forEach(function(z){
@@ -2943,12 +2940,12 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         for(var ei=0;ei<n;ei++){
           var pa=pts[ei], pb=pts[(ei+1)%n];
           var f0=P(pa.x,pa.y,zz.z1), f1=P(pb.x,pb.y,zz.z1), f2=P(pb.x,pb.y,zz.z2), f3=P(pa.x,pa.y,zz.z2);
-          out+='<polygon points="'+poly([f0,f1,f2,f3])+'" style="fill:var(--red);fill-opacity:0.14;stroke:var(--red);stroke-opacity:0.7;stroke-width:1"/>';
+          out+='<polygon points="'+poly([f0,f1,f2,f3])+'" style="fill:var(--red);fill-opacity:0.9;stroke:var(--red);stroke-opacity:0.8;stroke-width:1"/>';
         }
         var nfTop=pts.map(function(p){ return P(p.x,p.y,zz.z2); });
-        out+='<polygon points="'+poly(nfTop)+'" style="fill:var(--red);fill-opacity:0.22;stroke:var(--red);stroke-opacity:0.85;stroke-width:1" data-tooltip="'+esc(z.name+' 禁飞区：'+n+' 顶点，高度 '+zz.z1.toFixed(0)+'–'+zz.z2.toFixed(0)+' m')+'"/>';
+        out+='<polygon points="'+poly(nfTop)+'" style="fill:var(--red);fill-opacity:0.95;stroke:var(--red);stroke-opacity:0.9;stroke-width:1" data-tooltip="'+esc(z.name+' 禁飞区：'+n+' 顶点，高度 '+zz.z1.toFixed(0)+'–'+zz.z2.toFixed(0)+' m')+'"/>';
         var nfBot=pts.map(function(p){ return P(p.x,p.y,zz.z1); });
-        out+='<polygon points="'+poly(nfBot)+'" style="fill:var(--red);fill-opacity:0.1;stroke:var(--red);stroke-opacity:0.5;stroke-width:0.8"/>';
+        out+='<polygon points="'+poly(nfBot)+'" style="fill:var(--red);fill-opacity:0.85;stroke:var(--red);stroke-opacity:0.7;stroke-width:0.8"/>';
       });
     }
     if(state.results){
@@ -3132,7 +3129,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function updateModeCap(){
     if(state.mode!=='3d'){ els['mode-cap'].textContent='平面图 · 俯视'; return; }
     var hint=state.azDrag&&state.azDrag.axis?(' · 旋转中：'+(state.azDrag.axis==='az'?'方位':'俯仰')):'';
-    els['mode-cap'].textContent='3D 视图 · 方位 '+state.azimuth+'° · 俯仰 '+state.elevation.toFixed(0)+'°（左键拖拽旋转）'+hint;
+    els['mode-cap'].textContent='3D 视图 · 方位 '+state.azimuth+'° · 俯仰 '+state.elevation.toFixed(0)+'°（左键转方位 · 右键调俯仰）'+hint;
   }
   function hideCtxMenu(){ els['ctx-menu'].style.display='none'; }
   function showCtxMenu(x,y){
@@ -3597,25 +3594,23 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       }
     });
     els['svg3d'].addEventListener('mousedown',function(ev){
-      if(ev.button!==0) return;
-      state.azDrag={x:ev.clientX,y:ev.clientY,az:state.azimuth,el:state.elevation,axis:null};
+      if(ev.button!==0&&ev.button!==2) return;
+      state.azDrag={x:ev.clientX,y:ev.clientY,az:state.azimuth,el:state.elevation,axis:ev.button===0?'az':'el'};
       els['svg3d'].style.cursor='grabbing';
+      updateModeCap();
       ev.preventDefault();
     });
+    els['svg3d'].addEventListener('contextmenu',function(ev){ ev.preventDefault(); });
     document.addEventListener('mousemove',function(ev){
       if(!state.azDrag||state.mode!=='3d') return;
       var dx=ev.clientX-state.azDrag.x, dy=ev.clientY-state.azDrag.y;
-      if(!state.azDrag.axis){
-        if(Math.abs(dx)<4&&Math.abs(dy)<4) return;
-        state.azDrag.axis=(Math.abs(dx)>=Math.abs(dy))?'az':'el';
-      }
       if(state.azDrag.axis==='az'){
-        var az=((state.azDrag.az+dx*0.5)%360+360)%360;
+        var az=((state.azDrag.az-dx*0.5)%360+360)%360;
         state.azimuth=Math.round(az);
         els['az-range'].value=state.azimuth;
         els['az-val'].textContent=state.azimuth+'°';
       } else {
-        state.elevation=Math.max(0,Math.min(89,state.azDrag.el+dy*0.4));
+        state.elevation=Math.max(0,Math.min(89,state.azDrag.el-dy*0.4));
       }
       updateModeCap();
       renderAll();
