@@ -361,7 +361,8 @@ test('实时遥测侧边栏：协同规划后显示紧凑飞行数据', () => {
   assert.ok(body.includes('U1'), '应显示无人机1');
   assert.ok(body.includes('m/s'), '应显示飞行速度');
   assert.ok(body.includes('%'), '应显示进度');
-  assert.ok(body.includes('待命') || body.includes('完成') || body.includes('s ·'), '应显示已飞时间/状态');
+  assert.ok(body.includes('速度') && body.includes('高度') && body.includes('已飞') && body.includes('进度'), '应标注各数据含义');
+  assert.ok(body.includes('待命') || body.includes('完成') || body.includes(' s'), '应显示已飞时间/状态');
 });
 
 // T10: left-drag on the 3D view rotates azimuth and elevation.
