@@ -384,6 +384,38 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         </select>
         <span class="cap" id="uav-reason"></span>
         <div id="uav-detail"></div>
+        <div class="btns">
+          <button type="button" id="cu-toggle" class="btn">新增 / 管理自定义机型</button>
+        </div>
+        <div id="cu-panel" style="display:none">
+          <div class="row3">
+            <div class="ctl"><label class="form-label" for="cu-name">机型名称</label><input type="text" id="cu-name" class="form-control" placeholder="如 DJI Mavic 3E"></div>
+            <div class="ctl"><label class="form-label" for="cu-maxwind">最大抗风</label><div class="pair"><input type="number" id="cu-maxwind" class="form-control" min="0" max="30" step="0.5" value="10"><span class="unit">m/s</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-load">最大载重</label><div class="pair"><input type="number" id="cu-load" class="form-control" min="0" max="50" step="0.1" value="1"><span class="unit">kg</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-cruise">巡航速度</label><div class="pair"><input type="number" id="cu-cruise" class="form-control" min="1" max="40" step="0.5" value="12"><span class="unit">m/s</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-hoverw">悬停功率</label><div class="pair"><input type="number" id="cu-hoverw" class="form-control" min="0" max="5000" step="10" value="500"><span class="unit">W</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-cruisewh">巡航能耗</label><div class="pair"><input type="number" id="cu-cruisewh" class="form-control" min="0.05" max="10" step="0.01" value="0.8"><span class="unit">Wh/100m</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-climbwh">爬升能耗</label><div class="pair"><input type="number" id="cu-climbwh" class="form-control" min="0.01" max="2" step="0.01" value="0.18"><span class="unit">Wh/10m</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-endur">续航</label><div class="pair"><input type="number" id="cu-endur" class="form-control" min="1" max="600" step="5" value="40"><span class="unit">min</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-cost">起降成本</label><div class="pair"><input type="number" id="cu-cost" class="form-control" min="0" max="50" step="0.5" value="1.5"><span class="unit">元/次</span></div></div>
+            <div class="ctl"><label class="form-label" for="cu-altmin">推荐高度范围</label><div class="pair"><input type="number" id="cu-altmin" class="form-control" min="0" max="300" step="5" value="5"><input type="number" id="cu-altmax" class="form-control" min="5" max="500" step="5" value="150"></div></div>
+            <div class="inline">
+              <input type="checkbox" id="cu-hover" class="form-check-input" checked>
+              <label class="form-check-label" for="cu-hover">可悬停（多旋翼类）</label>
+            </div>
+          </div>
+          <div class="btns">
+            <button type="button" id="cu-save" class="btn btn-primary">保存自定义机型</button>
+            <button type="button" id="cu-clear" class="btn">清空表单</button>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead><tr><th>名称</th><th>抗风</th><th>载重</th><th>巡航</th><th>续航</th><th></th></tr></thead>
+              <tbody id="cu-body"></tbody>
+            </table>
+          </div>
+          <span class="cap text-small">请按真实产品参数填写；保存后与内置机型一样参与选型、安全校验与规划，数据保存在本机浏览器。</span>
+        </div>
       </div>
       <div class="row2">
         <div class="ctl">
@@ -674,12 +706,29 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     {id:'quad',name:'四旋翼',maxWind:8,load:0.5,cruise:10,hoverW:120,cruiseWh100:0.45,climbWh10:0.10,endurance:30,launchCost:0.5,canHover:true,altRange:{min:5,max:120}},
     {id:'hexa',name:'六旋翼',maxWind:10,load:3,cruise:12,hoverW:500,cruiseWh100:1.30,climbWh10:0.20,endurance:25,launchCost:1.0,canHover:true,altRange:{min:5,max:120}},
     {id:'fixed',name:'固定翼',maxWind:12,load:2,cruise:18,hoverW:0,cruiseWh100:0.32,climbWh10:0.15,endurance:60,launchCost:2.0,canHover:false,altRange:{min:30,max:200}},
-    {id:'vtol',name:'复合翼',maxWind:12,load:4,cruise:20,hoverW:600,cruiseWh100:0.50,climbWh10:0.30,endurance:50,launchCost:2.5,canHover:true,altRange:{min:5,max:300}}
+    {id:'vtol',name:'复合翼',maxWind:12,load:4,cruise:20,hoverW:600,cruiseWh100:0.50,climbWh10:0.30,endurance:50,launchCost:2.5,canHover:true,altRange:{min:5,max:300}},
+    {id:'octo',name:'重载八旋翼',maxWind:10,load:8,cruise:12,hoverW:2000,cruiseWh100:2.20,climbWh10:0.35,endurance:30,launchCost:3.5,canHover:true,altRange:{min:5,max:120}},
+    {id:'patrol',name:'安防巡检六旋翼',maxWind:12,load:2,cruise:14,hoverW:350,cruiseWh100:0.80,climbWh10:0.18,endurance:40,launchCost:1.5,canHover:true,altRange:{min:5,max:150}},
+    {id:'survey',name:'长航时测绘固定翼',maxWind:12,load:1,cruise:22,hoverW:0,cruiseWh100:0.28,climbWh10:0.12,endurance:120,launchCost:2.5,canHover:false,altRange:{min:30,max:300}}
   ];
+  var CUSTOM_TYPES=[];
+  function loadCustomTypes(){
+    if(typeof localStorage==='undefined') return;
+    try{
+      var s=localStorage.getItem('uav_custom_types');
+      if(s) CUSTOM_TYPES=JSON.parse(s);
+    }catch(e){ CUSTOM_TYPES=[]; }
+    if(!Array.isArray(CUSTOM_TYPES)) CUSTOM_TYPES=[];
+  }
+  function saveCustomTypes(){
+    if(typeof localStorage==='undefined') return;
+    try{ localStorage.setItem('uav_custom_types', JSON.stringify(CUSTOM_TYPES)); }catch(e){}
+  }
+  function allTypes(){ return TYPES.concat(CUSTOM_TYPES); }
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,pick:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -800,7 +849,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
 
   function recommendUav(){
-    var feas=TYPES.filter(function(t){
+    var feas=allTypes().filter(function(t){
       return state.wind.instant<=t.maxWind+1e-9 && state.load<=t.load+1e-9 && (state.hoverMin<=0||t.canHover);
     });
     if(!feas.length) return null;
@@ -831,8 +880,22 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function resolveUav(){
     var sel=els['uav-select'].value;
     if(sel==='auto'){ return recommendUav(); }
+    if(sel.indexOf('custom_')===0){
+      var ci=parseInt(sel.substring(7),10);
+      return CUSTOM_TYPES[ci]||null;
+    }
     for(var i=0;i<TYPES.length;i++){ if(TYPES[i].id===sel) return TYPES[i]; }
     return null;
+  }
+  function rebuildUavSelect(){
+    var sel=els['uav-select'].value;
+    var opts='<option value="auto">自动推荐（按目标与风况）</option>';
+    allTypes().forEach(function(t){
+      opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s · 巡航'+t.cruise+' m/s）</option>';
+    });
+    els['uav-select'].innerHTML=opts;
+    els['uav-select'].value=sel;
+    if(!els['uav-select'].value) els['uav-select'].value='auto';
   }
   function uavFeasible(u){
     return u&&state.wind.instant<=u.maxWind+1e-9&&state.load<=u.load+1e-9&&(state.hoverMin<=0||u.canHover);
@@ -1547,6 +1610,47 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function windTypeName(t){
     var m={uniform:'均匀定常风',gust:'均匀风+阵风',turbulent:'均匀风+湍流',wake:'均匀风+建筑尾流',mix:'复合风'};
     return m[t]||t;
+  }
+  function cuClearForm(){
+    els['cu-name'].value='';
+    els['cu-maxwind'].value='10'; els['cu-load'].value='1'; els['cu-cruise'].value='12';
+    els['cu-hoverw'].value='500'; els['cu-cruisewh'].value='0.8'; els['cu-climbwh'].value='0.18';
+    els['cu-endur'].value='40'; els['cu-cost'].value='1.5';
+    els['cu-altmin'].value='5'; els['cu-altmax'].value='150';
+    els['cu-hover'].checked=true;
+  }
+  function toggleCuPanel(){
+    var show=els['cu-panel'].style.display==='none';
+    els['cu-panel'].style.display=show?'':'none';
+    if(show) renderCuTable();
+  }
+  function renderCuTable(){
+    var tb=els['cu-body'];
+    tb.innerHTML='';
+    CUSTOM_TYPES.forEach(function(t,i){
+      var tr=document.createElement('tr');
+      [t.name, t.maxWind+' m/s', t.load.toFixed(1)+' kg', t.cruise+' m/s', t.endurance+' min'].forEach(function(v){
+        var td=document.createElement('td'); td.textContent=v; tr.appendChild(td);
+      });
+      var td=document.createElement('td');
+      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删';
+      bd.addEventListener('click',function(){ CUSTOM_TYPES.splice(i,1); saveCustomTypes(); rebuildUavSelect(); renderCuTable(); renderAll(); });
+      td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
+    });
+  }
+  function saveCustomUav(){
+    var name=els['cu-name'].value.trim();
+    if(!name) return;
+    var num=function(id){ return parseFloat(els[id].value); };
+    var mw=num('cu-maxwind'), ld=num('cu-load'), cr=num('cu-cruise'), hw=num('cu-hoverw'), cw=num('cu-cruisewh'), cl=num('cu-climbwh'), en=num('cu-endur'), co=num('cu-cost'), a1=num('cu-altmin'), a2=num('cu-altmax');
+    if([mw,ld,cr,hw,cw,cl,en,co,a1,a2].some(function(v){ return !isFinite(v)||v<0; })) return;
+    var t={id:'custom_'+CUSTOM_TYPES.length, name:name, maxWind:mw, load:ld, cruise:cr, hoverW:hw, cruiseWh100:cw, climbWh10:cl, endurance:en, launchCost:co, canHover:els['cu-hover'].checked, altRange:{min:Math.min(a1,a2), max:Math.max(a1,a2)}};
+    CUSTOM_TYPES.push(t);
+    saveCustomTypes();
+    rebuildUavSelect();
+    renderCuTable();
+    els['cu-panel'].style.display='none';
+    renderAll();
   }
   function renderUavInfo(){
     var rec=recommendUav();
@@ -3025,6 +3129,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     });
     loadPreset('mix');
     resizeMultiRows();
+    loadCustomTypes();
+    rebuildUavSelect();
+    renderCuTable();
     showStep(1);
     renderAll();
   }
