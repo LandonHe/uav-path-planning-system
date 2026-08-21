@@ -316,7 +316,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys ::-webkit-scrollbar-thumb{background:light-dark(rgb(24 27 32 / 18%),rgb(255 255 255 / 18%));border-radius:5px;}
   #uavwind-sys ::-webkit-scrollbar-track{background:transparent;}
   #uavwind-sys .live-panel{
-    position:absolute;top:10px;right:10px;z-index:40;width:268px;
+    position:absolute;top:44px;right:10px;z-index:40;width:268px;
     font-family:Consolas,Menlo,monospace;font-size:11px;line-height:1.6;
     color:var(--foreground);
     background:light-dark(rgb(255 255 255 / 94%),rgb(20 26 38 / 94%));
@@ -849,6 +849,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     </div>
     <div class="cap" id="summary" aria-live="polite"></div>
     <div id="plan-msg" class="cap"></div>
+    <button type="button" id="live-toggle" class="btn" style="position:absolute;top:8px;right:10px;z-index:45;font-size:12px;padding:3px 10px;">隐藏飞行数据</button>
     <div id="live-panel" class="live-panel" style="display:none">
       <div class="live-head"><span id="live-title">● LIVE 实时遥测</span></div>
       <div id="live-body"></div>
@@ -937,9 +938,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function allTypes(){ return TYPES.concat(CUSTOM_TYPES); }
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
-  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,showLive:true,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -3260,7 +3261,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var panel=document.getElementById('live-panel');
     if(!panel) return;
     var m=state.multi;
-    if(!m){ panel.style.display='none'; return; }
+    if(!m||!state.showLive){ panel.style.display='none'; return; }
     panel.style.display='';
     var title=document.getElementById('live-title');
     var head=(state.multiPlaying?'<span class="blink">●</span> LIVE 实时遥测':'实时遥测')+' · t='+state.multiPlay.toFixed(0)+' s';
@@ -3278,6 +3279,12 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span>'+spd.toFixed(1)+' m/s</span><span>'+p1.z.toFixed(0)+' m</span><span>'+tt.toFixed(0)+' s</span><span>'+pct.toFixed(0)+'%</span></div>');
     });
     document.getElementById('live-body').innerHTML=rows.join('');
+  }
+  function toggleLive(){
+    state.showLive=!state.showLive;
+    els['live-toggle'].textContent=state.showLive?'隐藏飞行数据':'显示飞行数据';
+    try{ if(typeof localStorage!=='undefined') localStorage.setItem('uav_show_live',state.showLive?'1':'0'); }catch(e){}
+    renderAll();
   }
   function toggleTheme(){
     var root=document.getElementById('uavwind-sys');
@@ -3900,6 +3907,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       (function(n){ els['step-'+n].addEventListener('click',function(){ showStep(n); }); })(i);
     }
     els['theme-toggle'].addEventListener('click',toggleTheme);
+    els['live-toggle'].addEventListener('click',toggleLive);
     document.addEventListener('keydown',function(e){
       var code=e.keyCode||(e.key?e.key.charCodeAt(0):0);
       var isLeft=(e.key==='ArrowLeft'||code===37), isRight=(e.key==='ArrowRight'||code===39);
@@ -3936,6 +3944,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var root=document.getElementById('uavwind-sys');
         if(root){ root.classList.add('hud'); els['theme-toggle'].textContent='切换到经典主题'; }
       }
+      var savedLive=typeof localStorage!=='undefined'?localStorage.getItem('uav_show_live'):null;
+      if(savedLive==='0'){ state.showLive=false; els['live-toggle'].textContent='显示飞行数据'; }
     }catch(e2){}
     renderAll();
     showStep(1);

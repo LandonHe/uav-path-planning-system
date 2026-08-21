@@ -365,6 +365,17 @@ test('实时遥测侧边栏：协同规划后显示紧凑飞行数据', () => {
   assert.ok(body.includes('待命') || body.includes('完成') || body.includes(' s'), '应显示已飞时间/状态');
 });
 
+test('显示飞行数据开关：右上角按钮可自行打开/关闭遥测面板并记忆', () => {
+  assert.equal(el('live-panel').style.display, '', '默认应显示遥测面板');
+  click('live-toggle');
+  assert.equal(el('live-panel').style.display, 'none', '关闭后应隐藏遥测面板');
+  assert.ok(el('live-toggle').textContent.includes('显示飞行数据'), '按钮应提示可显示');
+  assert.equal(localStorageStub.getItem('uav_show_live'), '0', '应记忆关闭状态');
+  click('live-toggle');
+  assert.equal(el('live-panel').style.display, '', '再次点击应重新显示');
+  assert.equal(localStorageStub.getItem('uav_show_live'), '1', '应记忆打开状态');
+});
+
 // T10: left-drag on the 3D view rotates azimuth and elevation.
 test('3D 视图：左键拖拽旋转（方位角与俯仰）', () => {
   click('btn3d');
