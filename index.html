@@ -3130,7 +3130,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['plan-mode'].textContent=n>=2?('协同规划（'+n+' 架）'):('单机规划（'+n+' 架）');
   }
   function updateModeCap(){
-    els['mode-cap'].textContent=state.mode==='3d'?('3D 视图 · 方位 '+state.azimuth+'° · 俯仰 '+state.elevation.toFixed(0)+'°（左键拖拽旋转）'):'平面图 · 俯视';
+    if(state.mode!=='3d'){ els['mode-cap'].textContent='平面图 · 俯视'; return; }
+    var hint=state.azDrag&&state.azDrag.axis?(' · 旋转中：'+(state.azDrag.axis==='az'?'方位':'俯仰')):'';
+    els['mode-cap'].textContent='3D 视图 · 方位 '+state.azimuth+'° · 俯仰 '+state.elevation.toFixed(0)+'°（左键拖拽旋转）'+hint;
   }
   function hideCtxMenu(){ els['ctx-menu'].style.display='none'; }
   function showCtxMenu(x,y){
@@ -3596,21 +3598,33 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     });
     els['svg3d'].addEventListener('mousedown',function(ev){
       if(ev.button!==0) return;
-      state.azDrag={x:ev.clientX,y:ev.clientY,az:state.azimuth,el:state.elevation};
+      state.azDrag={x:ev.clientX,y:ev.clientY,az:state.azimuth,el:state.elevation,axis:null};
+      els['svg3d'].style.cursor='grabbing';
       ev.preventDefault();
     });
     document.addEventListener('mousemove',function(ev){
       if(!state.azDrag||state.mode!=='3d') return;
       var dx=ev.clientX-state.azDrag.x, dy=ev.clientY-state.azDrag.y;
-      var az=((state.azDrag.az+dx*0.5)%360+360)%360;
-      state.azimuth=Math.round(az);
-      state.elevation=Math.max(0,Math.min(89,state.azDrag.el+dy*0.4));
-      els['az-range'].value=state.azimuth;
-      els['az-val'].textContent=state.azimuth+'°';
+      if(!state.azDrag.axis){
+        if(Math.abs(dx)<4&&Math.abs(dy)<4) return;
+        state.azDrag.axis=(Math.abs(dx)>=Math.abs(dy))?'az':'el';
+      }
+      if(state.azDrag.axis==='az'){
+        var az=((state.azDrag.az+dx*0.5)%360+360)%360;
+        state.azimuth=Math.round(az);
+        els['az-range'].value=state.azimuth;
+        els['az-val'].textContent=state.azimuth+'°';
+      } else {
+        state.elevation=Math.max(0,Math.min(89,state.azDrag.el+dy*0.4));
+      }
       updateModeCap();
       renderAll();
     });
-    document.addEventListener('mouseup',function(){ state.azDrag=null; });
+    document.addEventListener('mouseup',function(){
+      state.azDrag=null;
+      els['svg3d'].style.cursor='';
+      updateModeCap();
+    });
     document.addEventListener('click',hideCtxMenu);
     els['btn3d'].addEventListener('click',function(){
       state.mode=(state.mode==='2d')?'3d':'2d';

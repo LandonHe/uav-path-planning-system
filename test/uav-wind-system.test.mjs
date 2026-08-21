@@ -332,6 +332,18 @@ test('3D 视图：左键拖拽旋转（方位角与俯仰）', () => {
   assert.ok(el('mode-cap').textContent.includes('俯仰'), '应显示俯仰角');
 });
 
+test('3D 拖拽：垂直拖拽只调俯仰、不改变方位（主导轴锁定）', () => {
+  if (!el('mode-cap').textContent.includes('3D')) click('btn3d');
+  const azBefore = el('az-range').value;
+  const cap0 = el('mode-cap').textContent;
+  el('svg3d').fire('mousedown', ev(100, 100));
+  documentStub.fire('mousemove', { clientX: 105, clientY: 180 });
+  documentStub.fire('mouseup', {});
+  const cap1 = el('mode-cap').textContent;
+  assert.equal(el('az-range').value, azBefore, '垂直拖拽不应改变方位角');
+  assert.notEqual(cap1, cap0, '俯仰角应随垂直拖拽变化');
+});
+
 test('UI 精简：冗余按钮移除、备注标签简化、机型详情支持换行', () => {
   assert.equal(el('multi-plan'), null, '开始协同规划按钮应移除');
   assert.equal(el('multi-gen-starts'), null, '生成起点按钮应移除');
