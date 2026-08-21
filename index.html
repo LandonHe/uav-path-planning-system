@@ -1630,6 +1630,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function renderCuTable(){
     var tb=els['cu-body'];
     tb.innerHTML='';
+    if(CUSTOM_TYPES.length===0){
+      tb.innerHTML='<tr><td colspan="6" class="cap">暂无自定义机型：填写上方表单并点击“保存自定义机型”后，可在此列表中逐条删除。</td></tr>';
+      return;
+    }
     CUSTOM_TYPES.forEach(function(t,i){
       var tr=document.createElement('tr');
       [t.name, t.maxWind+' m/s', t.load.toFixed(1)+' kg', t.cruise+' m/s', t.endurance+' min'].forEach(function(v){
