@@ -415,6 +415,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
               <label class="form-check-label" for="cu-hover">可悬停（多旋翼类）</label>
             </div>
           </div>
+          <div class="ctl">
+            <label class="form-label" for="cu-source">来源 / 备注（选填，便于溯源与答辩说明）</label>
+            <input type="text" id="cu-source" class="form-control" placeholder="选填，如：DJI Mavic 3E 官网参数 / 实验室实测标定">
+          </div>
           <div class="btns">
             <button type="button" id="cu-save" class="btn btn-primary">保存自定义机型</button>
             <button type="button" id="cu-clear" class="btn">清空表单</button>
@@ -422,7 +426,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
           </div>
           <div class="table-responsive">
             <table class="table table-sm">
-              <thead><tr><th>名称</th><th>抗风</th><th>载重</th><th>巡航</th><th>续航</th><th></th></tr></thead>
+              <thead><tr><th>名称</th><th>抗风</th><th>载重</th><th>巡航</th><th>续航</th><th>来源 / 备注</th><th></th></tr></thead>
               <tbody id="cu-body"></tbody>
             </table>
           </div>
@@ -666,6 +670,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         <button type="button" id="pick-start" class="btn">拾取起点</button>
         <button type="button" id="pick-goal" class="btn">拾取终点</button>
         <button type="button" id="btn-plan" class="btn btn-primary">开始规划（运行所选算法）</button>
+        <button type="button" id="export-results" class="btn">导出结果(.csv)</button>
       </div>
       <span class="cap text-small">代价 = 时间 + λE×能耗 + λR×风风险 + λT×转弯惩罚；地速 = 空速 ± 风速分量，逆风绕行、顺风直行，必要时爬升越障。</span>
     </div>
@@ -715,13 +720,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
 </div>
 <script>(function(){
   var TYPES=[
-    {id:'quad',name:'四旋翼',maxWind:8,load:0.5,cruise:10,hoverW:120,cruiseWh100:0.45,climbWh10:0.10,endurance:30,launchCost:0.5,canHover:true,altRange:{min:5,max:120}},
-    {id:'hexa',name:'六旋翼',maxWind:10,load:3,cruise:12,hoverW:500,cruiseWh100:1.30,climbWh10:0.20,endurance:25,launchCost:1.0,canHover:true,altRange:{min:5,max:120}},
-    {id:'fixed',name:'固定翼',maxWind:12,load:2,cruise:18,hoverW:0,cruiseWh100:0.32,climbWh10:0.15,endurance:60,launchCost:2.0,canHover:false,altRange:{min:30,max:200}},
-    {id:'vtol',name:'复合翼',maxWind:12,load:4,cruise:20,hoverW:600,cruiseWh100:0.50,climbWh10:0.30,endurance:50,launchCost:2.5,canHover:true,altRange:{min:5,max:300}},
-    {id:'octo',name:'重载八旋翼',maxWind:10,load:8,cruise:12,hoverW:2000,cruiseWh100:2.20,climbWh10:0.35,endurance:30,launchCost:3.5,canHover:true,altRange:{min:5,max:120}},
-    {id:'patrol',name:'安防巡检六旋翼',maxWind:12,load:2,cruise:14,hoverW:350,cruiseWh100:0.80,climbWh10:0.18,endurance:40,launchCost:1.5,canHover:true,altRange:{min:5,max:150}},
-    {id:'survey',name:'长航时测绘固定翼',maxWind:12,load:1,cruise:22,hoverW:0,cruiseWh100:0.28,climbWh10:0.12,endurance:120,launchCost:2.5,canHover:false,altRange:{min:30,max:300}}
+    {id:'quad',name:'四旋翼',maxWind:8,load:0.5,cruise:10,hoverW:120,cruiseWh100:0.45,climbWh10:0.10,endurance:30,launchCost:0.5,canHover:true,altRange:{min:5,max:120},source:'内置示例参数：参考消费级四旋翼公开量级设定，正式研究请以实测标定为准'},
+    {id:'hexa',name:'六旋翼',maxWind:10,load:3,cruise:12,hoverW:500,cruiseWh100:1.30,climbWh10:0.20,endurance:25,launchCost:1.0,canHover:true,altRange:{min:5,max:120},source:'内置示例参数：参考工业级六旋翼公开量级设定，正式研究请以实测标定为准'},
+    {id:'fixed',name:'固定翼',maxWind:12,load:2,cruise:18,hoverW:0,cruiseWh100:0.32,climbWh10:0.15,endurance:60,launchCost:2.0,canHover:false,altRange:{min:30,max:200},source:'内置示例参数：参考小型固定翼公开量级设定，正式研究请以实测标定为准'},
+    {id:'vtol',name:'复合翼',maxWind:12,load:4,cruise:20,hoverW:600,cruiseWh100:0.50,climbWh10:0.30,endurance:50,launchCost:2.5,canHover:true,altRange:{min:5,max:300},source:'内置示例参数：参考复合翼(VTOL)公开量级设定，正式研究请以实测标定为准'},
+    {id:'octo',name:'重载八旋翼',maxWind:10,load:8,cruise:12,hoverW:2000,cruiseWh100:2.20,climbWh10:0.35,endurance:30,launchCost:3.5,canHover:true,altRange:{min:5,max:120},source:'内置示例参数：参考重载八旋翼公开量级设定，正式研究请以实测标定为准'},
+    {id:'patrol',name:'安防巡检六旋翼',maxWind:12,load:2,cruise:14,hoverW:350,cruiseWh100:0.80,climbWh10:0.18,endurance:40,launchCost:1.5,canHover:true,altRange:{min:5,max:150},source:'内置示例参数：参考安防巡检六旋翼公开量级设定，正式研究请以实测标定为准'},
+    {id:'survey',name:'长航时测绘固定翼',maxWind:12,load:1,cruise:22,hoverW:0,cruiseWh100:0.28,climbWh10:0.12,endurance:120,launchCost:2.5,canHover:false,altRange:{min:30,max:300},source:'内置示例参数：参考长航时测绘固定翼公开量级设定，正式研究请以实测标定为准'}
   ];
   var CUSTOM_TYPES=[];
   function loadCustomTypes(){
@@ -740,7 +745,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,pick:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -1733,8 +1738,106 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(typeof localStorage!=='undefined') localStorage.removeItem('uav_system_state');
     els['save-status'].textContent='已清除自动保存的数据（当前页面数据保留）';
   }
+  function csvCell(v){
+    v=String(v);
+    if(/[",\r\n]/.test(v)){ v='"'+v.replace(/"/g,'""')+'"'; }
+    return v;
+  }
+  function exportResults(){
+    if(!state.results){
+      els['plan-msg'].textContent='请先完成一次路径规划后再导出结果。';
+      return;
+    }
+    readInputs();
+    var r=state.results, uav=r.uav;
+    var now=new Date(), pad=function(n){ return n<10?'0'+n:n; };
+    var ts=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+' '+pad(now.getHours())+':'+pad(now.getMinutes())+':'+pad(now.getSeconds());
+    var lines=[];
+    function add(){ lines.push(Array.prototype.slice.call(arguments)); }
+    add('=== 基本信息 ===');
+    add('导出时间',ts);
+    add('规划次数','第'+(r.count||1)+'次');
+    add('风场类型',windTypeName(state.windType));
+    add('平均风速',state.wind.speed.toFixed(1)+' m/s');
+    add('风向（来向）',state.wind.dir.toFixed(0)+'°');
+    add('垂直风分量',state.wind.wz.toFixed(1)+' m/s');
+    add('阵风幅值',state.wind.gust.toFixed(1)+' m/s');
+    add('湍流强度',state.wind.turb.toFixed(2));
+    add('风随高度变化',state.wind.profile?('是（α='+state.wind.alpha.toFixed(2)+'）'):'否');
+    add('空域范围',state.region.x.toFixed(0)+'×'+state.region.y.toFixed(0)+'×'+state.region.z.toFixed(0)+' m');
+    add('栅格分辨率',state.res+' m');
+    add('飞行高度',state.flightAlt.toFixed(0)+' m');
+    add('安全膨胀',state.margin.toFixed(0)+' m');
+    add('优化目标',OBJ[state.obj]||state.obj);
+    add('机型',uav?uav.name:'—');
+    add('机型数据来源',uav?(uav.source||'未填写来源'):'—');
+    add('任务载重',state.load.toFixed(1)+' kg');
+    add('悬停时长',state.hoverMin.toFixed(0)+' min');
+    add('起点','('+state.start.x.toFixed(0)+', '+state.start.y.toFixed(0)+')');
+    add('终点','('+state.goal.x.toFixed(0)+', '+state.goal.y.toFixed(0)+')');
+    var algNames={aw:'风感知 A*',base:'传统 A*',rrt:'RRT*',pso:'PSO'};
+    var selAlgs=Object.keys(state.algs).filter(function(k){ return state.algs[k]; }).map(function(k){ return algNames[k]; });
+    add('启用算法',selAlgs.join('、')||'无');
+    add('轨迹平滑',{none:'无',bspline:'B 样条',minsnap:'Minimum Snap'}[state.smoothMethod]||state.smoothMethod);
+    add('多机协同',state.multiCount+' 架 · 安全间距 '+state.multiSafe.toFixed(0)+' m');
+    add('');
+    add('=== 算法指标 ===');
+    add('算法','状态','长度(m)','时间(s)','时间(min)','能耗(Wh)','最小净空(m)','风险穿越(次)','规划耗时(ms)');
+    r.runs.forEach(function(x){
+      if(x.res&&x.m){
+        add(x.name,'成功',x.m.len.toFixed(1),x.m.time.toFixed(1),(x.m.time/60).toFixed(1),x.m.energy.toFixed(2),x.m.clearance.toFixed(1),String(x.m.riskCells),x.res.ms.toFixed(0));
+      } else {
+        add(x.name,'失败：'+(x.fail||'无可达路径'),'—','—','—','—','—','—','—');
+      }
+    });
+    add('');
+    add('=== 航点 ===');
+    add('算法','序号','X(m)','Y(m)','Z(m)','累计距离(m)','累计时间(s)');
+    r.runs.forEach(function(run){
+      if(!run.res) return;
+      var pts=run.res.cells.map(function(idx){
+        var d=decode(r.grid,idx);
+        return {x:(d.ix+0.5)*state.res,y:(d.iy+0.5)*state.res,z:(d.iz+0.5)*state.res};
+      });
+      var dist=0,t=0;
+      add(run.name,1,pts[0].x.toFixed(1),pts[0].y.toFixed(1),pts[0].z.toFixed(1),'0','0');
+      for(var i=1;i<pts.length;i++){
+        var p=pts[i-1], q=pts[i];
+        var dx=q.x-p.x, dy=q.y-p.y, dz=q.z-p.z;
+        var horiz=Math.sqrt(dx*dx+dy*dy), vert=Math.abs(dz);
+        var seg=Math.sqrt(dx*dx+dy*dy+dz*dz);
+        dist+=seg;
+        if(vert>1e-9) t+=vertTime(vert,dz>0);
+        if(horiz>1e-9){
+          var vg=uav.cruise;
+          if(run.windAware){
+            var dirX=dx/horiz, dirY=dy/horiz;
+            var ws=windSpeedAt(q.z);
+            var wAlong=ws*(Math.sin(state.wind.tAir)*dirX+Math.cos(state.wind.tAir)*dirY);
+            vg=Math.max(0.5,uav.cruise+wAlong);
+            if(state.windType==='turbulent'||state.windType==='mix') vg=Math.max(0.5,vg*(1-state.wind.turb*0.6));
+          }
+          t+=horiz/vg;
+        }
+        add(run.name,i+1,q.x.toFixed(1),q.y.toFixed(1),q.z.toFixed(1),dist.toFixed(1),t.toFixed(1));
+      }
+    });
+    var csv='\uFEFF'+lines.map(function(row){ return row.map(csvCell).join(','); }).join('\r\n');
+    try{
+      var blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='uav_plan_results_'+ts.replace(/[-: ]/g,'')+'.csv';
+      if(document.body){ document.body.appendChild(a); a.click(); document.body.removeChild(a); }
+      setTimeout(function(){ try{ URL.revokeObjectURL(a.href); }catch(e2){} },1000);
+      els['plan-msg'].textContent='已导出规划结果 CSV（含基本信息、指标与航点）。';
+    }catch(e){
+      els['plan-msg'].textContent='导出失败：'+(e&&e.message?e.message:String(e));
+    }
+  }
   function cuClearForm(){
     els['cu-name'].value='';
+    els['cu-source'].value='';
     els['cu-maxwind'].value='10'; els['cu-load'].value='1'; els['cu-cruise'].value='12';
     els['cu-hoverw'].value='500'; els['cu-cruisewh'].value='0.8'; els['cu-climbwh'].value='0.18';
     els['cu-endur'].value='40'; els['cu-cost'].value='1.5';
@@ -1751,7 +1854,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var tb=els['cu-body'];
     tb.innerHTML='';
     if(CUSTOM_TYPES.length===0){
-      tb.innerHTML='<tr><td colspan="6" class="cap">暂无自定义机型：填写上方表单并点击“保存自定义机型”后，可在此列表中逐条删除。</td></tr>';
+      tb.innerHTML='<tr><td colspan="7" class="cap">暂无自定义机型：填写上方表单并点击“保存自定义机型”后，可在此列表中逐条删除。</td></tr>';
       return;
     }
     CUSTOM_TYPES.forEach(function(t,i){
@@ -1759,6 +1862,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       [t.name, t.maxWind+' m/s', t.load.toFixed(1)+' kg', t.cruise+' m/s', t.endurance+' min'].forEach(function(v){
         var td=document.createElement('td'); td.textContent=v; tr.appendChild(td);
       });
+      var tdS=document.createElement('td');
+      tdS.textContent=t.source||'未填写来源';
+      tr.appendChild(tdS);
       var td=document.createElement('td');
       var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删除';
       bd.addEventListener('click',function(){ CUSTOM_TYPES.splice(i,1); saveCustomTypes(); rebuildUavSelect(); renderCuTable(); renderAll(); });
@@ -1778,7 +1884,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var num=function(id){ return parseFloat(els[id].value); };
     var mw=num('cu-maxwind'), ld=num('cu-load'), cr=num('cu-cruise'), hw=num('cu-hoverw'), cw=num('cu-cruisewh'), cl=num('cu-climbwh'), en=num('cu-endur'), co=num('cu-cost'), a1=num('cu-altmin'), a2=num('cu-altmax');
     if([mw,ld,cr,hw,cw,cl,en,co,a1,a2].some(function(v){ return !isFinite(v)||v<0; })) return;
-    var t={id:'custom_'+CUSTOM_TYPES.length, name:name, maxWind:mw, load:ld, cruise:cr, hoverW:hw, cruiseWh100:cw, climbWh10:cl, endurance:en, launchCost:co, canHover:els['cu-hover'].checked, altRange:{min:Math.min(a1,a2), max:Math.max(a1,a2)}};
+    var t={id:'custom_'+CUSTOM_TYPES.length, name:name, maxWind:mw, load:ld, cruise:cr, hoverW:hw, cruiseWh100:cw, climbWh10:cl, endurance:en, launchCost:co, canHover:els['cu-hover'].checked, altRange:{min:Math.min(a1,a2), max:Math.max(a1,a2)}, source:els['cu-source'].value.trim()};
     CUSTOM_TYPES.push(t);
     saveCustomTypes();
     rebuildUavSelect();
@@ -1819,7 +1925,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       ['巡航能耗',uav.cruiseWh100.toFixed(2)+' Wh/100m'],
       ['爬升能耗',uav.climbWh10.toFixed(2)+' Wh/10m'],
       ['起降成本',uav.launchCost.toFixed(1)+' 元/次'],
-      ['悬停能力',uav.canHover?'支持':'不支持']
+      ['悬停能力',uav.canHover?'支持':'不支持'],
+      ['数据来源',uav.source||'未填写来源']
     ];
     var html='<div class="uav-head">'+esc(uav.name)+' <span class="viz-badge">'+esc(srcLabel)+'</span></div>';
     html+='<div class="uav-grid">';
@@ -3230,6 +3337,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['import-state'].addEventListener('change',importState);
     els['clear-state'].addEventListener('click',clearSavedState);
     els['btn-plan'].addEventListener('click',planAll);
+    els['export-results'].addEventListener('click',exportResults);
     els['pick-start'].addEventListener('click',function(){ showStep(4); setPick('start'); });
     els['pick-goal'].addEventListener('click',function(){ showStep(4); setPick('goal'); });
     els['svg2d'].addEventListener('click',function(ev){
