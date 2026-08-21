@@ -773,7 +773,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','ctx-menu','ctx-build','ctx-uav','ctx-nf','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -3178,12 +3178,34 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['ctx-menu'].style.display='';
   }
   function buildCtxMenu(){
-    var items=[['添加建筑物','ctx-build'],['添加无人机','ctx-uav'],['添加禁飞区','ctx-nf']];
+    var items=[
+      ['添加建筑物','ctx-build',function(){
+        hideCtxMenu();
+        state.editMode='building'; state.pending={p0:null,p1:null};
+        els['plan-msg'].textContent='添加建筑物：左键拖拽对角确定长宽，松开后设置高度；右键取消。';
+      }],
+      ['添加无人机','ctx-uav',function(){
+        hideCtxMenu();
+        var opts='<option value="auto">自动推荐</option>';
+        allTypes().forEach(function(t){
+          opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s）</option>';
+        });
+        els['uav-modal-select'].innerHTML=opts;
+        els['uav-modal'].style.display='';
+        state.pending={ctxPos:state.ctxPos};
+      }],
+      ['添加禁飞区','ctx-nf',function(){
+        hideCtxMenu();
+        state.editMode='nf'; state.pending={pts:[]};
+        els['plan-msg'].textContent='添加禁飞区：左键逐点描绘边界，双击闭合，右键取消。';
+      }]
+    ];
     items.forEach(function(it){
       var b=document.createElement('button');
       b.type='button'; b.id=it[1]; b.className='btn';
       b.style.display='block'; b.style.width='100%'; b.style.marginBottom='4px';
       b.textContent=it[0];
+      b.addEventListener('click',it[2]);
       els['ctx-menu'].appendChild(b);
     });
   }
@@ -3496,26 +3518,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['export-results'].addEventListener('click',exportResults);
     els['pick-start'].addEventListener('click',function(){ showStep(4); setPick('start'); });
     els['pick-goal'].addEventListener('click',function(){ showStep(4); setPick('goal'); });
-    els['ctx-build'].addEventListener('click',function(){
-      hideCtxMenu();
-      state.editMode='building'; state.pending={p0:null,p1:null};
-      els['plan-msg'].textContent='添加建筑物：左键拖拽对角确定长宽，松开后设置高度；右键取消。';
-    });
-    els['ctx-uav'].addEventListener('click',function(){
-      hideCtxMenu();
-      var opts='<option value="auto">自动推荐</option>';
-      allTypes().forEach(function(t){
-        opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s）</option>';
-      });
-      els['uav-modal-select'].innerHTML=opts;
-      els['uav-modal'].style.display='';
-      state.pending={ctxPos:state.ctxPos};
-    });
-    els['ctx-nf'].addEventListener('click',function(){
-      hideCtxMenu();
-      state.editMode='nf'; state.pending={pts:[]};
-      els['plan-msg'].textContent='添加禁飞区：左键逐点描绘边界，双击闭合，右键取消。';
-    });
     els['uav-modal-ok'].addEventListener('click',function(){
       var pos=state.pending&&state.pending.ctxPos;
       if(!pos){ els['uav-modal'].style.display='none'; return; }

@@ -12,6 +12,7 @@ const code = m[1];
 function makeEl(tag) {
   const el = {
     tagName: String(tag || 'div').toUpperCase(),
+    _id: '',
     style: {},
     _text: '',
     _value: '',
@@ -28,6 +29,8 @@ function makeEl(tag) {
     listeners: {},
     parent: null,
     firstChild: null,
+    set id(v) { this._id = String(v || ''); if (this._id) byId.set(this._id, this); },
+    get id() { return this._id; },
     set value(v) { this._value = String(v ?? ''); },
     get value() { return this._value; },
     set innerHTML(v) { this._innerHTML = String(v ?? ''); this.children = []; this.firstChild = null; },
@@ -75,8 +78,7 @@ const byId = new Map();
 const docListeners = {};
 const documentStub = {
   getElementById(id) {
-    if (!byId.has(id)) byId.set(id, makeEl('div'));
-    return byId.get(id);
+    return byId.has(id) ? byId.get(id) : null;
   },
   addEventListener(t, fn) { (docListeners[t] = docListeners[t] || []).push(fn); },
   removeEventListener(t, fn) {
@@ -90,6 +92,15 @@ const documentStub = {
   body: makeEl('body'),
   head: makeEl('head'),
 };
+
+// Pre-register every element id present in the HTML, like a real document.
+{
+  const idRe = /id="([^"]+)"/g;
+  let idMatch;
+  while ((idMatch = idRe.exec(html)) !== null) {
+    if (!byId.has(idMatch[1])) byId.set(idMatch[1], makeEl('div'));
+  }
+}
 
 const store = new Map();
 const localStorageStub = {
