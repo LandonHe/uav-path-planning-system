@@ -3348,6 +3348,28 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       b.addEventListener('click',it[2]);
       els['ctx-menu'].appendChild(b);
     });
+    var del=document.createElement('button');
+    del.type='button'; del.id='ctx-del-drone'; del.className='btn';
+    del.style.display='none'; del.style.width='100%'; del.style.marginBottom='4px';
+    del.style.color='var(--red)';
+    del.textContent='删除无人机';
+    del.addEventListener('click',function(){
+      var idx=state.pendingCtxDrone;
+      hideCtxMenu();
+      if(idx==null||!state.drones[idx]){ state.pendingCtxDrone=null; return; }
+      var name='无人机'+(idx+1);
+      state.drones.splice(idx,1);
+      state.pendingCtxDrone=null;
+      if(state.drones.length===0){
+        els['multi-count'].value='1';
+        ensureMultiRows(0);
+      }
+      updatePlanMode();
+      syncMultiFromDrones();
+      els['plan-msg'].textContent='已删除 '+name+'。';
+      renderAll();
+    });
+    els['ctx-menu'].appendChild(del);
   }
   function syncMultiFromDrones(){
     var n=state.drones.length;
@@ -3736,7 +3758,24 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         renderAll();
         return;
       }
-      state.ctxPos=svgWorld(ev);
+      var p=svgWorld(ev);
+      state.ctxPos=p;
+      var hit=-1, best=1e9;
+      state.drones.forEach(function(d,i){
+        var ds=Math.sqrt((d.sx-p.x)*(d.sx-p.x)+(d.sy-p.y)*(d.sy-p.y));
+        var dg=d.gx!=null?Math.sqrt((d.gx-p.x)*(d.gx-p.x)+(d.gy-p.y)*(d.gy-p.y)):1e9;
+        var dd=Math.min(ds,dg);
+        if(dd<best){ best=dd; hit=i; }
+      });
+      if(hit>=0&&best<=25){
+        state.pendingCtxDrone=hit;
+        var delBtn=document.getElementById('ctx-del-drone');
+        if(delBtn) delBtn.style.display='block';
+      } else {
+        state.pendingCtxDrone=null;
+        var delBtn2=document.getElementById('ctx-del-drone');
+        if(delBtn2) delBtn2.style.display='none';
+      }
       showCtxMenu(ev.offsetX,ev.offsetY);
     });
     els['svg2d'].addEventListener('mousedown',function(ev){

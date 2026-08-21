@@ -335,6 +335,26 @@ test('禁飞区：自由描绘多边形并设置高度范围，规划避开', ()
   assert.ok(parseInt(detour, 10) > parseInt(baseline, 10), '路径应绕开禁飞区（耗时 ' + baseline + 's → ' + detour + 's）');
 });
 
+test('右键无人机显示删除按钮并可删除', () => {
+  // 空白处右键：不显示删除无人机
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 100 * 0.694, 18 + (1000 - 900) * 0.496), { offsetX: 100, offsetY: 100 }));
+  assert.equal(el('ctx-del-drone').style.display, 'none', '空白处右键不应显示删除无人机');
+
+  // 添加一架无人机到 (600,300)，终点 (600,400)
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 600 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'hexa';
+  click('uav-modal-ok');
+  el('svg2d').fire('click', ev(44 + 600 * 0.694, 18 + (1000 - 400) * 0.496));
+  assert.ok(el('plan-mode').textContent.includes('协同规划（3 架）'), '添加后应为 3 架协同模式');
+
+  // 右键该无人机起点：显示删除按钮并删除
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 600 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
+  assert.equal(el('ctx-del-drone').style.display, 'block', '右键无人机应显示删除按钮');
+  click('ctx-del-drone');
+  assert.ok(el('plan-mode').textContent.includes('协同规划（2 架）'), '删除后应回到 2 架协同模式');
+});
+
 // T10: left-drag on the 3D view rotates azimuth and elevation.
 test('3D 视图：左键拖拽旋转（方位角与俯仰）', () => {
   click('btn3d');
