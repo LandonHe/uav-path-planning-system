@@ -355,6 +355,15 @@ test('右键无人机显示删除按钮并可删除', () => {
   assert.ok(el('plan-mode').textContent.includes('协同规划（2 架）'), '删除后应回到 2 架协同模式');
 });
 
+test('实时遥测侧边栏：协同规划后显示紧凑飞行数据', () => {
+  assert.equal(el('live-panel').style.display, '', '协同规划后应显示遥测面板');
+  const body = el('live-body').innerHTML;
+  assert.ok(body.includes('U1'), '应显示无人机1');
+  assert.ok(body.includes('m/s'), '应显示飞行速度');
+  assert.ok(body.includes('%'), '应显示进度');
+  assert.ok(body.includes('待命') || body.includes('完成') || body.includes('s ·'), '应显示已飞时间/状态');
+});
+
 // T10: left-drag on the 3D view rotates azimuth and elevation.
 test('3D 视图：左键拖拽旋转（方位角与俯仰）', () => {
   click('btn3d');
