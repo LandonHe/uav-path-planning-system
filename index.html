@@ -408,6 +408,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
           <div class="btns">
             <button type="button" id="cu-save" class="btn btn-primary">保存自定义机型</button>
             <button type="button" id="cu-clear" class="btn">清空表单</button>
+            <button type="button" id="cu-clear-all" class="btn">清空全部自定义机型</button>
           </div>
           <div class="table-responsive">
             <table class="table table-sm">
@@ -729,7 +730,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,pick:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -1579,7 +1580,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var td=document.createElement('td'); td.textContent=cv; tr.appendChild(td);
       });
       var td=document.createElement('td');
-      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删';
+      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删除';
       bd.addEventListener('click',function(){ state.noFly.splice(i,1); renderAll(); });
       td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
     });
@@ -1602,7 +1603,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var td=document.createElement('td'); td.textContent=c; tr.appendChild(td);
       });
       var td=document.createElement('td');
-      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删';
+      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删除';
       bd.addEventListener('click',function(){ state.buildings.splice(i,1); inputChanged(); });
       td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
     });
@@ -1635,10 +1636,17 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var td=document.createElement('td'); td.textContent=v; tr.appendChild(td);
       });
       var td=document.createElement('td');
-      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删';
+      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删除';
       bd.addEventListener('click',function(){ CUSTOM_TYPES.splice(i,1); saveCustomTypes(); rebuildUavSelect(); renderCuTable(); renderAll(); });
       td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
     });
+  }
+  function clearAllCustom(){
+    CUSTOM_TYPES=[];
+    saveCustomTypes();
+    rebuildUavSelect();
+    renderCuTable();
+    renderAll();
   }
   function saveCustomUav(){
     var name=els['cu-name'].value.trim();
@@ -3091,6 +3099,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['cu-toggle'].addEventListener('click',toggleCuPanel);
     els['cu-save'].addEventListener('click',saveCustomUav);
     els['cu-clear'].addEventListener('click',cuClearForm);
+    els['cu-clear-all'].addEventListener('click',clearAllCustom);
     els['btn-plan'].addEventListener('click',planAll);
     els['pick-start'].addEventListener('click',function(){ showStep(4); setPick('start'); });
     els['pick-goal'].addEventListener('click',function(){ showStep(4); setPick('goal'); });
