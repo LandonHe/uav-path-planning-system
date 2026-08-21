@@ -315,8 +315,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys ::-webkit-scrollbar{width:9px;height:9px;}
   #uavwind-sys ::-webkit-scrollbar-thumb{background:light-dark(rgb(24 27 32 / 18%),rgb(255 255 255 / 18%));border-radius:5px;}
   #uavwind-sys ::-webkit-scrollbar-track{background:transparent;}
+  #uavwind-sys .map-stage{position:relative;}
   #uavwind-sys .live-panel{
-    position:absolute;top:44px;right:10px;z-index:40;width:268px;
+    position:absolute;top:38px;right:10px;z-index:40;width:268px;
     font-family:Consolas,Menlo,monospace;font-size:11px;line-height:1.6;
     color:var(--foreground);
     background:light-dark(rgb(255 255 255 / 94%),rgb(20 26 38 / 94%));
@@ -849,11 +850,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     </div>
     <div class="cap" id="summary" aria-live="polite"></div>
     <div id="plan-msg" class="cap"></div>
-    <button type="button" id="live-toggle" class="btn" style="position:absolute;top:8px;right:10px;z-index:45;font-size:12px;padding:3px 10px;">隐藏飞行数据</button>
-    <div id="live-panel" class="live-panel" style="display:none">
-      <div class="live-head"><span id="live-title">● LIVE 实时遥测</span></div>
-      <div id="live-body"></div>
-    </div>
     <div id="ctx-menu" style="display:none;position:absolute;z-index:60;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgb(0 0 0/0.18)"></div>
     <div id="build-pop" class="edit-pop" style="display:none">
       <span class="cap text-small">已按拖拽对角生成建筑，请设置高度：</span>
@@ -883,11 +879,18 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         <button type="button" id="nf-cancel" class="btn">取消</button>
       </div>
     </div>
-    <div id="view-2d">
+    <div class="map-stage">
+      <button type="button" id="live-toggle" class="btn" style="position:absolute;top:6px;right:10px;z-index:45;font-size:12px;padding:3px 10px;">隐藏飞行数据</button>
+      <div id="live-panel" class="live-panel" style="display:none">
+        <div class="live-head"><span id="live-title">● LIVE 实时遥测</span></div>
+        <div id="live-body"></div>
+      </div>
+      <div id="view-2d">
       <svg id="svg2d" viewBox="0 0 760 540" width="100%" height="auto" role="img" aria-label="系统平面图：栅格地图、风场与规划航迹"></svg>
-    </div>
-    <div id="view-3d" style="display:none">
+      </div>
+      <div id="view-3d" style="display:none">
       <svg id="svg3d" viewBox="0 0 760 540" width="100%" height="auto" role="img" aria-label="系统三维视图"></svg>
+      </div>
     </div>
     <div class="legend-row">
       <span class="cap text-small">· 蓝实线 = 风感知路径</span>
