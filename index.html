@@ -384,10 +384,11 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         </select>
         <span class="cap" id="uav-reason"></span>
         <div id="uav-detail"></div>
+        <h3>自定义机型（新增 / 管理，按真实参数录入）</h3>
         <div class="btns">
-          <button type="button" id="cu-toggle" class="btn">新增 / 管理自定义机型</button>
+          <button type="button" id="cu-toggle" class="btn">收起 / 展开</button>
         </div>
-        <div id="cu-panel" style="display:none">
+        <div id="cu-panel">
           <div class="row3">
             <div class="ctl"><label class="form-label" for="cu-name">机型名称</label><input type="text" id="cu-name" class="form-control" placeholder="如 DJI Mavic 3E"></div>
             <div class="ctl"><label class="form-label" for="cu-maxwind">最大抗风</label><div class="pair"><input type="number" id="cu-maxwind" class="form-control" min="0" max="30" step="0.5" value="10"><span class="unit">m/s</span></div></div>
@@ -1622,6 +1623,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function toggleCuPanel(){
     var show=els['cu-panel'].style.display==='none';
     els['cu-panel'].style.display=show?'':'none';
+    els['cu-toggle'].textContent=show?'收起 / 展开':'展开自定义机型';
     if(show) renderCuTable();
   }
   function renderCuTable(){
