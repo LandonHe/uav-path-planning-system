@@ -57,6 +57,7 @@ function makeEl(tag) {
     getBBox() { return { x: 0, y: 0, width: 1, height: 1 }; },
     querySelectorAll() { return []; },
     querySelector() { return null; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 760, height: 540, right: 760, bottom: 540 }; },
     classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } },
   };
   Object.defineProperty(el, 'textContent', {
@@ -82,6 +83,7 @@ const documentStub = {
     const a = docListeners[t];
     if (a) { const i = a.indexOf(fn); if (i >= 0) a.splice(i, 1); }
   },
+  fire(t, ev = {}) { (docListeners[t] || []).slice().forEach(fn => fn(ev)); },
   createElement(tag) { return makeEl(tag); },
   createElementNS(ns, tag) { return makeEl(tag); },
   createTextNode(t) { const e = makeEl('#text'); e.textContent = t; return e; },
@@ -124,6 +126,7 @@ vm.runInContext(code, ctx);
 const el = id => documentStub.getElementById(id);
 const click = id => el(id).click();
 const fire = (id, type) => el(id).fire(type);
+const ev = (x, y) => ({ clientX: x, clientY: y, button: 0, preventDefault() {} });
 const clearDownloads = () => { downloads.length = 0; };
 
 let passed = 0;
@@ -225,6 +228,97 @@ test('导出结果：规划后生成含基本信息/指标/航点的 CSV', () =>
   if (process.env.DUMP_CSV) {
     fs.writeFileSync(process.env.DUMP_CSV, csv, 'utf8');
   }
+});
+
+// T6: right-click on the 2D map opens a context menu with three add options.
+test('右键菜单：平面图右键显示添加建筑物/无人机/禁飞区', () => {
+  el('svg2d').fire('contextmenu', Object.assign(ev(200, 200), { offsetX: 120, offsetY: 120 }));
+  const txt = el('ctx-menu').textContent;
+  assert.ok(txt.includes('添加建筑物'), '菜单应含添加建筑物');
+  assert.ok(txt.includes('添加无人机'), '菜单应含添加无人机');
+  assert.ok(txt.includes('添加禁飞区'), '菜单应含添加禁飞区');
+});
+
+// T7: building drag (diagonal) then height input creates a building.
+test('添加建筑物：拖拽生成建筑并可输入高度', () => {
+  click('ctx-build');
+  el('svg2d').fire('mousedown', ev(44 + 100 * 0.694, 18 + (1000 - 100) * 0.496));
+  el('svg2d').fire('mousemove', ev(44 + 300 * 0.694, 18 + (1000 - 240) * 0.496));
+  el('svg2d').fire('mouseup', ev(44 + 300 * 0.694, 18 + (1000 - 240) * 0.496));
+  el('build-name').value = '拖拽建筑A';
+  el('build-h').value = '45';
+  click('build-ok');
+  const txt = el('obs-body').textContent;
+  assert.ok(txt.includes('拖拽建筑A'), '建筑应加入列表');
+  assert.ok(txt.includes('45'), '建筑高度应为 45');
+  assert.ok(txt.includes('200') && txt.includes('170') && txt.includes('140'), '中心(200,170) 长200 宽140 应正确');
+});
+
+// T8: right-click add drone → choose type → set start/goal; mode switches to 协同 with 2+ drones.
+test('添加无人机：选型→起点→终点，单机/协同自动切换', () => {
+  el('svg2d').fire('contextmenu', Object.assign(ev(200, 200), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'hexa';
+  click('uav-modal-ok');
+  assert.ok(el('plan-msg').textContent.includes('无人机1'), '应提示无人机1，实际：' + el('plan-msg').textContent);
+  assert.ok(el('plan-msg').textContent.includes('终点'), '应提示设置终点');
+  el('svg2d').fire('click', ev(44 + 500 * 0.694, 18 + (1000 - 500) * 0.496));
+  assert.equal(el('goal-x').value, '500', '单机模式下终点应同步到终点输入框');
+  assert.ok(el('plan-mode').textContent.includes('单机规划'), '1 架应显示单机规划');
+
+  el('svg2d').fire('contextmenu', Object.assign(ev(700, 300), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'fixed';
+  click('uav-modal-ok');
+  el('svg2d').fire('click', ev(44 + 800 * 0.694, 18 + (1000 - 600) * 0.496));
+  assert.ok(el('plan-mode').textContent.includes('协同规划'), '2 架应显示协同规划');
+  assert.equal(el('multi-count').value, '2', '协同模式下多机数量应为 2');
+
+  click('btn-plan');
+  assert.ok(el('multi-info').textContent.includes('多机协同'), '应执行协同规划');
+});
+
+// T9: draw a free-form no-fly polygon, set bottom/top height; it blocks planning in that zone.
+test('禁飞区：自由描绘多边形并设置高度范围，规划避开', () => {
+  click('ctx-nf');
+  [[200, 200], [400, 200], [400, 400], [200, 400]].forEach(p =>
+    el('svg2d').fire('click', ev(44 + p[0] * 0.694, 18 + (1000 - p[1]) * 0.496))
+  );
+  el('svg2d').fire('dblclick', ev(44 + 200 * 0.694, 18 + (1000 - 200) * 0.496));
+  el('nf-z1-input').value = '15';
+  el('nf-z2-input').value = '45';
+  click('nf-ok');
+  const txt = el('nf-body').textContent;
+  assert.ok(txt.includes('15–45'), '应显示高度范围 15–45');
+  assert.ok(txt.includes('多边形'), '应标注为多边形');
+
+  // 在无人机1起点→终点的直线上添加禁飞区 → 协同规划必须绕行（耗时变长）
+  const baseline = (el('multi-info').textContent.match(/无人机1：起点1→终点1 (\d+)s/) || [])[1];
+  click('ctx-nf');
+  [[280, 480], [460, 480], [460, 620], [280, 620]].forEach(p =>
+    el('svg2d').fire('click', ev(44 + p[0] * 0.694, 18 + (1000 - p[1]) * 0.496))
+  );
+  el('svg2d').fire('dblclick', ev(44 + 280 * 0.694, 18 + (1000 - 480) * 0.496));
+  el('nf-z1-input').value = '0';
+  el('nf-z2-input').value = '120';
+  click('nf-ok');
+  click('btn-plan');
+  const info = el('multi-info').textContent;
+  assert.ok(!info.includes('规划失败'), '禁飞区只应绕行不应让规划失败，实际：' + info);
+  const detour = (info.match(/无人机1：起点1→终点1 (\d+)s/) || [])[1];
+  assert.ok(parseInt(detour, 10) > parseInt(baseline, 10), '路径应绕开禁飞区（耗时 ' + baseline + 's → ' + detour + 's）');
+});
+
+// T10: left-drag on the 3D view rotates azimuth and elevation.
+test('3D 视图：左键拖拽旋转（方位角与俯仰）', () => {
+  click('btn3d');
+  const az0 = parseInt(el('az-range').value, 10) || 0;
+  el('svg3d').fire('mousedown', ev(100, 100));
+  documentStub.fire('mousemove', { clientX: 160, clientY: 140 });
+  documentStub.fire('mouseup', {});
+  const az1 = parseInt(el('az-range').value, 10) || 0;
+  assert.ok(az1 !== az0, '方位角应随水平拖拽变化');
+  assert.ok(el('mode-cap').textContent.includes('俯仰'), '应显示俯仰角');
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

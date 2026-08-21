@@ -112,6 +112,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys .inline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:color-mix(in srgb,var(--blue) 6%,var(--background));border-radius:10px;padding:8px 10px;}
   #uavwind-sys .cap{color:var(--muted-foreground);}
   #uavwind-sys .tb{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  #uavwind-sys .edit-pop{position:absolute;z-index:70;width:260px;display:flex;flex-direction:column;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;box-shadow:0 10px 28px rgb(0 0 0/0.2);}
+  #uavwind-sys .view{position:relative;}
   #uavwind-sys .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
   #uavwind-sys .preview-label{fill:var(--muted-foreground);font-size:12px;}
   #uavwind-sys .overlap-label{fill:var(--foreground);font-size:11px;font-weight:500;}
@@ -520,7 +522,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       </div>
       <div class="table-responsive">
         <table class="table table-sm">
-          <thead><tr><th>名称</th><th>X</th><th>Y</th><th>长</th><th>宽</th><th>Z范围</th><th></th></tr></thead>
+          <thead><tr><th>名称</th><th>类型</th><th>顶点数</th><th>高度范围</th><th></th></tr></thead>
           <tbody id="nf-body"></tbody>
         </table>
       </div>
@@ -613,11 +615,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       <div class="row2">
         <div class="ctl">
           <label class="form-label" for="multi-count">无人机数量</label>
-          <select id="multi-count" class="form-select">
-            <option value="2" selected>2 架</option>
-            <option value="3">3 架</option>
-            <option value="4">4 架</option>
-          </select>
+          <input type="number" id="multi-count" class="form-control" min="1" max="10" step="1" value="2">
         </div>
         <div class="ctl">
           <label class="form-label" for="multi-safe">安全间距</label>
@@ -669,8 +667,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       <div class="btns">
         <button type="button" id="pick-start" class="btn">拾取起点</button>
         <button type="button" id="pick-goal" class="btn">拾取终点</button>
-        <button type="button" id="btn-plan" class="btn btn-primary">开始规划（运行所选算法）</button>
-        <button type="button" id="export-results" class="btn">导出结果(.csv)</button>
       </div>
       <span class="cap text-small">代价 = 时间 + λE×能耗 + λR×风风险 + λT×转弯惩罚；地速 = 空速 ± 风速分量，逆风绕行、顺风直行，必要时爬升越障。</span>
     </div>
@@ -678,6 +674,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
 
   <div class="view">
     <div class="tb">
+      <button type="button" id="btn-plan" class="btn btn-primary">开始规划</button>
+      <button type="button" id="export-results" class="btn">导出结果(.csv)</button>
+      <span class="cap viz-badge" id="plan-mode">单机规划（0 架）</span>
       <button type="button" id="btn3d" class="btn">3D 展示</button>
       <span id="az-wrap" style="display:none" class="inline">
         <label class="form-label" for="az-range">视角方位（← → 键切换）</label>
@@ -688,6 +687,35 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     </div>
     <div class="cap" id="summary" aria-live="polite"></div>
     <div id="plan-msg" class="cap"></div>
+    <div id="ctx-menu" style="display:none;position:absolute;z-index:60;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgb(0 0 0/0.18)"></div>
+    <div id="build-pop" class="edit-pop" style="display:none">
+      <span class="cap text-small">已按拖拽对角生成建筑，请设置高度：</span>
+      <div class="ctl"><label class="form-label" for="build-name">名称</label><input type="text" id="build-name" class="form-control" value="新建建筑"></div>
+      <div class="ctl"><label class="form-label" for="build-h">高度（m）</label><input type="number" id="build-h" class="form-control" min="3" max="500" step="1" value="30"></div>
+      <div class="btns">
+        <button type="button" id="build-ok" class="btn btn-primary">确定</button>
+        <button type="button" id="build-cancel" class="btn">取消</button>
+      </div>
+    </div>
+    <div id="uav-modal" class="edit-pop" style="display:none">
+      <span class="cap text-small">选择无人机类型（当前位置为该机起点）：</span>
+      <div class="ctl"><label class="form-label" for="uav-modal-select">无人机类型</label><select id="uav-modal-select" class="form-select"></select></div>
+      <div class="btns">
+        <button type="button" id="uav-modal-ok" class="btn btn-primary">确定</button>
+        <button type="button" id="uav-modal-cancel" class="btn">取消</button>
+      </div>
+    </div>
+    <div id="nf-pop" class="edit-pop" style="display:none">
+      <span class="cap text-small">禁飞区边界已闭合，请设置高度范围（m）：</span>
+      <div class="row2">
+        <div class="ctl"><label class="form-label" for="nf-z1-input">底部高度</label><input type="number" id="nf-z1-input" class="form-control" min="0" max="300" step="1" value="0"></div>
+        <div class="ctl"><label class="form-label" for="nf-z2-input">顶部高度</label><input type="number" id="nf-z2-input" class="form-control" min="1" max="300" step="1" value="120"></div>
+      </div>
+      <div class="btns">
+        <button type="button" id="nf-ok" class="btn btn-primary">确定</button>
+        <button type="button" id="nf-cancel" class="btn">取消</button>
+      </div>
+    </div>
     <div id="view-2d">
       <svg id="svg2d" viewBox="0 0 760 540" width="100%" height="auto" role="img" aria-label="系统平面图：栅格地图、风场与规划航迹"></svg>
     </div>
@@ -743,9 +771,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function allTypes(){ return TYPES.concat(CUSTOM_TYPES); }
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
-  var state={buildings:[],noFly:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,pick:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','summary','plan-msg','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','pick-start','pick-goal','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','ctx-menu','ctx-build','ctx-uav','ctx-nf','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-gen-starts','multi-gen-goals','multi-plan','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -760,6 +788,32 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     return 'var(--viz-series-5)';
   }
   function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+  function nfPts(z){
+    if(z.pts&&z.pts.length) return z.pts.slice();
+    return [{x:z.x-z.l/2,y:z.y-z.w/2},{x:z.x+z.l/2,y:z.y-z.w/2},{x:z.x+z.l/2,y:z.y+z.w/2},{x:z.x-z.l/2,y:z.y+z.w/2}];
+  }
+  function nfBounds(z){
+    var pts=nfPts(z), x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
+    pts.forEach(function(p){ x0=Math.min(x0,p.x); x1=Math.max(x1,p.x); y0=Math.min(y0,p.y); y1=Math.max(y1,p.y); });
+    return {x0:x0,x1:x1,y0:y0,y1:y1};
+  }
+  function pointInPoly(x,y,pts){
+    var inside=false;
+    for(var i=0,j=pts.length-1;i<pts.length;j=i++){
+      var xi=pts[i].x, yi=pts[i].y, xj=pts[j].x, yj=pts[j].y;
+      if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi)) inside=!inside;
+    }
+    return inside;
+  }
+  function nfZ(z){
+    return {z1:Math.max(0,z.z1||0), z2:Math.min(state.region.z,z.z2||state.region.z)};
+  }
+  function resolveTypeById(id){
+    if(id==='auto') return recommendUav();
+    if(id&&id.indexOf('custom_')===0){ var ci=parseInt(id.substring(7),10); return CUSTOM_TYPES[ci]||null; }
+    for(var i=0;i<TYPES.length;i++){ if(TYPES[i].id===id) return TYPES[i]; }
+    return null;
+  }
 
   function presets(kind){
     var a=[],n=0;
@@ -958,14 +1012,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       }
     });
     state.noFly.forEach(function(z){
-      var x0=Math.max(0,z.x-z.l/2), x1=Math.min(rx,z.x+z.l/2);
-      var y0=Math.max(0,z.y-z.w/2), y1=Math.min(ry,z.y+z.w/2);
-      var i0=Math.floor(x0/res), i1=Math.max(i0,Math.min(nx-1,Math.floor((x1-1e-9)/res)));
-      var j0=Math.floor(y0/res), j1=Math.max(j0,Math.min(ny-1,Math.floor((y1-1e-9)/res)));
-      var z1=Math.max(0,z.z1||0), z2=Math.min(rz,z.z2||rz);
+      var pts=nfPts(z), b=nfBounds(z);
+      var i0=Math.max(0,Math.floor(b.x0/res)), i1=Math.max(i0,Math.min(nx-1,Math.floor((b.x1-1e-9)/res)));
+      var j0=Math.max(0,Math.floor(b.y0/res)), j1=Math.max(j0,Math.min(ny-1,Math.floor((b.y1-1e-9)/res)));
+      var zz=nfZ(z);
       for(var k=0;k<nz;k++){
-        if(!(k*res<z2&&(k+1)*res>z1)) continue;
-        for(var i=i0;i<=i1;i++){ for(var j=j0;j<=j1;j++){ occ[I(i,j,k)]=1; } }
+        if(!(k*res<zz.z2&&(k+1)*res>zz.z1)) continue;
+        for(var i=i0;i<=i1;i++){ for(var j=j0;j<=j1;j++){
+          var cx=(i+0.5)*res, cy=(j+0.5)*res;
+          if(pointInPoly(cx,cy,pts)) occ[I(i,j,k)]=1;
+        } }
       }
     });
     var mult=1+state.wind.turb*((state.windType==='turbulent'||state.windType==='mix')?6:3);
@@ -1447,6 +1503,23 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       }
     }
     state.results={grid:grid,s:s,g:g,uav:uav,runs:runs,count:(prev?prev.count:0)+1,sameShape:sameShape,flyNote:flyNote};
+    var msgs=[];
+    if(!runs.filter(function(x){ return x.res; }).length){ msgs.push('所选算法均未找到可行路径：起点与终点之间存在不可逾越的障碍或空域过小。'); }
+    var aw2=null;
+    runs.forEach(function(x){ if(x.main) aw2=x; });
+    if(aw2&&aw2.m){
+      runs.forEach(function(x){
+        if(x===aw2||!x.res||!x.m) return;
+        var dE=aw2.m.energy>1e-9?(x.m.energy-aw2.m.energy)/aw2.m.energy*100:0;
+        var dT=aw2.m.time>1e-9?(x.m.time-aw2.m.time)/aw2.m.time*100:0;
+        var dR=x.m.riskCells-aw2.m.riskCells;
+        msgs.push(x.name+' vs 风感知A*：能耗 '+(dE<=0?'−':'+')+Math.abs(dE).toFixed(1)+'% · 时间 '+(dT<=0?'−':'+')+Math.abs(dT).toFixed(1)+'% · 风险穿越 '+(dR<=0?'−':'+')+Math.abs(dR).toFixed(0)+' 次');
+      });
+    }
+    runs.forEach(function(x){ if(!x.res) msgs.push(x.name+' 失败（'+(x.fail||'无可达路径')+'）'); });
+    var prefix='第'+(state.results.count)+'次规划'+(sameShape?' · 路径形状与上次相同（指标已更新）':' · 已重新规划');
+    if(flyNote) msgs.push(flyNote);
+    els['plan-msg'].textContent=prefix+'：'+msgs.join('；');
     renderResults();
     renderAll();
     }catch(err){
@@ -1543,26 +1616,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var r=state.results;
     if(!r) return;
     els['metrics-wrap'].style.display='';
-    var ok=r.runs.filter(function(x){ return x.res; });
-    var aw=null;
-    r.runs.forEach(function(x){ if(x.main) aw=x; });
-    var msgs=[];
-    if(!ok.length){ msgs.push('所选算法均未找到可行路径：起点与终点之间存在不可逾越的障碍或空域过小。'); }
-    if(aw&&aw.m){
-      r.runs.forEach(function(x){
-        if(x===aw||!x.res||!x.m) return;
-        var dE=aw.m.energy>1e-9?(x.m.energy-aw.m.energy)/aw.m.energy*100:0;
-        var dT=aw.m.time>1e-9?(x.m.time-aw.m.time)/aw.m.time*100:0;
-        var dR=x.m.riskCells-aw.m.riskCells;
-        msgs.push(x.name+' vs 风感知A*：能耗 '+(dE<=0?'−':'+')+Math.abs(dE).toFixed(1)+'% · 时间 '+(dT<=0?'−':'+')+Math.abs(dT).toFixed(1)+'% · 风险穿越 '+(dR<=0?'−':'+')+Math.abs(dR).toFixed(0)+' 次');
-      });
-    }
-    r.runs.forEach(function(x){
-      if(!x.res) msgs.push(x.name+' 失败（'+(x.fail||'无可达路径')+'）');
-    });
-    var prefix='第'+(r.count||1)+'次规划'+(r.sameShape?' · 路径形状与上次相同（指标已更新）':' · 已重新规划');
-    if(r.flyNote) msgs.push(r.flyNote);
-    els['plan-msg'].textContent=prefix+'：'+msgs.join('；');
     var tb=els['metrics-body'];
     tb.innerHTML='';
     r.runs.forEach(function(x){
@@ -1591,7 +1644,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     tb.innerHTML='';
     state.noFly.forEach(function(z,i){
       var tr=document.createElement('tr');
-      [z.name,z.x.toFixed(0),z.y.toFixed(0),z.l.toFixed(0),z.w.toFixed(0),z.z1.toFixed(0)+'–'+z.z2.toFixed(0)].forEach(function(cv){
+      var kind=z.pts&&z.pts.length?'多边形':'矩形';
+      [z.name,kind,String(nfPts(z).length),z.z1.toFixed(0)+'–'+z.z2.toFixed(0)].forEach(function(cv){
         var td=document.createElement('td'); td.textContent=cv; tr.appendChild(td);
       });
       var td=document.createElement('td');
@@ -1606,7 +1660,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var l=Math.max(5,parseFloat(els['nf-l'].value)||50), w=Math.max(5,parseFloat(els['nf-w'].value)||50);
     var z1=Math.max(0,parseFloat(els['nf-z1'].value)||0);
     var z2=Math.max(z1+1,parseFloat(els['nf-z2'].value)||state.region.z);
-    state.noFly.push({name:name,x:x,y:y,l:l,w:w,z1:z1,z2:z2});
+    state.noFly.push({name:name,x:x,y:y,l:l,w:w,z1:z1,z2:z2,pts:[{x:x-l/2,y:y-w/2},{x:x+l/2,y:y-w/2},{x:x+l/2,y:y+w/2},{x:x-l/2,y:y+w/2}]});
     renderAll();
   }
   function renderTableBuildings(){
@@ -1644,7 +1698,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       fieldArrows:c('field-arrows'), nfOn:c('nf-toggle'), sliceAlt:g('slice-alt'), showRisk:c('show-risk'), showFly:c('show-fly'),
       smooth:g('smooth-method'), turnR:g('turn-radius'), maxAcc:g('max-acc'), showCpts:c('show-cpts'),
       multiCount:g('multi-count'), multiSafe:g('multi-safe'), multiMode:g('multi-mode'), multiDt:g('multi-dt'),
-      buildings:state.buildings, noFly:state.noFly, customTypes:CUSTOM_TYPES, multiRows:rows()
+      buildings:state.buildings, noFly:state.noFly, drones:state.drones, customTypes:CUSTOM_TYPES, multiRows:rows()
     };
   }
   function collectMultiRows(){
@@ -1692,8 +1746,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     g('multi-count',s.multiCount); g('multi-safe',s.multiSafe); g('multi-mode',s.multiMode); g('multi-dt',s.multiDt);
     if(Array.isArray(s.buildings)) state.buildings=s.buildings.slice();
     if(Array.isArray(s.noFly)) state.noFly=s.noFly.slice();
+    if(Array.isArray(s.drones)) state.drones=s.drones.slice();
     if(Array.isArray(s.customTypes)) CUSTOM_TYPES=s.customTypes.slice();
     resizeMultiRows();
+    if(state.drones.length) syncMultiFromDrones();
     if(Array.isArray(s.multiRows)){
       s.multiRows.forEach(function(r,i){
         if(!r) return;
@@ -2468,14 +2524,15 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var uav=m.uav;
     m.uavs.forEach(function(tr,idx){
       var trr=document.createElement('tr');
+      var du=(m.uavList&&m.uavList[idx])||uav;
       var vals;
       if(tr){
         var len=0;
         for(var i=1;i<tr.pts.length;i++) len+=dist3(tr.pts[i-1],tr.pts[i]);
-        var e=uavPathEnergy(tr,uav);
-        vals=['无人机'+(idx+1),'起点'+(idx+1)+'→终点'+(idx+1),uav.name,m.offsets[idx].toFixed(0)+' s',tr.duration.toFixed(0)+' s',(m.offsets[idx]+tr.duration).toFixed(0)+' s',len.toFixed(0)+' m',(len/tr.duration).toFixed(1)+' m/s',e.toFixed(1)+' Wh'];
+        var e=uavPathEnergy(tr,du);
+        vals=['无人机'+(idx+1),'起点'+(idx+1)+'→终点'+(idx+1),du.name,m.offsets[idx].toFixed(0)+' s',tr.duration.toFixed(0)+' s',(m.offsets[idx]+tr.duration).toFixed(0)+' s',len.toFixed(0)+' m',(len/tr.duration).toFixed(1)+' m/s',e.toFixed(1)+' Wh'];
       } else {
-        vals=['无人机'+(idx+1),'起点'+(idx+1)+'→终点'+(idx+1),uav.name,'—','—','—','—','—','规划失败'];
+        vals=['无人机'+(idx+1),'起点'+(idx+1)+'→终点'+(idx+1),du.name,'—','—','—','—','—','规划失败'];
       }
       vals.forEach(function(v,vi){
         var td=document.createElement('td');
@@ -2507,20 +2564,24 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var grid=buildGrid();
     var rows=multiRowsFromTable();
     var N=Math.min(state.multiCount, rows.length);
-    var uavs=[], failed=0, i;
+    var uavs=[], uavList=[], failed=0, i;
     for(i=0;i<N;i++){
       var r=rows[i];
+      var du=state.drones&&state.drones[i]?resolveTypeById(state.drones[i].type):null;
+      if(!du) du=uav;
+      if(!du||!uavFeasible(du)){ uavs.push(null); uavList.push(du||uav); failed++; continue; }
       var wz=clamp(state.flightAlt,0,state.region.z);
       var s=snapCell(grid,r.x1,r.y1,wz);
       var g=snapCell(grid,r.x2,r.y2,wz);
       if(!s||!g){ uavs.push(null); failed++; continue; }
-      var res=plan(grid,s,g,true,uav);
-      if(!res){ uavs.push(null); failed++; continue; }
-      var tr=uavTrajectory(grid,res.cells,uav);
+      var res=plan(grid,s,g,true,du);
+      if(!res){ uavs.push(null); uavList.push(du); failed++; continue; }
+      var tr=uavTrajectory(grid,res.cells,du);
       tr.pts[0]={x:r.x1,y:r.y1,z:state.flightAlt};
       tr.pts[tr.pts.length-1]={x:r.x2,y:r.y2,z:state.flightAlt};
       tr.start={x:r.x1,y:r.y1}; tr.goal={x:r.x2,y:r.y2};
       uavs.push(tr);
+      uavList.push(du);
     }
     if(!uavs.filter(function(x){return x;}).length){ els['multi-info'].textContent='协同规划失败：所有无人机均无法规划，请检查起终点与风况。'; return; }
     var offsets;
@@ -2538,7 +2599,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var conflictsAfter=multiConflicts(uavs,offsets);
     var makespan=0;
     uavs.forEach(function(tr,idx){ if(tr) makespan=Math.max(makespan,offsets[idx]+tr.duration); });
-    state.multi={uavs:uavs,offsets:offsets,conflictsBefore:conflictsBefore,conflictsAfter:conflictsAfter,makespan:makespan,failed:failed,safe:state.multiSafe,grid:grid,uav:uav};
+    state.multi={uavs:uavs,offsets:offsets,conflictsBefore:conflictsBefore,conflictsAfter:conflictsAfter,makespan:makespan,failed:failed,safe:state.multiSafe,grid:grid,uav:uav,uavList:uavList};
     state.multiPlay=0;
     var cnt=uavs.filter(function(x){return x;}).length;
     var per='';
@@ -2685,14 +2746,37 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     }
     if(state.nfOn){
       state.noFly.forEach(function(z){
-        var x0=Math.max(0,z.x-z.l/2), x1=Math.min(rx,z.x+z.l/2);
-        var y0=Math.max(0,z.y-z.w/2), y1=Math.min(ry,z.y+z.w/2);
-        if(x1<=x0||y1<=y0) return;
-        var active=state.flightAlt>z.z1-1e-9&&state.flightAlt<z.z2+1e-9;
-        var px=mx(x0), py=my(y1), pw=(x1-x0)*sx, ph=(y1-y0)*sy;
-        out+='<rect x="'+px.toFixed(1)+'" y="'+py.toFixed(1)+'" width="'+pw.toFixed(1)+'" height="'+ph.toFixed(1)+'" style="fill:var(--red);fill-opacity:'+(active?0.18:0.08)+';stroke:var(--red);stroke-opacity:0.85;stroke-width:1.5;stroke-dasharray:'+(active?'none':'6 4')+'" data-tooltip="'+esc(z.name+' 禁飞区：'+z.l.toFixed(0)+'×'+z.w.toFixed(0)+' m，高度 '+z.z1.toFixed(0)+'–'+z.z2.toFixed(0)+' m')+'"/>';
-        out+='<text class="nf-label" x="'+(px+pw/2).toFixed(1)+'" y="'+(py+ph/2+4).toFixed(1)+'" text-anchor="middle">'+esc(z.name)+' 禁飞</text>';
+        var pts=nfPts(z), b=nfBounds(z);
+        if(b.x1<=b.x0||b.y1<=b.y0) return;
+        var zz=nfZ(z);
+        var active=state.flightAlt>zz.z1-1e-9&&state.flightAlt<zz.z2+1e-9;
+        var path=pts.map(function(p){ return mx(p.x).toFixed(1)+','+my(p.y).toFixed(1); }).join(' ');
+        var tip=z.name+' 禁飞区：'+pts.length+' 顶点，高度 '+zz.z1.toFixed(0)+'–'+zz.z2.toFixed(0)+' m';
+        out+='<polygon points="'+path+'" style="fill:var(--red);fill-opacity:'+(active?0.18:0.08)+';stroke:var(--red);stroke-opacity:0.85;stroke-width:1.5;stroke-dasharray:'+(active?'none':'6 4')+'" data-tooltip="'+esc(tip)+'"/>';
+        out+='<text class="nf-label" x="'+mx((b.x0+b.x1)/2).toFixed(1)+'" y="'+(my((b.y0+b.y1)/2)+4).toFixed(1)+'" text-anchor="middle">'+esc(z.name)+' 禁飞</text>';
       });
+    }
+    state.drones.forEach(function(d,i){
+      var col=MULTI_COLORS[i%4];
+      out+='<circle cx="'+mx(d.sx).toFixed(1)+'" cy="'+my(d.sy).toFixed(1)+'" r="8" style="fill:'+col+';stroke:var(--foreground);stroke-width:2"/>';
+      out+='<text class="preview-label" x="'+mx(d.sx).toFixed(1)+'" y="'+(my(d.sy)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">无人机'+(i+1)+'</text>';
+      if(d.gx!=null){
+        out+='<circle cx="'+mx(d.gx).toFixed(1)+'" cy="'+my(d.gy).toFixed(1)+'" r="9" style="fill:none;stroke:'+col+';stroke-width:2.5"/>';
+        out+='<circle cx="'+mx(d.gx).toFixed(1)+'" cy="'+my(d.gy).toFixed(1)+'" r="2.5" style="fill:'+col+'"/>';
+      }
+    });
+    if(state.editMode==='building'&&state.pending&&state.pending.p0&&state.pending.p1){
+      var b0=state.pending.p0, b1=state.pending.p1;
+      var bx0=mx(Math.min(b0.x,b1.x)), by1=my(Math.min(b0.y,b1.y)), bx1=mx(Math.max(b0.x,b1.x)), by0=my(Math.max(b0.y,b1.y));
+      out+='<rect x="'+bx0.toFixed(1)+'" y="'+by0.toFixed(1)+'" width="'+(bx1-bx0).toFixed(1)+'" height="'+(by1-by0).toFixed(1)+'" style="fill:var(--blue);fill-opacity:0.15;stroke:var(--blue);stroke-width:1.5;stroke-dasharray:6 4"/>';
+    }
+    if(state.editMode==='nf'&&state.pending&&state.pending.pts&&state.pending.pts.length){
+      var npath=state.pending.pts.map(function(p){ return mx(p.x).toFixed(1)+','+my(p.y).toFixed(1); });
+      out+='<polyline points="'+npath.join(' ')+'" style="fill:none;stroke:var(--red);stroke-width:2;stroke-dasharray:6 4"/>';
+      state.pending.pts.forEach(function(p){
+        out+='<circle cx="'+mx(p.x).toFixed(1)+'" cy="'+my(p.y).toFixed(1)+'" r="4" style="fill:var(--red)"/>';
+      });
+      out+='<text class="nf-label" x="'+mx(state.pending.pts[0].x).toFixed(1)+'" y="'+(my(state.pending.pts[0].y)+18).toFixed(1)+'" text-anchor="middle">双击闭合 · 右键取消</text>';
     }
     state.buildings.forEach(function(b){
       var x0=Math.max(0,b.x-b.l/2), y0=Math.max(0,b.y-b.w/2);
@@ -2822,12 +2906,12 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
 
   function render3D(grid){
     var W=760,H=540,PAD=50;
-    var a=state.azimuth*Math.PI/180;
-    var cos=Math.cos(a), sin=Math.sin(a);
+    var a=state.azimuth*Math.PI/180, e=state.elevation*Math.PI/180;
+    var cos=Math.cos(a), sin=Math.sin(a), cosE=Math.cos(e), sinE=Math.sin(e);
     var rx=state.region.x, ry=state.region.y, rz=state.region.z;
     function proj(x,y,z){
       var xr=x*cos-y*sin, yr=x*sin+y*cos;
-      return {x:xr, y:yr*0.58-z*1.0};
+      return {x:xr, y:yr*cosE-z*sinE};
     }
     var ext=[[0,0,0],[rx,0,0],[0,ry,0],[rx,ry,0],[rx/2,ry/2,rz]];
     var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
@@ -2836,8 +2920,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     function P(x,y,z){ var q=proj(x,y,z); return [(q.x-minX)*s+PAD,(q.y-minY)*s+PAD]; }
     function poly(pts){ return pts.map(function(p){ return p[0].toFixed(1)+','+p[1].toFixed(1); }).join(' '); }
     var out='';
+    out+='<defs><linearGradient id="sky3d" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity="0.5"/><stop offset="1" stop-color="var(--background)" stop-opacity="0.05"/></linearGradient></defs>';
+    out+='<rect x="0" y="0" width="760" height="540" fill="url(#sky3d)"/>';
     var g=[P(0,0,0),P(rx,0,0),P(rx,ry,0),P(0,ry,0)];
-    out+='<polygon points="'+poly(g)+'" style="fill:var(--secondary);fill-opacity:0.18;stroke:var(--foreground);stroke-opacity:0.5;stroke-width:1"/>';
+    out+='<polygon points="'+poly(g)+'" style="fill:var(--secondary);fill-opacity:0.32;stroke:var(--foreground);stroke-opacity:0.55;stroke-width:1.2"/>';
     var step=rx>1500?200:100,gx,gy;
     for(gx=0;gx<=rx;gx+=step){
       var p1=P(gx,0,0), p2=P(gx,ry,0);
@@ -2862,35 +2948,46 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     bs.forEach(function(b){
       var x0=b.x-b.l/2, x1=b.x+b.l/2, y0=b.y-b.w/2, y1=b.y+b.w/2;
       var col=heightColor(b.h);
-      var colS1='color-mix(in srgb,'+col+' 62%,var(--background))';
-      var colS2='color-mix(in srgb,'+col+' 42%,var(--background))';
+      var colS1='color-mix(in srgb,'+col+' 70%,var(--background))';
+      var colS2='color-mix(in srgb,'+col+' 48%,var(--background))';
       var base=[P(x0,y0,0),P(x1,y0,0),P(x1,y1,0),P(x0,y1,0)];
-      out+='<polygon points="'+poly(base.map(function(pt){ return [pt[0]+3,pt[1]+4]; }))+'" style="fill:var(--foreground);fill-opacity:0.08;stroke:none"/>';
+      out+='<polygon points="'+poly(base.map(function(pt){ return [pt[0]+4,pt[1]+6]; }))+'" style="fill:var(--foreground);fill-opacity:0.14;stroke:none"/>';
       var sides=[];
-      if(cos+sin>1e-4) sides.push([[x1,y0],[x1,y1]]);
-      if(-(cos+sin)>1e-4) sides.push([[x0,y0],[x0,y1]]);
-      if(cos-sin>1e-4) sides.push([[x0,y1],[x1,y1]]);
-      if(-(cos-sin)>1e-4) sides.push([[x0,y0],[x1,y0]]);
-      sides.forEach(function(side,idx){
-        var q1=P(side[0][0],side[0][1],0), q2=P(side[1][0],side[1][1],0), q3=P(side[1][0],side[1][1],b.h), q4=P(side[0][0],side[0][1],b.h);
-        out+='<polygon points="'+poly([q1,q2,q3,q4])+'" style="fill:'+(idx===0?colS1:colS2)+';stroke:var(--foreground);stroke-opacity:0.5;stroke-width:1"/>';
+      var light={x:cos,y:sin};
+      var faces=[
+        {a:[x1,y0],b:[x1,y1],n:{x:1,y:0}},
+        {a:[x0,y0],b:[x0,y1],n:{x:-1,y:0}},
+        {a:[x0,y1],b:[x1,y1],n:{x:0,y:1}},
+        {a:[x0,y0],b:[x1,y0],n:{x:0,y:-1}}
+      ];
+      faces.forEach(function(face){
+        var nrm=face.n.x*light.x+face.n.y*light.y;
+        if(nrm<-1e-4) sides.push({a:face.a,b:face.b,shade:colS2});
+        else if(nrm>1e-4) sides.push({a:face.a,b:face.b,shade:colS1});
+      });
+      sides.forEach(function(side){
+        var q1=P(side.a[0],side.a[1],0), q2=P(side.b[0],side.b[1],0), q3=P(side.b[0],side.b[1],b.h), q4=P(side.a[0],side.a[1],b.h);
+        out+='<polygon points="'+poly([q1,q2,q3,q4])+'" style="fill:'+side.shade+';stroke:var(--foreground);stroke-opacity:0.55;stroke-width:1"/>';
       });
       var top=[P(x0,y0,b.h),P(x1,y0,b.h),P(x1,y1,b.h),P(x0,y1,b.h)];
       var over=b.h>rz;
       var tip2=b.name+'：'+b.l.toFixed(0)+'×'+b.w.toFixed(0)+'×'+b.h.toFixed(0)+' m'+(over?'（超出区域高度）':'');
-      out+='<polygon points="'+poly(top)+'" style="fill:'+col+';fill-opacity:0.92;stroke:'+(over?'var(--destructive)':'var(--foreground)')+';stroke-opacity:'+(over?0.9:0.7)+';stroke-width:1.2" data-tooltip="'+esc(tip2)+'"/>';
+      out+='<polygon points="'+poly(top)+'" style="fill:'+col+';fill-opacity:0.96;stroke:'+(over?'var(--destructive)':'var(--foreground)')+';stroke-opacity:'+(over?0.9:0.75)+';stroke-width:1.3" data-tooltip="'+esc(tip2)+'"/>';
     });
     if(state.nfOn){
       state.noFly.forEach(function(z){
-        var x0=z.x-z.l/2, x1=z.x+z.l/2, y0=z.y-z.w/2, y1=z.y+z.w/2;
-        var z1=Math.max(0,z.z1||0), z2=Math.min(rz,z.z2||rz);
-        if(z2<=z1) return;
-        var b0=P(x0,y0,z1), b1=P(x1,y0,z1), b2=P(x1,y1,z1), b3=P(x0,y1,z1);
-        var t0=P(x0,y0,z2), t1=P(x1,y0,z2), t2=P(x1,y1,z2), t3=P(x0,y1,z2);
-        [[b0,b1,t1,t0],[b1,b2,t2,t1],[b2,b3,t3,t2],[b3,b0,t0,t3]].forEach(function(face){
-          out+='<polygon points="'+poly(face)+'" style="fill:var(--red);fill-opacity:0.12;stroke:var(--red);stroke-opacity:0.7;stroke-width:1"/>';
-        });
-        out+='<polygon points="'+poly([t0,t1,t2,t3])+'" style="fill:var(--red);fill-opacity:0.2;stroke:var(--red);stroke-opacity:0.85;stroke-width:1" data-tooltip="'+esc(z.name+' 禁飞区：'+z.l.toFixed(0)+'×'+z.w.toFixed(0)+' m，高度 '+z.z1.toFixed(0)+'–'+z.z2.toFixed(0)+' m')+'"/>';
+        var pts=nfPts(z), zz=nfZ(z);
+        if(zz.z2<=zz.z1) return;
+        var n=pts.length;
+        for(var ei=0;ei<n;ei++){
+          var pa=pts[ei], pb=pts[(ei+1)%n];
+          var f0=P(pa.x,pa.y,zz.z1), f1=P(pb.x,pb.y,zz.z1), f2=P(pb.x,pb.y,zz.z2), f3=P(pa.x,pa.y,zz.z2);
+          out+='<polygon points="'+poly([f0,f1,f2,f3])+'" style="fill:var(--red);fill-opacity:0.14;stroke:var(--red);stroke-opacity:0.7;stroke-width:1"/>';
+        }
+        var nfTop=pts.map(function(p){ return P(p.x,p.y,zz.z2); });
+        out+='<polygon points="'+poly(nfTop)+'" style="fill:var(--red);fill-opacity:0.22;stroke:var(--red);stroke-opacity:0.85;stroke-width:1" data-tooltip="'+esc(z.name+' 禁飞区：'+n+' 顶点，高度 '+zz.z1.toFixed(0)+'–'+zz.z2.toFixed(0)+' m')+'"/>';
+        var nfBot=pts.map(function(p){ return P(p.x,p.y,zz.z1); });
+        out+='<polygon points="'+poly(nfBot)+'" style="fill:var(--red);fill-opacity:0.1;stroke:var(--red);stroke-opacity:0.5;stroke-width:0.8"/>';
       });
     }
     if(state.results){
@@ -3028,12 +3125,12 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(state.mode==='3d'){
       els['view-2d'].style.display='none';
       els['view-3d'].style.display='';
-      els['mode-cap'].textContent='三维视图 · 视角 '+state.azimuth+'° · 按 ← → 切换视角';
+      updateModeCap();
       render3D(grid);
     } else {
       els['view-2d'].style.display='';
       els['view-3d'].style.display='none';
-      els['mode-cap'].textContent='平面图 · 俯视（步骤④可点击拾取起终点）';
+      updateModeCap();
       render2D(grid);
     }
     scheduleSave();
@@ -3066,6 +3163,65 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     for(var i=1;i<=4;i++){
       els['step-'+i].classList.toggle('btn-primary',i===n);
     }
+  }
+  function updatePlanMode(){
+    var n=state.drones.length;
+    els['plan-mode'].textContent=n>=2?('协同规划（'+n+' 架）'):('单机规划（'+n+' 架）');
+  }
+  function updateModeCap(){
+    els['mode-cap'].textContent=state.mode==='3d'?('3D 视图 · 方位 '+state.azimuth+'° · 俯仰 '+state.elevation.toFixed(0)+'°（左键拖拽旋转）'):'平面图 · 俯视';
+  }
+  function hideCtxMenu(){ els['ctx-menu'].style.display='none'; }
+  function showCtxMenu(x,y){
+    els['ctx-menu'].style.left=x+'px';
+    els['ctx-menu'].style.top=y+'px';
+    els['ctx-menu'].style.display='';
+  }
+  function buildCtxMenu(){
+    var items=[['添加建筑物','ctx-build'],['添加无人机','ctx-uav'],['添加禁飞区','ctx-nf']];
+    items.forEach(function(it){
+      var b=document.createElement('button');
+      b.type='button'; b.id=it[1]; b.className='btn';
+      b.style.display='block'; b.style.width='100%'; b.style.marginBottom='4px';
+      b.textContent=it[0];
+      els['ctx-menu'].appendChild(b);
+    });
+  }
+  function syncMultiFromDrones(){
+    var n=state.drones.length;
+    if(n===0) return;
+    els['multi-count'].value=String(n);
+    ensureMultiRows(n);
+    state.drones.forEach(function(d,i){
+      setMultiInput(i,0,d.sx); setMultiInput(i,1,d.sy);
+      if(d.gx!=null){ setMultiInput(i,2,d.gx); setMultiInput(i,3,d.gy); }
+    });
+    relabelMultiRows();
+    if(n===1){
+      els['start-x'].value=state.drones[0].sx; els['start-y'].value=state.drones[0].sy;
+      if(state.drones[0].gx!=null){ els['goal-x'].value=state.drones[0].gx; els['goal-y'].value=state.drones[0].gy; }
+    }
+  }
+  function closeNf(){
+    var pts=state.pending&&state.pending.pts;
+    if(!pts||pts.length<3){
+      state.editMode=null; state.pending=null;
+      els['plan-msg'].textContent='禁飞区至少需要 3 个顶点，已取消。';
+      renderAll();
+      return;
+    }
+    state.pendingNf={pts:pts.slice()};
+    els['nf-pop'].style.display='';
+  }
+  function planSmart(){
+    var n=state.drones.length;
+    if(n>=2){
+      syncMultiFromDrones();
+      planMulti();
+      return;
+    }
+    if(n===1) syncMultiFromDrones();
+    planAll();
   }
 
   function setStatus(txt){ els['map-status'].textContent=txt; }
@@ -3336,24 +3492,174 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['export-state'].addEventListener('click',exportState);
     els['import-state'].addEventListener('change',importState);
     els['clear-state'].addEventListener('click',clearSavedState);
-    els['btn-plan'].addEventListener('click',planAll);
+    els['btn-plan'].addEventListener('click',planSmart);
     els['export-results'].addEventListener('click',exportResults);
     els['pick-start'].addEventListener('click',function(){ showStep(4); setPick('start'); });
     els['pick-goal'].addEventListener('click',function(){ showStep(4); setPick('goal'); });
+    els['ctx-build'].addEventListener('click',function(){
+      hideCtxMenu();
+      state.editMode='building'; state.pending={p0:null,p1:null};
+      els['plan-msg'].textContent='添加建筑物：左键拖拽对角确定长宽，松开后设置高度；右键取消。';
+    });
+    els['ctx-uav'].addEventListener('click',function(){
+      hideCtxMenu();
+      var opts='<option value="auto">自动推荐</option>';
+      allTypes().forEach(function(t){
+        opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s）</option>';
+      });
+      els['uav-modal-select'].innerHTML=opts;
+      els['uav-modal'].style.display='';
+      state.pending={ctxPos:state.ctxPos};
+    });
+    els['ctx-nf'].addEventListener('click',function(){
+      hideCtxMenu();
+      state.editMode='nf'; state.pending={pts:[]};
+      els['plan-msg'].textContent='添加禁飞区：左键逐点描绘边界，双击闭合，右键取消。';
+    });
+    els['uav-modal-ok'].addEventListener('click',function(){
+      var pos=state.pending&&state.pending.ctxPos;
+      if(!pos){ els['uav-modal'].style.display='none'; return; }
+      var d={id:'d'+(state.drones.length+1), type:els['uav-modal-select'].value, sx:Math.round(pos.x), sy:Math.round(pos.y), gx:null, gy:null};
+      state.drones.push(d);
+      state.editMode='uavGoal'; state.pending={droneId:d.id};
+      els['uav-modal'].style.display='none';
+      els['plan-msg'].textContent='无人机'+(state.drones.length)+' 已放置于起点：请在地图上点击设置其终点。';
+      updatePlanMode();
+      syncMultiFromDrones();
+      renderAll();
+    });
+    els['uav-modal-cancel'].addEventListener('click',function(){
+      els['uav-modal'].style.display='none';
+      state.editMode=null; state.pending=null;
+    });
+    els['build-ok'].addEventListener('click',function(){
+      if(!state.pendingRect) return;
+      var r=state.pendingRect;
+      var h=Math.max(3,parseFloat(els['build-h'].value)||30);
+      state.buildings.push({name:els['build-name'].value.trim()||'新建建筑', x:Math.round(r.x), y:Math.round(r.y), l:Math.round(r.l), w:Math.round(r.w), h:h});
+      els['build-pop'].style.display='none';
+      state.pendingRect=null; state.editMode=null; state.pending=null;
+      els['plan-msg'].textContent='已添加建筑：'+els['build-name'].value.trim()+'（'+Math.round(r.l)+'×'+Math.round(r.w)+'×'+h+' m）';
+      inputChanged();
+    });
+    els['build-cancel'].addEventListener('click',function(){
+      els['build-pop'].style.display='none';
+      state.pendingRect=null; state.editMode=null; state.pending=null;
+      renderAll();
+    });
+    els['nf-ok'].addEventListener('click',function(){
+      if(!state.pendingNf) return;
+      var z1=Math.max(0,parseFloat(els['nf-z1-input'].value)||0);
+      var z2=Math.max(z1+1,parseFloat(els['nf-z2-input'].value)||(z1+1));
+      state.noFly.push({name:'禁飞区'+(state.noFly.length+1), pts:state.pendingNf.pts.slice(), z1:z1, z2:z2});
+      els['nf-pop'].style.display='none';
+      state.pendingNf=null; state.editMode=null; state.pending=null;
+      els['plan-msg'].textContent='已添加禁飞区（'+state.noFly[state.noFly.length-1].pts.length+' 顶点，高度 '+z1.toFixed(0)+'–'+z2.toFixed(0)+' m），路径规划将避开该区域。';
+      inputChanged();
+    });
+    els['nf-cancel'].addEventListener('click',function(){
+      els['nf-pop'].style.display='none';
+      state.pendingNf=null; state.editMode=null; state.pending=null;
+      renderAll();
+    });
     els['svg2d'].addEventListener('click',function(ev){
-      if(!state.pick) return;
       var p=svgWorld(ev);
+      if(state.editMode==='uavGoal'&&state.pending&&state.pending.droneId){
+        var d=null;
+        state.drones.forEach(function(x){ if(x.id===state.pending.droneId) d=x; });
+        if(d){
+          d.gx=Math.round(p.x); d.gy=Math.round(p.y);
+          state.editMode=null; state.pending=null;
+          els['plan-msg'].textContent='无人机'+(state.drones.indexOf(d)+1)+' 终点已设置（'+d.gx+', '+d.gy+'）。可继续右键添加无人机，或点击开始规划。';
+          updatePlanMode();
+          syncMultiFromDrones();
+          inputChanged();
+        }
+        return;
+      }
+      if(state.editMode==='nf'&&state.pending&&state.pending.pts){
+        var pts=state.pending.pts;
+        if(pts.length&&Math.abs(pts[0].x-p.x)<12&&Math.abs(pts[0].y-p.y)<12){ closeNf(); return; }
+        pts.push({x:Math.round(p.x),y:Math.round(p.y)});
+        renderAll();
+        return;
+      }
+      if(!state.pick) return;
       if(state.pick==='start'){ els['start-x'].value=p.x.toFixed(0); els['start-y'].value=p.y.toFixed(0); }
       else if(state.pick==='goal'){ els['goal-x'].value=p.x.toFixed(0); els['goal-y'].value=p.y.toFixed(0); }
       else if(state.pick==='nf'){ els['nf-x'].value=p.x.toFixed(0); els['nf-y'].value=p.y.toFixed(0); }
       setPick(null);
       inputChanged();
     });
+    els['svg2d'].addEventListener('contextmenu',function(ev){
+      ev.preventDefault();
+      if(state.editMode==='nf'&&state.pending&&state.pending.pts&&state.pending.pts.length){
+        state.editMode=null; state.pending=null;
+        els['plan-msg'].textContent='已取消禁飞区描绘。';
+        renderAll();
+        return;
+      }
+      state.ctxPos=svgWorld(ev);
+      showCtxMenu(ev.offsetX,ev.offsetY);
+    });
+    els['svg2d'].addEventListener('mousedown',function(ev){
+      if(state.editMode==='building'&&ev.button===0){
+        state.pending={p0:svgWorld(ev),p1:svgWorld(ev)};
+        ev.preventDefault();
+      }
+    });
+    els['svg2d'].addEventListener('mousemove',function(ev){
+      if(state.editMode==='building'&&state.pending&&state.pending.p0){
+        state.pending.p1=svgWorld(ev);
+        renderAll();
+      }
+    });
+    els['svg2d'].addEventListener('mouseup',function(ev){
+      if(state.editMode==='building'&&state.pending&&state.pending.p0){
+        var a=state.pending.p0, b=svgWorld(ev);
+        var x0=Math.min(a.x,b.x), x1=Math.max(a.x,b.x), y0=Math.min(a.y,b.y), y1=Math.max(a.y,b.y);
+        if(x1-x0>=5&&y1-y0>=5){
+          state.pendingRect={x:(x0+x1)/2,y:(y0+y1)/2,l:x1-x0,w:y1-y0};
+          els['build-h'].value=Math.round(state.flightAlt||30);
+          els['build-pop'].style.display='';
+        } else {
+          state.pending=null;
+          els['plan-msg'].textContent='建筑尺寸过小（至少 5 m），已取消。';
+        }
+        renderAll();
+      }
+    });
+    els['svg2d'].addEventListener('dblclick',function(ev){
+      if(state.editMode==='nf'&&state.pending&&state.pending.pts&&state.pending.pts.length){
+        var p=svgWorld(ev), pts=state.pending.pts, last=pts[pts.length-1];
+        if(Math.abs(last.x-p.x)<8&&Math.abs(last.y-p.y)<8) pts.pop();
+        closeNf();
+      }
+    });
+    els['svg3d'].addEventListener('mousedown',function(ev){
+      if(ev.button!==0) return;
+      state.azDrag={x:ev.clientX,y:ev.clientY,az:state.azimuth,el:state.elevation};
+      ev.preventDefault();
+    });
+    document.addEventListener('mousemove',function(ev){
+      if(!state.azDrag||state.mode!=='3d') return;
+      var dx=ev.clientX-state.azDrag.x, dy=ev.clientY-state.azDrag.y;
+      var az=((state.azDrag.az+dx*0.5)%360+360)%360;
+      state.azimuth=Math.round(az);
+      state.elevation=Math.max(0,Math.min(89,state.azDrag.el+dy*0.4));
+      els['az-range'].value=state.azimuth;
+      els['az-val'].textContent=state.azimuth+'°';
+      updateModeCap();
+      renderAll();
+    });
+    document.addEventListener('mouseup',function(){ state.azDrag=null; });
+    document.addEventListener('click',hideCtxMenu);
     els['btn3d'].addEventListener('click',function(){
       state.mode=(state.mode==='2d')?'3d':'2d';
       els['btn3d'].textContent=(state.mode==='3d')?'返回平面图':'3D 展示';
       els['btn3d'].classList.toggle('btn-primary',state.mode==='3d');
       els['az-wrap'].style.display=(state.mode==='3d')?'':'none';
+      updateModeCap();
       renderAll();
     });
     els['az-range'].addEventListener('input',function(){
@@ -3378,12 +3684,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       els['az-val'].textContent=state.azimuth+'°';
       renderAll();
     });
+    buildCtxMenu();
+    els['ctx-menu'].style.display='none';
     loadCustomTypes();
     var savedState=loadSavedState();
     if(savedState){ applyState(savedState); } else { loadPreset('mix'); }
     resizeMultiRows();
     rebuildUavSelect();
     renderCuTable();
+    updatePlanMode();
+    updateModeCap();
     renderAll();
     showStep(1);
     renderAll();
