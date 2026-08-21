@@ -332,18 +332,22 @@ test('3D 视图：左键拖拽旋转（方位角与俯仰）', () => {
   assert.ok(el('mode-cap').textContent.includes('俯仰'), '应显示俯仰角');
 });
 
-test('3D 拖拽：右键垂直拖拽只调俯仰、不改变方位；左键拖拽只转方位', () => {
+test('3D 拖拽：Shift+左键垂直拖拽只调俯仰、不改变方位；↑↓ 键可微调俯仰', () => {
   if (!el('mode-cap').textContent.includes('3D')) click('btn3d');
   const azBefore = el('az-range').value;
   const cap0 = el('mode-cap').textContent;
-  el('svg3d').fire('mousedown', { clientX: 100, clientY: 100, button: 2, preventDefault() {} });
+  el('svg3d').fire('mousedown', { clientX: 100, clientY: 100, button: 0, shiftKey: true, preventDefault() {} });
   documentStub.fire('mousemove', { clientX: 105, clientY: 180 });
-  assert.ok(el('mode-cap').textContent.includes('旋转中：俯仰'), '右键拖拽应显示旋转轴为俯仰');
+  assert.ok(el('mode-cap').textContent.includes('旋转中：俯仰'), 'Shift+左键拖拽应显示旋转轴为俯仰');
   documentStub.fire('mouseup', {});
   const cap1 = el('mode-cap').textContent;
   assert.equal(el('az-range').value, azBefore, '垂直拖拽不应改变方位角');
   assert.notEqual(cap1, cap0, '俯仰角应随垂直拖拽变化');
-  assert.ok(cap1.includes('左键转方位 · 右键调俯仰'), '标题栏应提示左右键分工');
+  assert.ok(cap1.includes('Shift+左键调俯仰'), '标题栏应提示 Shift+左键调俯仰');
+  const cap2 = el('mode-cap').textContent;
+  documentStub.fire('keydown', { key: 'ArrowUp', preventDefault() {} });
+  const cap3 = el('mode-cap').textContent;
+  assert.notEqual(cap3, cap2, '↑ 键应微调俯仰');
 });
 
 test('UI 精简：冗余按钮移除、备注标签简化、机型详情支持换行', () => {

@@ -3129,7 +3129,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function updateModeCap(){
     if(state.mode!=='3d'){ els['mode-cap'].textContent='平面图 · 俯视'; return; }
     var hint=state.azDrag&&state.azDrag.axis?(' · 旋转中：'+(state.azDrag.axis==='az'?'方位':'俯仰')):'';
-    els['mode-cap'].textContent='3D 视图 · 方位 '+state.azimuth+'° · 俯仰 '+state.elevation.toFixed(0)+'°（左键转方位 · 右键调俯仰）'+hint;
+    els['mode-cap'].textContent='3D 视图 · 方位 '+state.azimuth+'° · 俯仰 '+state.elevation.toFixed(0)+'°（左键转方位 · Shift+左键调俯仰 · ↑↓ 微调）'+hint;
   }
   function hideCtxMenu(){ els['ctx-menu'].style.display='none'; }
   function showCtxMenu(x,y){
@@ -3594,8 +3594,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       }
     });
     els['svg3d'].addEventListener('mousedown',function(ev){
-      if(ev.button!==0&&ev.button!==2) return;
-      state.azDrag={x:ev.clientX,y:ev.clientY,az:state.azimuth,el:state.elevation,axis:ev.button===0?'az':'el'};
+      if(ev.button!==0) return;
+      state.azDrag={x:ev.clientX,y:ev.clientY,az:state.azimuth,el:state.elevation,axis:ev.shiftKey?'el':'az'};
       els['svg3d'].style.cursor='grabbing';
       updateModeCap();
       ev.preventDefault();
@@ -3640,15 +3640,21 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     document.addEventListener('keydown',function(e){
       var code=e.keyCode||(e.key?e.key.charCodeAt(0):0);
       var isLeft=(e.key==='ArrowLeft'||code===37), isRight=(e.key==='ArrowRight'||code===39);
-      if(!isLeft&&!isRight) return;
+      var isUp=(e.key==='ArrowUp'||code===38), isDown=(e.key==='ArrowDown'||code===40);
+      if(!isLeft&&!isRight&&!isUp&&!isDown) return;
       if(state.mode!=='3d') return;
       e.preventDefault();
       var step=15;
-      var az=state.azimuth+(isRight?step:-step);
-      az=((az%360)+360)%360;
-      state.azimuth=Math.round(az);
-      els['az-range'].value=state.azimuth;
-      els['az-val'].textContent=state.azimuth+'°';
+      if(isLeft||isRight){
+        var az=state.azimuth+(isRight?step:-step);
+        az=((az%360)+360)%360;
+        state.azimuth=Math.round(az);
+        els['az-range'].value=state.azimuth;
+        els['az-val'].textContent=state.azimuth+'°';
+      } else {
+        state.elevation=Math.max(0,Math.min(89,state.elevation+(isUp?step:-step)));
+      }
+      updateModeCap();
       renderAll();
     });
     buildCtxMenu();
