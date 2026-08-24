@@ -3176,7 +3176,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         if(showDrone){
           var blocked=(sim&&sim[idx]&&sim[idx].blocked);
           var inC=blocked||mm.conflictsAfter.some(function(cf){ return Math.abs(cf.t-state.multiPlay)<1.5&&(cf.i===idx||cf.j===idx); });
-          var lab=blocked?'风超限':(waitFlag?'待命':(hoverFlag?'悬停':'UAV'+(idx+1)));
+          var lab=blocked?'风超限':(hoverFlag?'悬停':'UAV'+(idx+1));
           var stroke=inC?'var(--red)':(waitFlag?'var(--muted-foreground)':'var(--foreground)');
           out+='<circle cx="'+mx(pp.x).toFixed(1)+'" cy="'+my(pp.y).toFixed(1)+'" r="8" style="fill:'+col+';stroke:'+stroke+';stroke-width:2;stroke-dasharray:'+(waitFlag?'4 3':'none')+'"/>';
           out+='<text class="preview-label" x="'+mx(pp.x).toFixed(1)+'" y="'+(my(pp.y)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+(blocked?'var(--red)':col)+'">'+lab+'</text>';
@@ -3663,6 +3663,12 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       var name='无人机'+(idx+1);
       state.drones.splice(idx,1);
       state.pendingCtxDrone=null;
+      state.multi=null;
+      state.multiPlay=0;
+      state.windSimCache=null;
+      els['multi-play-wrap'].style.display='none';
+      els['multi-data-wrap'].style.display='none';
+      els['multi-info'].textContent='';
       if(state.drones.length===0){
         els['multi-count'].value='1';
         ensureMultiRows(0);

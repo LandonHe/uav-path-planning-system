@@ -363,6 +363,7 @@ test('右键无人机显示删除按钮并可删除', () => {
 });
 
 test('实时遥测侧边栏：协同规划后显示紧凑飞行数据', () => {
+  click('btn-plan');
   assert.equal(el('live-panel').style.display, '', '协同规划后应显示遥测面板');
   const body = el('live-body').innerHTML;
   assert.ok(body.includes('U1'), '应显示无人机1');
@@ -373,6 +374,7 @@ test('实时遥测侧边栏：协同规划后显示紧凑飞行数据', () => {
 });
 
 test('显示飞行数据开关：右上角按钮可自行打开/关闭遥测面板并记忆', () => {
+  click('btn-plan');
   assert.equal(el('live-panel').style.display, '', '默认应显示遥测面板');
   click('live-toggle');
   assert.equal(el('live-panel').style.display, 'none', '关闭后应隐藏遥测面板');
@@ -457,6 +459,7 @@ test('分段风：可增删时段，回放时按时间切换风况', () => {
   el('wind-seg-on').fire('change');
   assert.equal(el('wind-seg-wrap').style.display, '', '开启后应显示时段表');
   click('wind-seg-reset');
+  click('btn-plan');
   assert.equal(el('wind-seg-body').children.length, 3, '默认应有 3 个时段');
   click('wind-seg-add');
   assert.equal(el('wind-seg-body').children.length, 4, '添加后应有 4 个时段');
@@ -695,6 +698,13 @@ test('多机回放：两架无人机都显示并运动', () => {
   assert.notEqual(svg3, svg20, '播放过程中标记应移动');
   const live = el('live-body').innerHTML;
   assert.ok(live.includes('U1') && live.includes('U2'), '遥测应显示两架无人机');
+  // 删除 U2（起点 600,300）→ 对应路径与标记应立即清除
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 600 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-del-drone');
+  const svgDel = el('svg2d').innerHTML;
+  assert.ok(!svgDel.includes('multi-path'), '删除无人机后应清除其路径');
+  assert.ok(!svgDel.includes('>UAV2<'), '删除后不应再显示 U2 标记');
+  assert.equal(el('multi-play-wrap').style.display, 'none', '删除后应隐藏播放条');
 });
 
 test('建筑绕行：飞行高度低于建筑时路径应绕行', () => {
