@@ -433,6 +433,23 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         <input type="checkbox" id="field-arrows" class="form-check-input" checked>
         <label class="form-check-label" for="field-arrows">显示风场网格箭头</label>
       </div>
+      <div class="inline">
+        <input type="checkbox" id="wind-seg-on" class="form-check-input">
+        <label class="form-check-label" for="wind-seg-on">风随时间变化（飞行回放时生效）</label>
+      </div>
+      <div id="wind-seg-wrap" style="display:none">
+        <div class="table-responsive">
+          <table class="table table-sm">
+            <thead><tr><th>时间(s)</th><th>风速(m/s)</th><th>风向(°)</th><th></th></tr></thead>
+            <tbody id="wind-seg-body"></tbody>
+          </table>
+        </div>
+        <div class="btns">
+          <button type="button" id="wind-seg-add" class="btn">+ 添加时段</button>
+          <button type="button" id="wind-seg-reset" class="btn">恢复默认</button>
+        </div>
+        <span class="cap text-small">每个时段从设定时间开始生效，直到下一时段开始；播放/拖动时间轴时，风场箭头、遥测与状态栏按分段切换。</span>
+      </div>
       <h3>空域范围</h3>
       <div class="row3">
         <div class="ctl">
@@ -952,9 +969,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function allTypes(){ return TYPES.concat(CUSTOM_TYPES); }
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
-  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,showLive:true,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,showLive:true,windSegOn:false,windSegs:[],pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -1054,6 +1071,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     state.wind.tAir=((state.wind.dir+180)%360)*Math.PI/180;
     state.wakeOn=els['wake-toggle'].checked;
     state.fieldArrows=els['field-arrows'].checked;
+    state.windSegOn=els['wind-seg-on'].checked;
     state.nfOn=els['nf-toggle'].checked;
     state.sliceAlt=Math.max(0,Math.min(state.region.z,parseInt(els['slice-alt'].value,10)||0));
     state.showRisk=els['show-risk'].checked;
@@ -1098,6 +1116,63 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function windFeasibleAt(z,uav){
     var ws=windSpeedAt(z);
     return ws<=uav.maxWind+1e-9 && ws<uav.cruise;
+  }
+  function windAtTime(t){
+    if(!state.windSegs.length) return null;
+    var seg=state.windSegs[0];
+    for(var i=0;i<state.windSegs.length;i++){
+      if(t>=state.windSegs[i].t) seg=state.windSegs[i]; else break;
+    }
+    return {speed:seg.v, dir:seg.d};
+  }
+  function displayWind(){
+    if(state.windSegOn&&state.multi){
+      var w=windAtTime(state.multiPlay);
+      if(w) return w;
+    }
+    return {speed:state.wind.speed, dir:state.wind.dir};
+  }
+  function renderWindSegTable(){
+    var tb=els['wind-seg-body'];
+    tb.innerHTML='';
+    if(!state.windSegs.length){
+      tb.innerHTML='<tr><td colspan="4" class="cap">暂无时段：点击“添加时段”设置，或“恢复默认”。</td></tr>';
+      return;
+    }
+    state.windSegs.forEach(function(seg,i){
+      var tr=document.createElement('tr');
+      var fields=[['t',seg.t,0,100000,10],['v',seg.v,0,40,0.5],['d',seg.d,0,360,1]];
+      fields.forEach(function(f){
+        var td=document.createElement('td');
+        var inp=document.createElement('input');
+        inp.type='number'; inp.className='form-control'; inp.min=f[2]; inp.max=f[3]; inp.step=f[4]; inp.value=String(f[1]);
+        (function(ii,key){
+          inp.addEventListener('change',function(){
+            var v=parseFloat(inp.value);
+            if(isFinite(v)){
+              if(key==='d') v=((Math.round(v)%360)+360)%360;
+              state.windSegs[ii][key]=Math.max(0,v);
+            }
+          });
+        })(i,f[0]);
+        td.appendChild(inp); tr.appendChild(td);
+      });
+      var td=document.createElement('td');
+      var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删除';
+      bd.addEventListener('click',function(){ state.windSegs.splice(i,1); renderWindSegTable(); inputChanged(); });
+      td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
+    });
+  }
+  function addWindSeg(){
+    var last=state.windSegs.length?state.windSegs[state.windSegs.length-1].t:0;
+    state.windSegs.push({t:last+30, v:state.wind.speed||5, d:state.wind.dir||90});
+    renderWindSegTable();
+    inputChanged();
+  }
+  function resetWindSegs(){
+    state.windSegs=[{t:0,v:5,d:90},{t:30,v:8,d:180},{t:60,v:12,d:270}];
+    renderWindSegTable();
+    inputChanged();
   }
 
   function recommendUav(){
@@ -1877,6 +1952,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       algs:{aw:c('alg-aw'),base:c('alg-base'),rrt:c('alg-rrt'),pso:c('alg-pso')},
       seed:c('seed-check'), seedNum:g('seed-num'), autoPlan:c('auto-plan'),
       fieldArrows:c('field-arrows'), nfOn:c('nf-toggle'), sliceAlt:g('slice-alt'), showRisk:c('show-risk'), showFly:c('show-fly'),
+      windSegOn:state.windSegOn, windSegs:state.windSegs,
       smooth:g('smooth-method'), turnR:g('turn-radius'), maxAcc:g('max-acc'), showCpts:c('show-cpts'),
       multiCount:g('multi-count'), multiSafe:g('multi-safe'), multiMode:g('multi-mode'), multiDt:g('multi-dt'),
       buildings:state.buildings, noFly:state.noFly, drones:state.drones, customTypes:CUSTOM_TYPES, multiRows:rows()
@@ -1923,6 +1999,11 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(s.algs){ ck('alg-aw',s.algs.aw); ck('alg-base',s.algs.base); ck('alg-rrt',s.algs.rrt); ck('alg-pso',s.algs.pso); }
     ck('seed-check',s.seed); g('seed-num',s.seedNum); ck('auto-plan',s.autoPlan);
     ck('field-arrows',s.fieldArrows); ck('nf-toggle',s.nfOn); g('slice-alt',s.sliceAlt); ck('show-risk',s.showRisk); ck('show-fly',s.showFly);
+    state.windSegOn=!!s.windSegOn;
+    if(Array.isArray(s.windSegs)) state.windSegs=s.windSegs.slice();
+    els['wind-seg-on'].checked=state.windSegOn;
+    els['wind-seg-wrap'].style.display=state.windSegOn?'':'none';
+    renderWindSegTable();
     g('smooth-method',s.smooth); g('turn-radius',s.turnR); g('max-acc',s.maxAcc); ck('show-cpts',s.showCpts);
     g('multi-count',s.multiCount); g('multi-safe',s.multiSafe); g('multi-mode',s.multiMode); g('multi-dt',s.multiDt);
     if(Array.isArray(s.buildings)) state.buildings=s.buildings.slice();
@@ -2806,27 +2887,30 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     out+='<rect class="region-border" x="'+ox+'" y="'+oy+'" width="'+(rx*sx).toFixed(1)+'" height="'+(ry*sy).toFixed(1)+'"/>';
     out+='<text class="preview-label" x="'+(ox+8)+'" y="'+(oy+16)+'">N ↑</text>';
     if(state.fieldArrows&&state.wind.speed>0){
-      var wsD=windSpeedAt(state.sliceAlt);
-      var step=Math.max(120,Math.min(240,(rx+ry)/14));
-      var tA=state.wind.tAir;
-      for(var fx=step/2;fx<rx;fx+=step){
-        for(var fy=step/2;fy<ry;fy+=step){
-          var h1=Math.sin(fx*0.13+fy*0.29+state.wind.dir)*10000; h1=h1-Math.floor(h1);
-          var h2=Math.sin(fx*0.37-fy*0.11+state.wind.dir*2)*10000; h2=h2-Math.floor(h2);
-          var sp=wsD;
-          if(state.windType==='gust'||state.windType==='mix') sp=wsD+(state.wind.gust*0.5)*(h1*2-1);
-          if(state.windType==='turbulent'||state.windType==='mix') sp=wsD*(1+state.wind.turb*(h2*2-1)*0.6);
-          sp=Math.max(0,sp);
-          var dirA=tA;
-          if(state.windType==='turbulent'||state.windType==='mix') dirA=tA+(h2*2-1)*state.wind.turb*50*Math.PI/180;
-          var px=mx(fx), py=my(fy);
-          var len=Math.min(46,8+sp*4.5);
-          var ux=Math.sin(dirA), uy=-Math.cos(dirA);
-          var ax=px-ux*len/2, ay=py-uy*len/2, bx=px+ux*len/2, by=py+uy*len/2;
-          out+='<line class="wind-field" x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'"/>';
-          var ah=4, pxp=-uy, pyp=ux;
-          var b0x=bx-ux*ah, b0y=by-uy*ah;
-          out+='<polygon class="wind-field" points="'+bx.toFixed(1)+','+by.toFixed(1)+' '+(b0x+pxp*ah*0.7).toFixed(1)+','+(b0y+pyp*ah*0.7).toFixed(1)+' '+(b0x-pxp*ah*0.7).toFixed(1)+','+(b0y-pyp*ah*0.7).toFixed(1)+'"/>';
+      var dw=displayWind();
+      if(dw.speed>0){
+        var wsD=dw.speed;
+        var step=Math.max(120,Math.min(240,(rx+ry)/14));
+        var tA=((dw.dir+180)%360)*Math.PI/180;
+        for(var fx=step/2;fx<rx;fx+=step){
+          for(var fy=step/2;fy<ry;fy+=step){
+            var h1=Math.sin(fx*0.13+fy*0.29+dw.dir)*10000; h1=h1-Math.floor(h1);
+            var h2=Math.sin(fx*0.37-fy*0.11+dw.dir*2)*10000; h2=h2-Math.floor(h2);
+            var sp=wsD;
+            if(state.windType==='gust'||state.windType==='mix') sp=wsD+(state.wind.gust*0.5)*(h1*2-1);
+            if(state.windType==='turbulent'||state.windType==='mix') sp=wsD*(1+state.wind.turb*(h2*2-1)*0.6);
+            sp=Math.max(0,sp);
+            var dirA=tA;
+            if(state.windType==='turbulent'||state.windType==='mix') dirA=tA+(h2*2-1)*state.wind.turb*50*Math.PI/180;
+            var px=mx(fx), py=my(fy);
+            var len=Math.min(46,8+sp*4.5);
+            var ux=Math.sin(dirA), uy=-Math.cos(dirA);
+            var ax=px-ux*len/2, ay=py-uy*len/2, bx=px+ux*len/2, by=py+uy*len/2;
+            out+='<line class="wind-field" x1="'+ax.toFixed(1)+'" y1="'+ay.toFixed(1)+'" x2="'+bx.toFixed(1)+'" y2="'+by.toFixed(1)+'"/>';
+            var ah=4, pxp=-uy, pyp=ux;
+            var b0x=bx-ux*ah, b0y=by-uy*ah;
+            out+='<polygon class="wind-field" points="'+bx.toFixed(1)+','+by.toFixed(1)+' '+(b0x+pxp*ah*0.7).toFixed(1)+','+(b0y+pyp*ah*0.7).toFixed(1)+' '+(b0x-pxp*ah*0.7).toFixed(1)+','+(b0y-pyp*ah*0.7).toFixed(1)+'"/>';
+          }
         }
       }
     }
@@ -3254,6 +3338,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       }
     }
     if(grid.occ.length>250000) s+=' · 提示：栅格数较大，规划较慢，建议增大栅格分辨率';
+    if(state.multi&&state.windSegOn){
+      var dw2=displayWind();
+      s+=' · 回放当前风 '+dw2.speed.toFixed(1)+' m/s（来向 '+dw2.dir.toFixed(0)+'°）';
+    }
     els['summary'].textContent=s;
   }
   function renderHudBar(){
@@ -3281,6 +3369,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var head=(state.multiPlaying?'<span class="blink">●</span> LIVE 实时遥测':'实时遥测')+' · t='+state.multiPlay.toFixed(0)+' s';
     title.innerHTML=head;
     var rows=['<div class="live-row live-head2"><span>机</span><span>速度</span><span>高度</span><span>已飞</span><span>进度</span></div>'];
+    if(state.windSegOn){
+      var wSeg=windAtTime(state.multiPlay);
+      if(wSeg) rows.push('<div class="live-note" style="grid-column:1 / -1">风 '+wSeg.speed.toFixed(1)+' m/s · 风向 '+wSeg.dir.toFixed(0)+'°</div>');
+    }
     m.uavs.forEach(function(tr,idx){
       var col=MULTI_COLORS[idx%4];
       if(!tr){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">失败</span></div>'); return; }
@@ -3664,6 +3756,14 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['V-num'].addEventListener('change',function(){ els['V-range'].value=Math.min(25,Math.max(0,parseFloat(els['V-num'].value)||0)); inputChanged(); });
     els['dir-range'].addEventListener('input',function(){ els['dir-num'].value=els['dir-range'].value; inputChanged(); });
     els['dir-num'].addEventListener('change',function(){ var v=Math.min(360,Math.max(0,parseFloat(els['dir-num'].value)||0)); els['dir-range'].value=v; inputChanged(); });
+    els['wind-seg-on'].addEventListener('change',function(){
+      state.windSegOn=els['wind-seg-on'].checked;
+      els['wind-seg-wrap'].style.display=state.windSegOn?'':'none';
+      renderWindSegTable();
+      inputChanged();
+    });
+    els['wind-seg-add'].addEventListener('click',addWindSeg);
+    els['wind-seg-reset'].addEventListener('click',resetWindSegs);
     ['wind-type','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','obj-select','uav-select','load-num','hover-min','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list'].forEach(function(id){
       els[id].addEventListener('input',inputChanged);
       els[id].addEventListener('change',inputChanged);
@@ -3947,6 +4047,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     loadCustomTypes();
     var savedState=loadSavedState();
     if(savedState){ applyState(savedState); } else { loadPreset('mix'); }
+    if(!state.windSegs.length) resetWindSegs();
+    els['wind-seg-wrap'].style.display=state.windSegOn?'':'none';
     resizeMultiRows();
     rebuildUavSelect();
     renderCuTable();

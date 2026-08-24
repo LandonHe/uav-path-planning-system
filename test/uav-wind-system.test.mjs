@@ -445,5 +445,23 @@ test('播放控制条：位于规划图下方且样式统一', () => {
   assert.ok(htmlSrc.includes('class="playbar"'), '播放控制条应有统一样式');
 });
 
+test('分段风：可增删时段，回放时按时间切换风况', () => {
+  el('wind-seg-on').checked = true;
+  el('wind-seg-on').fire('change');
+  assert.equal(el('wind-seg-wrap').style.display, '', '开启后应显示时段表');
+  click('wind-seg-reset');
+  assert.equal(el('wind-seg-body').children.length, 3, '默认应有 3 个时段');
+  click('wind-seg-add');
+  assert.equal(el('wind-seg-body').children.length, 4, '添加后应有 4 个时段');
+  el('multi-time').value = '40';
+  el('multi-time').fire('input');
+  const body = el('live-body').innerHTML;
+  assert.ok(body.includes('风 8.0 m/s'), 't=40 应显示第二段风速 8.0 m/s，实际：' + body);
+  assert.ok(body.includes('180°'), 't=40 应显示第二段风向 180°');
+  el('multi-time').value = '10';
+  el('multi-time').fire('input');
+  assert.ok(el('live-body').innerHTML.includes('风 5.0 m/s'), 't=10 应显示第一段风速 5.0 m/s');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
