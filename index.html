@@ -328,6 +328,15 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   #uavwind-sys .playbar input[type=range]{flex:1;min-width:120px;accent-color:var(--blue);}
   #uavwind-sys .playbar .cap{font-family:Consolas,Menlo,monospace;}
+  #uavwind-sys .map-bar{
+    display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+    padding:6px 10px;margin-bottom:8px;font-size:12px;
+    background:light-dark(rgb(255 255 255 / 70%),rgb(30 34 42 / 70%));
+    border:1px solid var(--border);border-radius:10px;
+  }
+  #uavwind-sys .map-bar input[type=number]{width:76px;min-height:26px;border-radius:8px;}
+  #uavwind-sys .map-bar .form-label{display:inline;margin:0;}
+  #uavwind-sys .map-bar .spacer{flex:1;}
   #uavwind-sys .live-panel{
     position:absolute;top:38px;right:10px;z-index:40;width:268px;
     font-family:Consolas,Menlo,monospace;font-size:11px;line-height:1.6;
@@ -344,6 +353,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys .live-note{grid-column:2 / 6;color:var(--muted-foreground);}
   #uavwind-sys.hud .live-panel{background:rgba(8,16,34,0.88);border-color:rgba(110,180,255,0.38);box-shadow:0 8px 24px rgb(0 0 0 / 55%),0 0 18px rgba(47,214,255,0.14);}
   #uavwind-sys.hud .playbar{background:rgba(8,16,34,0.85);border-color:rgba(110,180,255,0.35);box-shadow:0 0 14px rgba(47,214,255,0.1);}
+  #uavwind-sys.hud .map-bar{background:rgba(8,16,34,0.7);border-color:rgba(110,180,255,0.32);}
 </style>
 <h2>风扰环境下城市低空无人机路径规划系统 <span class="hud-status">● 系统在线</span></h2>
 <div class="hud-bar" id="hud-bar"></div>
@@ -430,10 +440,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         <input type="number" id="wake-len" class="form-control" min="1" max="6" step="0.5" value="3">
       </div>
       <div class="inline">
-        <input type="checkbox" id="field-arrows" class="form-check-input" checked>
-        <label class="form-check-label" for="field-arrows">显示风场网格箭头</label>
-      </div>
-      <div class="inline">
         <input type="checkbox" id="wind-seg-on" class="form-check-input">
         <label class="form-check-label" for="wind-seg-on">风随时间变化（飞行回放时生效）</label>
       </div>
@@ -449,21 +455,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
           <button type="button" id="wind-seg-reset" class="btn">恢复默认</button>
         </div>
         <span class="cap text-small">每个时段从设定时间开始生效，直到下一时段开始；播放/拖动时间轴时，风场箭头、遥测与状态栏按分段切换。</span>
-      </div>
-      <h3>空域范围</h3>
-      <div class="row3">
-        <div class="ctl">
-          <label class="form-label" for="region-x">长度 X</label>
-          <div class="pair"><input type="number" id="region-x" class="form-control" min="100" max="3000" step="50" value="1000"><span class="unit">m</span></div>
-        </div>
-        <div class="ctl">
-          <label class="form-label" for="region-y">宽度 Y</label>
-          <div class="pair"><input type="number" id="region-y" class="form-control" min="100" max="3000" step="50" value="1000"><span class="unit">m</span></div>
-        </div>
-        <div class="ctl">
-          <label class="form-label" for="region-z">高度 Z</label>
-          <div class="pair"><input type="number" id="region-z" class="form-control" min="20" max="300" step="10" value="120"><span class="unit">m</span></div>
-        </div>
       </div>
       <h3>障碍物与地图</h3>
       <div class="ctl">
@@ -556,24 +547,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         </div>
         <span class="cap" id="map-import-status"></span>
       </div>
-      <div class="row3">
-        <div class="ctl"><label class="form-label" for="obs-name">名称</label><input type="text" id="obs-name" class="form-control" placeholder="建筑"></div>
-        <div class="ctl"><label class="form-label" for="obs-x">X</label><input type="number" id="obs-x" class="form-control" min="0" max="3000" step="10" value="200"></div>
-        <div class="ctl"><label class="form-label" for="obs-y">Y</label><input type="number" id="obs-y" class="form-control" min="0" max="3000" step="10" value="200"></div>
-        <div class="ctl"><label class="form-label" for="obs-l">L</label><input type="number" id="obs-l" class="form-control" min="5" max="1000" step="5" value="80"></div>
-        <div class="ctl"><label class="form-label" for="obs-w">W</label><input type="number" id="obs-w" class="form-control" min="5" max="1000" step="5" value="80"></div>
-        <div class="ctl"><label class="form-label" for="obs-h">H</label><input type="number" id="obs-h" class="form-control" min="3" max="500" step="5" value="60"></div>
-      </div>
-      <div class="btns">
-        <button type="button" id="add-obs" class="btn">添加建筑</button>
-        <button type="button" id="clear-obs" class="btn">清空全部</button>
-      </div>
       <div class="table-responsive">
         <table class="table table-sm">
           <thead><tr><th>名称</th><th>X</th><th>Y</th><th>长</th><th>宽</th><th>高</th><th></th></tr></thead>
           <tbody id="obs-body"></tbody>
         </table>
       </div>
+      <button type="button" id="obs-expand" class="btn" style="display:none">展开全部建筑</button>
     </div>
 
     <div id="sec-uav" class="sec" style="display:none">
@@ -637,16 +617,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
           <span class="cap text-small">请按真实产品参数填写；保存后与内置机型一样参与选型、安全校验与规划，数据保存在本机浏览器。</span>
         </div>
       </div>
-      <div class="row2">
-        <div class="ctl">
-          <label class="form-label" for="load-num">任务载重</label>
-          <div class="pair"><input type="number" id="load-num" class="form-control" min="0" max="5" step="0.1" value="1"><span class="unit">kg</span></div>
-        </div>
-        <div class="ctl">
-          <label class="form-label" for="hover-min">悬停时长</label>
-          <div class="pair"><input type="number" id="hover-min" class="form-control" min="0" max="60" step="1" value="0"><span class="unit">min</span></div>
-        </div>
-      </div>
       <h3>能耗估算（推荐机型）</h3>
       <div class="viz-grid">
         <div class="card viz-stat">
@@ -700,62 +670,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         <label class="form-check-label" for="show-fly">显示可飞性分析</label>
       </div>
       <span class="cap text-small">拖动切片查看不同高度层的占用/风险/可行域；路径仍按“飞行高度”规划。可飞性：绿色=可飞，红色=不可飞（风速超限/逆风过强）</span>
-      <h3>禁飞区</h3>
-      <div class="inline">
-        <input type="checkbox" id="nf-toggle" class="form-check-input" checked>
-        <label class="form-check-label" for="nf-toggle">显示禁飞区</label>
-        <button type="button" id="pick-nf" class="btn">拾取中心</button>
-        <button type="button" id="add-nf" class="btn btn-primary">添加禁飞区</button>
-        <button type="button" id="clear-nf" class="btn">清空全部</button>
-      </div>
-      <div class="row3">
-        <div class="ctl"><label class="form-label" for="nf-name">名称</label><input type="text" id="nf-name" class="form-control" placeholder="禁飞区"></div>
-        <div class="ctl"><label class="form-label" for="nf-x">中心 X</label><input type="number" id="nf-x" class="form-control" min="0" max="3000" step="10" value="500"></div>
-        <div class="ctl"><label class="form-label" for="nf-y">中心 Y</label><input type="number" id="nf-y" class="form-control" min="0" max="3000" step="10" value="500"></div>
-        <div class="ctl"><label class="form-label" for="nf-l">长度 L</label><input type="number" id="nf-l" class="form-control" min="5" max="2000" step="10" value="200"></div>
-        <div class="ctl"><label class="form-label" for="nf-w">宽度 W</label><input type="number" id="nf-w" class="form-control" min="5" max="2000" step="10" value="200"></div>
-        <div class="ctl"><label class="form-label" for="nf-z1">底部高度</label><div class="pair"><input type="number" id="nf-z1" class="form-control" min="0" max="300" step="5" value="0"><span class="unit">m</span></div></div>
-      </div>
-      <div class="inline">
-        <span class="cap">顶部高度</span>
-        <input type="number" id="nf-z2" class="form-control" min="5" max="300" step="5" value="120">
-        <span class="unit">m</span>
-        <span class="cap text-small">路径规划将完全避开禁飞区（按指定高度区间生效）</span>
-      </div>
-      <div class="table-responsive">
-        <table class="table table-sm">
-          <thead><tr><th>名称</th><th>类型</th><th>顶点数</th><th>高度范围</th><th></th></tr></thead>
-          <tbody id="nf-body"></tbody>
-        </table>
-      </div>
-      <span class="cap text-small">平面图中深色格为占用栅格、浅色格为膨胀/风险栅格，虚线建筑表示低于飞行高度可越障；红色框为禁飞区；右侧 3D 视图可旋转检查体素布局。</span>
+      <span class="cap text-small">平面图中深色格为占用栅格、浅色格为膨胀/风险栅格，虚线建筑表示低于飞行高度可越障；红色区为禁飞区；右侧 3D 视图可旋转检查体素布局。禁飞区请在地图上右键描绘。</span>
     </div>
 
     <div id="sec-plan" class="sec" style="display:none">
-      <h3>起点与终点（可点击平面图拾取）</h3>
-      <div class="row2">
-        <div class="ctl">
-          <label class="form-label" for="start-x">起点 X / Y</label>
-          <div class="pair"><input type="number" id="start-x" class="form-control" min="0" max="3000" step="10" value="150"><input type="number" id="start-y" class="form-control" min="0" max="3000" step="10" value="150"></div>
-        </div>
-        <div class="ctl">
-          <label class="form-label" for="goal-x">终点 X / Y</label>
-          <div class="pair"><input type="number" id="goal-x" class="form-control" min="0" max="3000" step="10" value="850"><input type="number" id="goal-y" class="form-control" min="0" max="3000" step="10" value="850"></div>
-        </div>
-      </div>
       <h3>对比算法</h3>
       <div class="inline">
         <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-aw" checked><label class="form-check-label" for="alg-aw">风感知 A*</label></div>
         <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-base" checked><label class="form-check-label" for="alg-base">传统 A*</label></div>
         <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-rrt" checked><label class="form-check-label" for="alg-rrt">RRT*</label></div>
         <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-pso"><label class="form-check-label" for="alg-pso">PSO</label></div>
-      </div>
-      <div class="inline">
-        <input type="checkbox" id="seed-check" class="form-check-input" checked>
-        <label class="form-check-label" for="seed-check">固定随机种子（可复现）</label>
-        <span class="cap">种子</span>
-        <input type="number" id="seed-num" class="form-control" min="1" max="999999" step="1" value="42">
-        <span class="cap text-small">RRT*/PSO 为随机算法；勾选后重复规划结果一致，便于复现实验</span>
       </div>
       <div class="inline">
         <input type="checkbox" id="auto-plan" class="form-check-input" checked>
@@ -788,30 +712,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
             <option value="80">80</option>
           </select>
         </div>
-      </div>
-      <h3>轨迹平滑</h3>
-      <div class="row3">
-        <div class="ctl">
-          <label class="form-label" for="smooth-method">平滑方法（作用于风感知 A* 路径）</label>
-          <select id="smooth-method" class="form-select">
-            <option value="none" selected>无</option>
-            <option value="bspline">B 样条</option>
-            <option value="minsnap">Minimum Snap</option>
-          </select>
-        </div>
-        <div class="ctl">
-          <label class="form-label" for="turn-radius">最小转弯半径</label>
-          <div class="pair"><input type="number" id="turn-radius" class="form-control" min="1" max="200" step="1" value="10"><span class="unit">m</span></div>
-        </div>
-        <div class="ctl">
-          <label class="form-label" for="max-acc">最大加速度</label>
-          <div class="pair"><input type="number" id="max-acc" class="form-control" min="0.5" max="10" step="0.5" value="2"><span class="unit">m/s²</span></div>
-        </div>
-      </div>
-      <div class="inline">
-        <input type="checkbox" id="show-cpts" class="form-check-input" checked>
-        <label class="form-check-label" for="show-cpts">显示控制点</label>
-        <span class="cap" id="smooth-info"></span>
       </div>
       <h3>多机协同（冲突检测 + 时间错开）</h3>
       <div class="row2">
@@ -871,6 +771,21 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     </div>
     <div class="cap" id="summary" aria-live="polite"></div>
     <div id="plan-msg" class="cap"></div>
+    <div class="map-bar">
+      <span class="cap">空域范围</span>
+      <label class="form-label" for="region-x">X</label>
+      <input type="number" id="region-x" class="form-control" min="100" max="3000" step="50" value="1000">
+      <span class="unit">m</span>
+      <label class="form-label" for="region-y">Y</label>
+      <input type="number" id="region-y" class="form-control" min="100" max="3000" step="50" value="1000">
+      <span class="unit">m</span>
+      <label class="form-label" for="region-z">Z</label>
+      <input type="number" id="region-z" class="form-control" min="20" max="300" step="10" value="120">
+      <span class="unit">m</span>
+      <span class="spacer"></span>
+      <input type="checkbox" id="field-arrows" class="form-check-input" checked>
+      <label class="form-check-label" for="field-arrows">显示风场网格箭头</label>
+    </div>
     <div id="ctx-menu" style="display:none;position:absolute;z-index:60;min-width:150px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:6px;box-shadow:0 8px 24px rgb(0 0 0/0.18)"></div>
     <div id="build-pop" class="edit-pop" style="display:none">
       <span class="cap text-small">已按拖拽对角生成建筑，请设置高度：</span>
@@ -975,9 +890,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function allTypes(){ return TYPES.concat(CUSTOM_TYPES); }
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
-  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,showLive:true,windSegOn:false,windSegs:[],windSimCache:null,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,showLive:true,showAllBuildings:false,windSegOn:false,windSegs:[],windSimCache:null,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,dragDrone:null,pendingCtxDrone:null,pendingCtxBuilding:null,pendingCtxNf:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -1078,14 +993,14 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     state.wakeOn=els['wake-toggle'].checked;
     state.fieldArrows=els['field-arrows'].checked;
     state.windSegOn=els['wind-seg-on'].checked;
-    state.nfOn=els['nf-toggle'].checked;
+    state.nfOn=true;
     state.sliceAlt=Math.max(0,Math.min(state.region.z,parseInt(els['slice-alt'].value,10)||0));
     state.showRisk=els['show-risk'].checked;
     state.showFly=els['show-fly'].checked;
-    state.smoothMethod=els['smooth-method'].value;
-    state.turnR=num('turn-radius');
-    state.maxAcc=num('max-acc');
-    state.showCpts=els['show-cpts'].checked;
+    state.smoothMethod='bspline';
+    state.turnR=10;
+    state.maxAcc=2;
+    state.showCpts=false;
     state.multiCount=parseInt(els['multi-count'].value,10)||2;
     state.multiSafe=num('multi-safe');
     state.multiMode=els['multi-mode'].value;
@@ -1093,10 +1008,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     state.bgOpacity=parseInt(els['bg-opacity'].value,10)||100;
     state.wakeLen=Math.max(1,num('wake-len'));
     state.obj=els['obj-select'].value;
-    state.load=Math.max(0,num('load-num'));
-    state.hoverMin=Math.max(0,num('hover-min'));
-    state.start={x:clamp(num('start-x'),0,state.region.x),y:clamp(num('start-y'),0,state.region.y)};
-    state.goal={x:clamp(num('goal-x'),0,state.region.x),y:clamp(num('goal-y'),0,state.region.y)};
+    if(state.drones.length===1){
+      var d0=state.drones[0];
+      state.load=d0.load||0;
+      state.hoverMin=d0.hover||0;
+      state.start={x:clamp(d0.sx,0,state.region.x),y:clamp(d0.sy,0,state.region.y)};
+      state.goal={x:clamp(d0.gx||0,0,state.region.x),y:clamp(d0.gy||0,0,state.region.y)};
+    } else {
+      state.load=0; state.hoverMin=0;
+      state.start={x:0,y:0}; state.goal={x:0,y:0};
+    }
     var W={efficient:{wE:0.5,wR:0.4,wT:0.3},cost:{wE:2.0,wR:0.6,wT:0.2},safe:{wE:0.4,wR:2.5,wT:0.2},balanced:{wE:1.0,wR:1.0,wT:0.5}};
     state.weights=W[state.obj]||W.balanced;
     state.algs={aw:els['alg-aw'].checked,base:els['alg-base'].checked,rrt:els['alg-rrt'].checked,pso:els['alg-pso'].checked};
@@ -1574,7 +1495,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
 
   var rngSeed=null;
   function resetRng(){
-    rngSeed=els['seed-check'].checked?((parseInt(els['seed-num'].value,10)||1)>>>0):null;
+    rngSeed=null;
   }
   function rng(){
     if(rngSeed!==null){
@@ -2005,6 +1926,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
 
   function renderNfTable(){
+    if(!els['nf-body']) return;
     var tb=els['nf-body'];
     tb.innerHTML='';
     state.noFly.forEach(function(z,i){
@@ -2019,19 +1941,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
     });
   }
-  function addNoFly(){
-    var name=els['nf-name'].value.trim()||'禁飞区';
-    var x=parseFloat(els['nf-x'].value)||0, y=parseFloat(els['nf-y'].value)||0;
-    var l=Math.max(5,parseFloat(els['nf-l'].value)||50), w=Math.max(5,parseFloat(els['nf-w'].value)||50);
-    var z1=Math.max(0,parseFloat(els['nf-z1'].value)||0);
-    var z2=Math.max(z1+1,parseFloat(els['nf-z2'].value)||state.region.z);
-    state.noFly.push({name:name,x:x,y:y,l:l,w:w,z1:z1,z2:z2,pts:[{x:x-l/2,y:y-w/2},{x:x+l/2,y:y-w/2},{x:x+l/2,y:y+w/2},{x:x-l/2,y:y+w/2}]});
-    renderAll();
-  }
   function renderTableBuildings(){
     var tb=els['obs-body'];
     tb.innerHTML='';
-    state.buildings.forEach(function(o,i){
+    var list=state.buildings;
+    var showAll=state.showAllBuildings||list.length<=4;
+    var shown=list.slice(0,showAll?list.length:4);
+    shown.forEach(function(o,i){
       var tr=document.createElement('tr');
       [o.name,o.x.toFixed(0),o.y.toFixed(0),o.l.toFixed(0),o.w.toFixed(0),o.h.toFixed(0)].forEach(function(c){
         var td=document.createElement('td'); td.textContent=c; tr.appendChild(td);
@@ -2041,6 +1957,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       bd.addEventListener('click',function(){ state.buildings.splice(i,1); inputChanged(); });
       td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
     });
+    if(els['obs-expand']){
+      els['obs-expand'].style.display=list.length>4?'':'none';
+      els['obs-expand'].textContent=showAll?('收起建筑列表'):('展开全部建筑（'+list.length+'）');
+    }
   }
 
   function windTypeName(t){
@@ -2056,13 +1976,11 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       windType:g('wind-type'), V:g('V-num'), dir:g('dir-num'), wz:g('wz-num'), gust:g('gust-amp'), turb:g('turb-i'), turbL:g('turb-l'),
       profile:c('profile-check'), alpha:g('alpha-num'), href:g('href-num'), wakeOn:c('wake-toggle'), wakeLen:g('wake-len'),
       regionX:g('region-x'), regionY:g('region-y'), regionZ:g('region-z'), res:g('res-select'), flightAlt:g('flight-alt'), margin:g('margin-num'),
-      obj:g('obj-select'), uav:g('uav-select'), load:g('load-num'), hover:g('hover-min'),
-      startX:g('start-x'), startY:g('start-y'), goalX:g('goal-x'), goalY:g('goal-y'),
+      obj:g('obj-select'), uav:g('uav-select'),
       algs:{aw:c('alg-aw'),base:c('alg-base'),rrt:c('alg-rrt'),pso:c('alg-pso')},
-      seed:c('seed-check'), seedNum:g('seed-num'), autoPlan:c('auto-plan'),
-      fieldArrows:c('field-arrows'), nfOn:c('nf-toggle'), sliceAlt:g('slice-alt'), showRisk:c('show-risk'), showFly:c('show-fly'),
+      autoPlan:c('auto-plan'),
+      fieldArrows:c('field-arrows'), sliceAlt:g('slice-alt'), showRisk:c('show-risk'), showFly:c('show-fly'),
       windSegOn:state.windSegOn, windSegs:state.windSegs,
-      smooth:g('smooth-method'), turnR:g('turn-radius'), maxAcc:g('max-acc'), showCpts:c('show-cpts'),
       multiCount:g('multi-count'), multiSafe:g('multi-safe'), multiMode:g('multi-mode'), multiDt:g('multi-dt'),
       buildings:state.buildings, noFly:state.noFly, drones:state.drones, customTypes:CUSTOM_TYPES, multiRows:rows()
     };
@@ -2103,17 +2021,15 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     g('gust-amp',s.gust); g('turb-i',s.turb); g('turb-l',s.turbL); ck('profile-check',s.profile); g('alpha-num',s.alpha); g('href-num',s.href);
     ck('wake-toggle',s.wakeOn); g('wake-len',s.wakeLen);
     g('region-x',s.regionX); g('region-y',s.regionY); g('region-z',s.regionZ); g('res-select',s.res); g('flight-alt',s.flightAlt); g('margin-num',s.margin);
-    g('obj-select',s.obj); g('uav-select',s.uav); g('load-num',s.load); g('hover-min',s.hover);
-    g('start-x',s.startX); g('start-y',s.startY); g('goal-x',s.goalX); g('goal-y',s.goalY);
+    g('obj-select',s.obj); g('uav-select',s.uav);
     if(s.algs){ ck('alg-aw',s.algs.aw); ck('alg-base',s.algs.base); ck('alg-rrt',s.algs.rrt); ck('alg-pso',s.algs.pso); }
-    ck('seed-check',s.seed); g('seed-num',s.seedNum); ck('auto-plan',s.autoPlan);
-    ck('field-arrows',s.fieldArrows); ck('nf-toggle',s.nfOn); g('slice-alt',s.sliceAlt); ck('show-risk',s.showRisk); ck('show-fly',s.showFly);
+    ck('auto-plan',s.autoPlan);
+    ck('field-arrows',s.fieldArrows); g('slice-alt',s.sliceAlt); ck('show-risk',s.showRisk); ck('show-fly',s.showFly);
     state.windSegOn=!!s.windSegOn;
     if(Array.isArray(s.windSegs)) state.windSegs=s.windSegs.slice();
     els['wind-seg-on'].checked=state.windSegOn;
     els['wind-seg-wrap'].style.display=state.windSegOn?'':'none';
     renderWindSegTable();
-    g('smooth-method',s.smooth); g('turn-radius',s.turnR); g('max-acc',s.maxAcc); ck('show-cpts',s.showCpts);
     g('multi-count',s.multiCount); g('multi-safe',s.multiSafe); g('multi-mode',s.multiMode); g('multi-dt',s.multiDt);
     if(Array.isArray(s.buildings)) state.buildings=s.buildings.slice();
     if(Array.isArray(s.noFly)) state.noFly=s.noFly.slice();
@@ -2205,7 +2121,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var algNames={aw:'风感知 A*',base:'传统 A*',rrt:'RRT*',pso:'PSO'};
     var selAlgs=Object.keys(state.algs).filter(function(k){ return state.algs[k]; }).map(function(k){ return algNames[k]; });
     add('启用算法',selAlgs.join('、')||'无');
-    add('轨迹平滑',{none:'无',bspline:'B 样条',minsnap:'Minimum Snap'}[state.smoothMethod]||state.smoothMethod);
+    add('轨迹平滑','全路径 B 样条平滑（转弯平滑）');
     add('多机协同',state.multiCount+' 架 · 安全间距 '+state.multiSafe.toFixed(0)+' m');
     add('');
     add('=== 算法指标 ===');
@@ -2358,7 +2274,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var html='<div class="uav-head">'+esc(uav.name)+' <span class="viz-badge">'+esc(srcLabel)+'</span></div>';
     html+='<div class="uav-grid">';
     items.forEach(function(it){
-      html+='<div class="uav-item"><span>'+it[0]+'</span><b>'+it[1]+'</b></div>';
+      var span=it[0]==='数据来源'?' style="grid-column:1 / -1"':'';
+      html+='<div class="uav-item"'+span+'><span>'+it[0]+'</span><b>'+it[1]+'</b></div>';
     });
     html+='</div>';
     html+='<div class="cap uav-note">当前瞬时风 '+state.wind.instant.toFixed(1)+' m/s · 抗风裕度 '+(margin>=0?'+':'')+margin.toFixed(1)+' m/s · 路径规划将使用该机型的参数</div>';
@@ -2512,6 +2429,18 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function dist3(a,b){ return Math.sqrt(Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2)+Math.pow(a.z-b.z,2)); }
   function lerpPts(a,b,t){ return {x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t, z:a.z+(b.z-a.z)*t}; }
+  function smoothPts2D(pts){
+    if(!pts||pts.length<3) return pts;
+    var n=Math.max(10,pts.length*6);
+    var out=[];
+    for(var i=0;i<=n;i++){
+      var u=i/n;
+      var q=bsplineDeBoor(pts,3,u);
+      out.push({x:q.x,y:q.y});
+    }
+    out[0]=pts[0]; out[out.length-1]=pts[pts.length-1];
+    return out;
+  }
   function bsplineDeBoor(pts, degree, u){
     var n=pts.length;
     function K(i){ if(i<=degree) return 0; if(i>=n) return n-degree; return i-degree; }
@@ -3156,10 +3085,11 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
             out+='<circle class="pso-wp" cx="'+mx((d.ix+0.5)*state.res).toFixed(1)+'" cy="'+my((d.iy+0.5)*state.res).toFixed(1)+'" r="4"/>';
           });
         }
-        var pts=res.cells.map(function(idx){
+        var wpts=res.cells.map(function(idx){
           var d=decode(grid,idx);
-          return mx((d.ix+0.5)*state.res)+','+my((d.iy+0.5)*state.res);
+          return {x:(d.ix+0.5)*state.res, y:(d.iy+0.5)*state.res};
         });
+        var pts=smoothPts2D(wpts).map(function(p){ return mx(p.x).toFixed(1)+','+my(p.y).toFixed(1); });
         if(pts.length>1){
           pts[0]=mx(state.start.x).toFixed(1)+','+my(state.start.y).toFixed(1);
           pts[pts.length-1]=mx(state.goal.x).toFixed(1)+','+my(state.goal.y).toFixed(1);
@@ -3176,28 +3106,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         out+='</g>';
       });
     }
-    if(state.smoothResult){
-      var spts=state.smoothResult.points;
-      var sline=spts.map(function(pt){ return mx(pt.x)+','+my(pt.y); });
-      out+='<polyline class="path-halo" points="'+sline.join(' ')+'"/>';
-      out+='<polyline class="smooth-line" points="'+sline.join(' ')+'"/>';
-      if(state.showCpts){
-        state.smoothResult.control.forEach(function(pt){
-          out+='<circle cx="'+mx(pt.x).toFixed(1)+'" cy="'+my(pt.y).toFixed(1)+'" r="3.5" class="smooth-cpt"/>';
-        });
-      }
-      if(state.smoothResult.minRadius<state.smoothResult.turnR){
-        var wp=state.smoothResult.points[state.smoothResult.worst];
-        out+='<circle cx="'+mx(wp.x).toFixed(1)+'" cy="'+my(wp.y).toFixed(1)+'" r="8" class="smooth-warn" data-tooltip="转弯半径不足"/>';
-      }
-      if(state.smoothResult.blocked>0&&state.smoothResult.firstBlock>=0){
-        var bp=state.smoothResult.points[state.smoothResult.firstBlock];
-        out+='<g transform="translate('+mx(bp.x).toFixed(1)+','+my(bp.y).toFixed(1)+')">';
-        out+='<line x1="-6" y1="-6" x2="6" y2="6" style="stroke:var(--red);stroke-width:2"/>';
-        out+='<line x1="6" y1="-6" x2="-6" y2="6" style="stroke:var(--red);stroke-width:2"/>';
-        out+='</g>';
-      }
-    }
     if(state.multi){
       var mm=state.multi;
       var sim=windSimAt(state.multiPlay);
@@ -3213,7 +3121,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         } else {
           routePts=tr.pts;
         }
-        var mpts=routePts.map(function(p){ return mx(p.x).toFixed(1)+','+my(p.y).toFixed(1); });
+        var mpts=smoothPts2D(routePts).map(function(p){ return mx(p.x).toFixed(1)+','+my(p.y).toFixed(1); });
         out+='<polyline class="path-halo" points="'+mpts.join(' ')+'"/>';
         out+='<polyline class="multi-path" points="'+mpts.join(' ')+'" style="stroke:'+col+'"/>';
         out+='<circle cx="'+mx(tr.start.x).toFixed(1)+'" cy="'+my(tr.start.y).toFixed(1)+'" r="5" style="fill:'+col+';stroke:var(--foreground);stroke-width:1"/>';
@@ -3607,10 +3515,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     renderDroneInfo();
     if(!state.results){ els['valid-wrap'].style.display='none'; }
     var grid=buildGrid();
-    var awRun=state.results? state.results.runs.filter(function(x){return x.key==='aw';})[0]:null;
-    var sKey=(state.smoothMethod||'none')+'|'+(state.turnR||0)+'|'+(state.maxAcc||0)+'|'+(awRun&&awRun.res?awRun.res.cells.length:0)+'|'+(state.results?state.results.count:0);
-    if(sKey!==state.smoothKey){ state.smoothKey=sKey; smoothMainPath(grid, awRun); }
-    if(!awRun){ state.smoothResult=null; els['smooth-info'].textContent=''; }
     renderUavInfo();
     renderSummary(grid);
     renderTableBuildings();
@@ -3726,6 +3630,34 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       renderAll();
     });
     els['ctx-menu'].appendChild(del);
+    var delB=document.createElement('button');
+    delB.type='button'; delB.id='ctx-del-building'; delB.className='btn';
+    delB.style.display='none'; delB.style.width='100%'; delB.style.marginBottom='4px';
+    delB.style.color='var(--red)';
+    delB.textContent='删除建筑物';
+    delB.addEventListener('click',function(){
+      var idx=state.pendingCtxBuilding;
+      hideCtxMenu();
+      if(idx==null||!state.buildings[idx]){ state.pendingCtxBuilding=null; return; }
+      state.buildings.splice(idx,1);
+      state.pendingCtxBuilding=null;
+      inputChanged();
+    });
+    els['ctx-menu'].appendChild(delB);
+    var delN=document.createElement('button');
+    delN.type='button'; delN.id='ctx-del-nf'; delN.className='btn';
+    delN.style.display='none'; delN.style.width='100%'; delN.style.marginBottom='4px';
+    delN.style.color='var(--red)';
+    delN.textContent='删除禁飞区';
+    delN.addEventListener('click',function(){
+      var idx=state.pendingCtxNf;
+      hideCtxMenu();
+      if(idx==null||!state.noFly[idx]){ state.pendingCtxNf=null; return; }
+      state.noFly.splice(idx,1);
+      state.pendingCtxNf=null;
+      inputChanged();
+    });
+    els['ctx-menu'].appendChild(delN);
   }
   function syncMultiFromDrones(){
     var n=state.drones.length;
@@ -3738,10 +3670,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     });
     relabelMultiRows();
     if(n===1){
-      els['start-x'].value=state.drones[0].sx; els['start-y'].value=state.drones[0].sy;
-      if(state.drones[0].gx!=null){ els['goal-x'].value=state.drones[0].gx; els['goal-y'].value=state.drones[0].gy; }
-      els['load-num'].value=String(state.drones[0].load||0);
-      els['hover-min'].value=String(state.drones[0].hover||0);
       if(state.drones[0].type) els['uav-select'].value=state.drones[0].type;
     }
   }
@@ -3976,20 +3904,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     });
     els['wind-seg-add'].addEventListener('click',addWindSeg);
     els['wind-seg-reset'].addEventListener('click',resetWindSegs);
-    ['wind-type','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','obj-select','uav-select','load-num','hover-min','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list'].forEach(function(id){
+    ['wind-type','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','obj-select','uav-select','res-select','flight-alt','margin-num','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list'].forEach(function(id){
       els[id].addEventListener('input',inputChanged);
       els[id].addEventListener('change',inputChanged);
     });
     els['preset-select'].addEventListener('change',function(){ state.buildings=presets(els['preset-select'].value).slice(); inputChanged(); });
-    els['add-obs'].addEventListener('click',function(){
-      var name=els['obs-name'].value.trim()||'建筑';
-      var x=parseFloat(els['obs-x'].value)||0, y=parseFloat(els['obs-y'].value)||0;
-      var l=Math.max(1,parseFloat(els['obs-l'].value)||10), w=Math.max(1,parseFloat(els['obs-w'].value)||10);
-      var h=Math.max(1,parseFloat(els['obs-h'].value)||10);
-      state.buildings.push({name:name,x:x,y:y,l:l,w:w,h:h});
-      inputChanged();
+    els['obs-expand'].addEventListener('click',function(){
+      state.showAllBuildings=!state.showAllBuildings;
+      renderTableBuildings();
+      renderAll();
     });
-    els['clear-obs'].addEventListener('click',function(){ state.buildings=[]; inputChanged(); });
     els['file-buildings'].addEventListener('change',function(ev){
       var f=ev.target.files[0]; if(!f) return;
       var reader=new FileReader();
@@ -4031,13 +3955,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['slice-sync'].addEventListener('click',function(){ els['slice-alt'].value=els['flight-alt'].value; els['slice-alt-val'].textContent=els['flight-alt'].value+' m'; renderAll(); });
     els['show-risk'].addEventListener('change',renderAll);
     els['show-fly'].addEventListener('change',renderAll);
-    els['add-nf'].addEventListener('click',addNoFly);
-    els['clear-nf'].addEventListener('click',function(){ state.noFly=[]; renderAll(); });
-    els['pick-nf'].addEventListener('click',function(){ showStep(3); setPick('nf'); });
-    els['smooth-method'].addEventListener('change',renderAll);
-    els['turn-radius'].addEventListener('change',renderAll);
-    els['max-acc'].addEventListener('change',renderAll);
-    els['show-cpts'].addEventListener('change',renderAll);
     els['multi-count'].addEventListener('change',resizeMultiRows);
     els['multi-play'].addEventListener('click',multiPlayToggle);
     els['multi-time'].addEventListener('input',function(){ state.multiPlay=parseFloat(els['multi-time'].value)||0; if(state.multi) renderMultiInfo(); renderAll(); });
@@ -4054,7 +3971,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['uav-modal-ok'].addEventListener('click',function(){
       var pos=state.pending&&state.pending.ctxPos;
       if(!pos){ els['uav-modal'].style.display='none'; return; }
-      var d={id:'d'+(state.drones.length+1), type:els['uav-modal-select'].value, sx:Math.round(pos.x), sy:Math.round(pos.y), gx:null, gy:null, load:Math.max(0,parseFloat(els['load-num'].value)||0), hover:Math.max(0,parseFloat(els['hover-min'].value)||0)};
+      var d={id:'d'+(state.drones.length+1), type:els['uav-modal-select'].value, sx:Math.round(pos.x), sy:Math.round(pos.y), gx:null, gy:null, load:0, hover:0};
       state.drones.push(d);
       state.editMode='uavGoal'; state.pending={droneId:d.id};
       els['uav-modal'].style.display='none';
@@ -4120,9 +4037,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         return;
       }
       if(!state.pick) return;
-      if(state.pick==='start'){ els['start-x'].value=p.x.toFixed(0); els['start-y'].value=p.y.toFixed(0); }
-      else if(state.pick==='goal'){ els['goal-x'].value=p.x.toFixed(0); els['goal-y'].value=p.y.toFixed(0); }
-      else if(state.pick==='nf'){ els['nf-x'].value=p.x.toFixed(0); els['nf-y'].value=p.y.toFixed(0); }
+      if(state.pick==='start'){ if(els['start-x']) els['start-x'].value=p.x.toFixed(0); if(els['start-y']) els['start-y'].value=p.y.toFixed(0); }
+      else if(state.pick==='goal'){ if(els['goal-x']) els['goal-x'].value=p.x.toFixed(0); if(els['goal-y']) els['goal-y'].value=p.y.toFixed(0); }
+      else if(state.pick==='nf'){ if(els['nf-x']) els['nf-x'].value=p.x.toFixed(0); if(els['nf-y']) els['nf-y'].value=p.y.toFixed(0); }
       setPick(null);
       inputChanged();
     });
@@ -4152,21 +4069,78 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var delBtn2=document.getElementById('ctx-del-drone');
         if(delBtn2) delBtn2.style.display='none';
       }
+      if(state.pendingCtxDrone==null){
+        var bHit=-1, bBest=1e9;
+        state.buildings.forEach(function(b,i){
+          var m=20+Math.max(b.l,b.w)*0.15;
+          if(Math.abs(p.x-b.x)<=b.l/2+m&&Math.abs(p.y-b.y)<=b.w/2+m){
+            var dd=Math.max(Math.abs(p.x-b.x)-b.l/2,Math.abs(p.y-b.y)-b.w/2,0);
+            if(dd<bBest){ bBest=dd; bHit=i; }
+          }
+        });
+        if(bHit>=0){ state.pendingCtxBuilding=bHit; var bB=document.getElementById('ctx-del-building'); if(bB) bB.style.display='block'; }
+        else { state.pendingCtxBuilding=null; var bB2=document.getElementById('ctx-del-building'); if(bB2) bB2.style.display='none'; }
+      } else {
+        state.pendingCtxBuilding=null;
+        var bB3=document.getElementById('ctx-del-building'); if(bB3) bB3.style.display='none';
+      }
+      if(state.pendingCtxBuilding==null){
+        var nHit=-1;
+        state.noFly.forEach(function(z,i){ if(pointInPoly(p.x,p.y,nfPts(z))) nHit=i; });
+        if(nHit>=0){ state.pendingCtxNf=nHit; var nN=document.getElementById('ctx-del-nf'); if(nN) nN.style.display='block'; }
+        else { state.pendingCtxNf=null; var nN2=document.getElementById('ctx-del-nf'); if(nN2) nN2.style.display='none'; }
+      } else {
+        state.pendingCtxNf=null;
+        var nN3=document.getElementById('ctx-del-nf'); if(nN3) nN3.style.display='none';
+      }
       showCtxMenu(ev.offsetX,ev.offsetY);
     });
     els['svg2d'].addEventListener('mousedown',function(ev){
       if(state.editMode==='building'&&ev.button===0){
         state.pending={p0:svgWorld(ev),p1:svgWorld(ev)};
         ev.preventDefault();
+        return;
+      }
+      if(!state.editMode&&ev.button===0){
+        var p=svgWorld(ev), hit=-1, part='', best=1e9;
+        state.drones.forEach(function(d,i){
+          var ds=Math.sqrt((d.sx-p.x)*(d.sx-p.x)+(d.sy-p.y)*(d.sy-p.y));
+          if(ds<best){ best=ds; hit=i; part='s'; }
+          if(d.gx!=null){
+            var dg=Math.sqrt((d.gx-p.x)*(d.gx-p.x)+(d.gy-p.y)*(d.gy-p.y));
+            if(dg<best){ best=dg; hit=i; part='g'; }
+          }
+        });
+        if(hit>=0&&best<=25){
+          state.dragDrone={idx:hit, part:part};
+          ev.preventDefault();
+        }
       }
     });
     els['svg2d'].addEventListener('mousemove',function(ev){
+      if(state.dragDrone){
+        var p=svgWorld(ev), d=state.drones[state.dragDrone.idx];
+        if(d){
+          if(state.dragDrone.part==='s'){ d.sx=Math.round(p.x); d.sy=Math.round(p.y); }
+          else { d.gx=Math.round(p.x); d.gy=Math.round(p.y); }
+        }
+        state.windSimCache=null;
+        syncMultiFromDrones();
+        renderAll();
+        return;
+      }
       if(state.editMode==='building'&&state.pending&&state.pending.p0){
         state.pending.p1=svgWorld(ev);
         renderAll();
       }
     });
     els['svg2d'].addEventListener('mouseup',function(ev){
+      if(state.dragDrone){
+        state.dragDrone=null;
+        syncMultiFromDrones();
+        renderAll();
+        return;
+      }
       if(state.editMode==='building'&&state.pending&&state.pending.p0){
         var a=state.pending.p0, b=svgWorld(ev);
         var x0=Math.min(a.x,b.x), x1=Math.max(a.x,b.x), y0=Math.min(a.y,b.y), y1=Math.max(a.y,b.y);

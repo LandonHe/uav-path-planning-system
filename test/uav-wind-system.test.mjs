@@ -230,8 +230,6 @@ test('导出结果：规划后生成含基本信息/指标/航点的 CSV', () =>
   el('wind-type').value = 'uniform';
   el('res-select').value = '20';
   el('flight-alt').value = '80';
-  el('start-x').value = '100'; el('start-y').value = '100';
-  el('goal-x').value = '900'; el('goal-y').value = '900';
   el('alg-aw').checked = true;
   el('alg-base').checked = true;
   el('alg-rrt').checked = true;
@@ -300,7 +298,7 @@ test('添加无人机：选型→起点→终点，单机/协同自动切换', (
   assert.ok(el('plan-msg').textContent.includes('无人机1'), '应提示无人机1，实际：' + el('plan-msg').textContent);
   assert.ok(el('plan-msg').textContent.includes('终点'), '应提示设置终点');
   el('svg2d').fire('click', ev(44 + 500 * 0.694, 18 + (1000 - 500) * 0.496));
-  assert.equal(el('goal-x').value, '500', '单机模式下终点应同步到终点输入框');
+  assert.equal(el('multi-body').children[0].children[4].firstChild.value, '500', '单机模式下终点应同步到任务表');
   assert.ok(el('plan-mode').textContent.includes('单机规划'), '1 架应显示单机规划');
 
   el('svg2d').fire('contextmenu', Object.assign(ev(700, 300), { offsetX: 100, offsetY: 100 }));
@@ -325,9 +323,7 @@ test('禁飞区：自由描绘多边形并设置高度范围，规划避开', ()
   el('nf-z1-input').value = '15';
   el('nf-z2-input').value = '45';
   click('nf-ok');
-  const txt = el('nf-body').textContent;
-  assert.ok(txt.includes('15–45'), '应显示高度范围 15–45');
-  assert.ok(txt.includes('多边形'), '应标注为多边形');
+  assert.ok(el('svg2d').innerHTML.includes('禁飞'), '地图上应显示禁飞区');
 
   // 在无人机1起点→终点的直线上添加禁飞区 → 协同规划必须绕行（耗时变长）
   const baseline = (el('multi-info').textContent.match(/无人机1：起点1→终点1 (\d+)s/) || [])[1];
@@ -624,6 +620,59 @@ test('任务分配：可逐机设置悬停时长，固定翼含悬停被拦截',
   click('btn-plan');
   const info = el('multi-info').textContent;
   assert.ok(info.includes('规划失败'), '固定翼含悬停应规划失败，实际：' + info);
+});
+
+test('建筑列表：超过 4 个时可展开/收起', () => {
+  el('preset-select').value = 'grid';
+  el('preset-select').fire('change');
+  assert.equal(el('obs-body').children.length, 4, '默认只显示前 4 行');
+  assert.ok(el('obs-expand').textContent.includes('展开全部建筑'), '应显示展开按钮');
+  click('obs-expand');
+  assert.equal(el('obs-body').children.length, 16, '展开后应显示全部建筑');
+  click('obs-expand');
+  assert.equal(el('obs-body').children.length, 4, '收起后回到前 4 行');
+  el('preset-select').value = 'empty';
+  el('preset-select').fire('change');
+});
+
+test('右键建筑物可删除', () => {
+  // 拖拽添加一个建筑
+  click('ctx-build');
+  el('svg2d').fire('mousedown', ev(44 + 400 * 0.694, 18 + (1000 - 300) * 0.496));
+  el('svg2d').fire('mousemove', ev(44 + 480 * 0.694, 18 + (1000 - 360) * 0.496));
+  el('svg2d').fire('mouseup', ev(44 + 480 * 0.694, 18 + (1000 - 360) * 0.496));
+  el('build-name').value = '待删建筑';
+  click('build-ok');
+  assert.ok(el('obs-body').textContent.includes('待删建筑'), '建筑应已添加');
+  // 右键建筑内部 → 显示删除建筑物
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 440 * 0.694, 18 + (1000 - 330) * 0.496), { offsetX: 100, offsetY: 100 }));
+  assert.equal(el('ctx-del-building').style.display, 'block', '右键建筑应显示删除按钮');
+  click('ctx-del-building');
+  assert.ok(!el('obs-body').textContent.includes('待删建筑'), '建筑应已删除');
+});
+
+test('右键禁飞区可删除', () => {
+  // T9 已在 (200,200)-(400,400) 布置禁飞区
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 300 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
+  assert.equal(el('ctx-del-nf').style.display, 'block', '右键禁飞区应显示删除按钮');
+  click('ctx-del-nf');
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 300 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
+  assert.equal(el('ctx-del-nf').style.display, 'none', '删除后同一位置不再有禁飞区');
+});
+
+test('起点/终点：鼠标左键可自由拖拽移动', () => {
+  // 当前第 1 架无人机起点 (300,300) → 终点 (500,500)
+  const ev2 = (x, y) => ev(44 + x * 0.694, 18 + (1000 - y) * 0.496);
+  el('svg2d').fire('mousedown', ev2(300, 300));
+  el('svg2d').fire('mousemove', ev2(340, 340));
+  el('svg2d').fire('mouseup', ev2(340, 340));
+  assert.equal(el('multi-body').children[0].children[2].firstChild.value, '340', '拖拽后起点 X 应更新');
+  assert.equal(el('multi-body').children[0].children[3].firstChild.value, '340', '拖拽后起点 Y 应更新');
+  el('svg2d').fire('mousedown', ev2(500, 500));
+  el('svg2d').fire('mousemove', ev2(520, 520));
+  el('svg2d').fire('mouseup', ev2(520, 520));
+  assert.equal(el('multi-body').children[0].children[4].firstChild.value, '520', '拖拽后终点 X 应更新');
+  assert.equal(el('multi-body').children[0].children[5].firstChild.value, '520', '拖拽后终点 Y 应更新');
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
