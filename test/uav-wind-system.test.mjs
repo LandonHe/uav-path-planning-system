@@ -602,5 +602,29 @@ test('任务分配：可为每架无人机设置任务载重并影响可行性',
   assert.ok(!msg2.includes('不满足安全条件'), '合理载重应可规划，实际：' + msg2);
 });
 
+test('任务分配：可逐机设置悬停时长，固定翼含悬停被拦截', () => {
+  // 当前 1 架 hexa（起点 300,300 → 终点 500,500）
+  const row0 = el('drone-info-body').children[0];
+  const hoverInp0 = row0.children[6].firstChild;
+  assert.ok(hoverInp0, '机型表应有悬停时长输入');
+  hoverInp0.value = '5';
+  hoverInp0.fire('change');
+  click('btn-plan');
+  assert.ok(!el('plan-msg').textContent.includes('不满足安全条件'), '六旋翼含悬停应可规划，实际：' + el('plan-msg').textContent);
+  // 添加固定翼并设置悬停 → 该机应规划失败
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 600 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'fixed';
+  click('uav-modal-ok');
+  el('svg2d').fire('click', ev(44 + 700 * 0.694, 18 + (1000 - 400) * 0.496));
+  const row1 = el('drone-info-body').children[1];
+  const hoverInp1 = row1.children[6].firstChild;
+  hoverInp1.value = '5';
+  hoverInp1.fire('change');
+  click('btn-plan');
+  const info = el('multi-info').textContent;
+  assert.ok(info.includes('规划失败'), '固定翼含悬停应规划失败，实际：' + info);
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
