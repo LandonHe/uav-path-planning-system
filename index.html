@@ -3266,13 +3266,17 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var np=P(0,ry,0);
     out+='<text class="preview-label" x="'+(np[0]-8)+'" y="'+(np[1]+4)+'" text-anchor="end">N</text>';
     var bs=state.buildings.filter(function(b){ return b.x+b.l/2>=0&&b.x-b.l/2<=rx&&b.y+b.w/2>=0&&b.y-b.w/2<=ry; });
-    bs.sort(function(a,b2){ return (a.x*sin+a.y*cos)-(b2.x*sin+b2.y*cos); });
+    bs.forEach(function(b){
+      var bx0=b.x-b.l/2, bx1=b.x+b.l/2, by0=b.y-b.w/2, by1=b.y+b.w/2;
+      b.depth=Math.min(bx0*sin+by0*cos, bx1*sin+by0*cos, bx0*sin+by1*cos, bx1*sin+by1*cos);
+    });
+    bs.sort(function(a,b2){ return b2.depth-a.depth; });
     bs.forEach(function(b){
       var x0=b.x-b.l/2, x1=b.x+b.l/2, y0=b.y-b.w/2, y1=b.y+b.w/2;
       var col=heightColor(b.h);
       var base=[P(x0,y0,0),P(x1,y0,0),P(x1,y1,0),P(x0,y1,0)];
       out+='<polygon points="'+poly(base.map(function(pt){ return [pt[0]+4,pt[1]+6]; }))+'" style="fill:var(--foreground);fill-opacity:0.14;stroke:none"/>';
-      var light={x:cos,y:sin};
+      var light={x:cos,y:-sin};
       var faces=[
         {a:[x1,y0],b:[x1,y1],n:{x:1,y:0}},
         {a:[x0,y0],b:[x0,y1],n:{x:-1,y:0}},
