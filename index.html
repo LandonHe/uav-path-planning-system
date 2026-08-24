@@ -3241,9 +3241,11 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       var smx=mx(state.start.x), smy=my(state.start.y);
       out+='<circle class="smark" cx="'+smx.toFixed(1)+'" cy="'+smy.toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
       out+='<text class="preview-label" x="'+smx.toFixed(1)+'" y="'+(smy-10)+'" text-anchor="middle">起点</text>';
-      var gmx=mx(state.goal.x), gmy=my(state.goal.y);
-      out+='<circle class="gmark" cx="'+gmx.toFixed(1)+'" cy="'+gmy.toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
-      out+='<text class="preview-label" x="'+gmx.toFixed(1)+'" y="'+(gmy-10)+'" text-anchor="middle">终点</text>';
+      if(state.drones[0].gx!=null){
+        var gmx=mx(state.goal.x), gmy=my(state.goal.y);
+        out+='<circle class="gmark" cx="'+gmx.toFixed(1)+'" cy="'+gmy.toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
+        out+='<text class="preview-label" x="'+gmx.toFixed(1)+'" y="'+(gmy-10)+'" text-anchor="middle">终点</text>';
+      }
     }
     var cx=ox+rx*sx/2, cy=oy+ry*sy/2;
     if(state.wind.speed>0){
@@ -3424,8 +3426,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(state.drones.length){
       var sp=P(state.start.x,state.start.y,state.flightAlt);
       out+='<circle class="smark" cx="'+sp[0].toFixed(1)+'" cy="'+sp[1].toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
-      var gp=P(state.goal.x,state.goal.y,state.flightAlt);
-      out+='<circle class="gmark" cx="'+gp[0].toFixed(1)+'" cy="'+gp[1].toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
+      if(state.drones[0].gx!=null){
+        var gp=P(state.goal.x,state.goal.y,state.flightAlt);
+        out+='<circle class="gmark" cx="'+gp[0].toFixed(1)+'" cy="'+gp[1].toFixed(1)+'" r="7" style="fill:var(--red);stroke:var(--foreground);stroke-width:1.5"/>';
+      }
     }
     els['svg3d'].innerHTML=out;
   }
@@ -3719,6 +3723,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var n=state.drones.length;
     if(n===0){
       els['plan-msg'].textContent='请先在地图上右键添加无人机（含起点与终点），再进行路径规划。';
+      return;
+    }
+    if(state.drones.some(function(d){ return d.gx==null; })){
+      els['plan-msg'].textContent='请先为所有无人机在地图上左键点击设置终点，再开始规划。';
       return;
     }
     if(n>=2){

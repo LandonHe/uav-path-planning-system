@@ -565,5 +565,22 @@ test('地图下方显示各无人机机型与基本信息', () => {
   assert.ok(txt.includes('六旋翼') && txt.includes('10 m/s') && txt.includes('3.0 kg') && txt.includes('12 m/s'), '应显示机型及抗风/载重/巡航，实际：' + txt);
 });
 
+test('添加无人机后：未设置终点前不显示终点标记且无法规划', () => {
+  // 删除上一测试的无人机（起点 400,400）
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 400 * 0.694, 18 + (1000 - 400) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-del-drone');
+  // 新添一架无人机，但先不设置终点
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 300 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'hexa';
+  click('uav-modal-ok');
+  assert.ok(!el('svg2d').innerHTML.includes('>终点<'), '未设置终点前不应出现终点标记');
+  click('btn-plan');
+  assert.ok(el('plan-msg').textContent.includes('设置终点'), '未设置终点时应提示先设置终点，实际：' + el('plan-msg').textContent);
+  // 左键设置终点
+  el('svg2d').fire('click', ev(44 + 500 * 0.694, 18 + (1000 - 500) * 0.496));
+  assert.ok(el('svg2d').innerHTML.includes('>终点<'), '设置终点后应显示终点标记');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
