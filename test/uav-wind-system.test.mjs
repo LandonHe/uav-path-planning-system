@@ -806,5 +806,19 @@ test('无人机说明：下拉选项、右键弹窗与手动选择提示均显�
   assert.ok(htmlSrc.includes('四旋翼（抗风8 m/s · 载重0.5 kg · 巡航10 m/s）'), '静态初始选项应显示载重');
 });
 
+test('操作说明：工具条含说明按钮，弹窗可开关并含完整快捷键内容', () => {
+  const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
+  assert.ok(htmlSrc.includes('id="help-toggle"'), '工具条应有操作说明按钮');
+  assert.ok(htmlSrc.includes('路径规划图 · 操作说明'), '弹窗应有标题');
+  assert.ok(htmlSrc.includes('添加建筑物') && htmlSrc.includes('添加禁飞区'), '说明应含添加流程');
+  assert.ok(htmlSrc.includes('Shift') && htmlSrc.includes('↑'), '说明应含 3D 键盘与 Shift 快捷键');
+  assert.ok(htmlSrc.includes('kbd'), '应使用快捷键键帽样式');
+  assert.ok(!el('help-pop').style.display || el('help-pop').style.display === 'none', '默认隐藏');
+  click('help-toggle');
+  assert.equal(el('help-pop').style.display, '', '点击后应显示');
+  click('help-close');
+  assert.equal(el('help-pop').style.display, 'none', '关闭后应隐藏');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
