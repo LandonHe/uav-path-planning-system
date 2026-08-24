@@ -759,13 +759,21 @@ test('建筑绕行：飞行高度低于建筑时路径应绕行', () => {
   el('flight-alt').fire('change');
 });
 
-test('布局合并：四模块同栏显示、主题键在地图区、参数可收起', () => {
+test('布局：四模块在左侧栏、切换按钮可用、主题键在地图区、参数可收起', () => {
   const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
-  assert.ok(!htmlSrc.includes('id="step-1"'), '步骤按钮应移除');
-  assert.ok(htmlSrc.includes('id="sec-uav" class="sec"') && !htmlSrc.includes('id="sec-uav" class="sec" style="display:none"'), '四个模块应同时显示');
+  assert.ok(htmlSrc.includes('id="step-1"'), '应保留步骤切换按钮');
+  const ctrlIdx = htmlSrc.indexOf('id="controls-col"');
+  assert.ok(ctrlIdx > 0 && htmlSrc.indexOf('id="sec-env"') > ctrlIdx && htmlSrc.indexOf('id="sec-plan"') > ctrlIdx, '四个模块应统一在左侧栏');
   const themeIdx = htmlSrc.indexOf('id="theme-toggle"');
   const btn3dIdx = htmlSrc.indexOf('id="btn3d"');
   assert.ok(themeIdx > 0 && themeIdx < btn3dIdx, '主题切换按钮应在地图工具条（3D 按钮旁）');
+  // 步骤切换：默认环境参数，点②切到无人机
+  assert.equal(el('sec-env').style.display, '', '默认显示环境参数');
+  assert.equal(el('sec-uav').style.display, 'none', '无人机模块默认隐藏');
+  click('step-2');
+  assert.equal(el('sec-uav').style.display, '', '点击②后应显示无人机模块');
+  assert.equal(el('sec-env').style.display, 'none', '环境参数应隐藏');
+  click('step-1');
   const root = documentStub.getElementById('uavwind-sys');
   if (root.classList.contains('map-only')) click('param-toggle');
   click('param-toggle');

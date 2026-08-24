@@ -361,6 +361,12 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
 <div class="hud-bar" id="hud-bar"></div>
 <div class="panel-grid">
   <div class="controls" id="controls-col">
+    <div class="steps" role="tablist">
+      <button type="button" id="step-1" class="btn btn-primary">① 环境参数</button>
+      <button type="button" id="step-2" class="btn">② 无人机</button>
+      <button type="button" id="step-3" class="btn">③ 空域建模</button>
+      <button type="button" id="step-4" class="btn">④ 路径规划</button>
+    </div>
     <div id="sec-env" class="sec">
       <h3>方案保存</h3>
       <div class="inline">
@@ -551,7 +557,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       <button type="button" id="obs-expand" class="btn" style="display:none">展开全部建筑</button>
     </div>
 
-    <div id="sec-uav" class="sec">
+    <div id="sec-uav" class="sec" style="display:none">
       <h3>优化目标</h3>
       <div class="ctl">
         <label class="form-label" for="obj-select">决策目标（决定机型选型与代价权重）</label>
@@ -629,7 +635,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       </div>
     </div>
 
-    <div id="sec-air" class="sec">
+    <div id="sec-air" class="sec" style="display:none">
       <h3>栅格与飞行约束</h3>
       <div class="row3">
         <div class="ctl">
@@ -668,7 +674,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       <span class="cap text-small">平面图中深色格为占用栅格、浅色格为膨胀/风险栅格，虚线建筑表示低于飞行高度可越障；红色区为禁飞区；右侧 3D 视图可旋转检查体素布局。禁飞区请在地图上右键描绘。</span>
     </div>
 
-    <div id="sec-plan" class="sec">
+    <div id="sec-plan" class="sec" style="display:none">
       <h3>对比算法</h3>
       <div class="inline">
         <div class="form-check"><input class="form-check-input" type="checkbox" id="alg-aw" checked><label class="form-check-label" for="alg-aw">风感知 A*</label></div>
@@ -889,7 +895,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:0,elevation:55,showLive:true,showAllBuildings:false,windSegOn:false,windSegs:[],windSimCache:null,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,dragDrone:null,pendingCtxDrone:null,pendingCtxBuilding:null,pendingCtxNf:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -4254,6 +4260,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       if(state.mode==='3d'){ renderAll(); }
     });
     els['theme-toggle'].addEventListener('click',toggleTheme);
+    for(var i=1;i<=4;i++){
+      (function(n){ els['step-'+n].addEventListener('click',function(){ showStep(n); }); })(i);
+    }
     els['param-toggle'].addEventListener('click',function(){
       var root=document.getElementById('uavwind-sys');
       if(!root) return;
@@ -4303,6 +4312,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       if(savedLive==='0'){ state.showLive=false; els['live-toggle'].textContent='显示飞行数据'; }
     }catch(e2){}
     renderAll();
+    showStep(1);
     renderAll();
   }
 
