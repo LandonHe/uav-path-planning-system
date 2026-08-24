@@ -526,5 +526,17 @@ test('单机规划：高风速被拦截并提示机型抗风不足', () => {
   assert.ok(el('plan-mode').textContent.includes('单机规划（0 架）'), '删除无人机后应为单机模式');
 });
 
+test('地图下方显示各无人机机型与基本信息', () => {
+  assert.equal(el('drone-info-wrap').style.display, 'none', '无无人机时表格应隐藏');
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 400 * 0.694, 18 + (1000 - 400) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'hexa';
+  click('uav-modal-ok');
+  el('svg2d').fire('click', ev(44 + 500 * 0.694, 18 + (1000 - 500) * 0.496));
+  assert.equal(el('drone-info-wrap').style.display, '', '添加无人机后应显示机型表格');
+  const txt = el('drone-info-body').textContent;
+  assert.ok(txt.includes('六旋翼') && txt.includes('10 m/s') && txt.includes('3.0 kg') && txt.includes('12 m/s'), '应显示机型及抗风/载重/巡航，实际：' + txt);
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

@@ -920,6 +920,12 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       <span class="cap" id="multi-conflict-info"></span>
       <span class="cap" id="multi-conflict-list"></span>
     </div>
+    <div id="drone-info-wrap" class="table-responsive" style="display:none">
+      <table class="table table-sm">
+        <thead><tr><th>编号</th><th>机型</th><th>抗风上限</th><th>载重上限</th><th>巡航速度</th></tr></thead>
+        <tbody id="drone-info-body"></tbody>
+      </table>
+    </div>
     <div class="legend-row">
       <span class="cap text-small">· 蓝实线 = 风感知路径</span>
       <span class="cap text-small">· 灰虚线 = 传统路径</span>
@@ -3517,6 +3523,26 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     });
     document.getElementById('live-body').innerHTML=rows.join('');
   }
+  function renderDroneInfo(){
+    var wrap=document.getElementById('drone-info-wrap');
+    var body=document.getElementById('drone-info-body');
+    if(!wrap||!body) return;
+    if(!state.drones.length){ wrap.style.display='none'; return; }
+    wrap.style.display='';
+    body.innerHTML='';
+    state.drones.forEach(function(d,i){
+      var t=resolveTypeById(d.type)||null;
+      var tr=document.createElement('tr');
+      [('无人机'+(i+1)),
+       (t?t.name:'未知机型'),
+       (t?(t.maxWind+' m/s'):'—'),
+       (t?(t.load.toFixed(1)+' kg'):'—'),
+       (t?(t.cruise+' m/s'):'—')].forEach(function(v){
+        var td=document.createElement('td'); td.textContent=v; tr.appendChild(td);
+      });
+      body.appendChild(tr);
+    });
+  }
   function toggleLive(){
     state.showLive=!state.showLive;
     els['live-toggle'].textContent=state.showLive?'隐藏飞行数据':'显示飞行数据';
@@ -3536,6 +3562,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     readInputs();
     renderHudBar();
     renderLivePanel();
+    renderDroneInfo();
     if(!state.results){ els['valid-wrap'].style.display='none'; }
     var grid=buildGrid();
     var awRun=state.results? state.results.runs.filter(function(x){return x.key==='aw';})[0]:null;
