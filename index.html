@@ -572,10 +572,10 @@
         <label class="form-label" for="uav-select">无人机机型</label>
         <select id="uav-select" class="form-select">
           <option value="auto" selected>自动推荐（按目标与风况）</option>
-          <option value="quad">四旋翼（抗风8 m/s · 巡航10 m/s）</option>
-          <option value="hexa">六旋翼（抗风10 m/s · 巡航12 m/s）</option>
-          <option value="fixed">固定翼（抗风12 m/s · 巡航18 m/s）</option>
-          <option value="vtol">复合翼（抗风12 m/s · 巡航20 m/s）</option>
+          <option value="quad">四旋翼（抗风8 m/s · 载重0.5 kg · 巡航10 m/s）</option>
+          <option value="hexa">六旋翼（抗风10 m/s · 载重3 kg · 巡航12 m/s）</option>
+          <option value="fixed">固定翼（抗风12 m/s · 载重2 kg · 巡航18 m/s）</option>
+          <option value="vtol">复合翼（抗风12 m/s · 载重4 kg · 巡航20 m/s）</option>
         </select>
         <span class="cap" id="uav-reason"></span>
         <div id="uav-detail"></div>
@@ -1260,7 +1260,7 @@
     var sel=els['uav-select'].value;
     var opts='<option value="auto">自动推荐（按目标与风况）</option>';
     allTypes().forEach(function(t){
-      opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s · 巡航'+t.cruise+' m/s）</option>';
+      opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s · 载重'+t.load+' kg · 巡航'+t.cruise+' m/s）</option>';
     });
     els['uav-select'].innerHTML=opts;
     els['uav-select'].value=sel;
@@ -2259,7 +2259,7 @@
       txt=rec?('自动推荐：'+rec.name+'（目标：'+OBJ[state.obj]+'，抗风裕度 '+(rec.maxWind-state.wind.instant).toFixed(1)+' m/s）'):'当前风况/载重下无可用机型';
     } else {
       srcLabel='手动选择';
-      txt=uav?('已手动选择：'+uav.name+'（抗风上限 '+uav.maxWind+' m/s）'):'';
+      txt=uav?('已手动选择：'+uav.name+'（抗风上限 '+uav.maxWind+' m/s · 载重上限 '+uav.load+' kg）'):'';
     }
     if(uav&&state.wind.instant>uav.maxWind){
       txt+=' · 警告：瞬时风 '+state.wind.instant.toFixed(1)+' m/s 超过该机型抗风上限 '+uav.maxWind+' m/s，已阻止规划，请切换机型';
@@ -3648,7 +3648,7 @@
         hideCtxMenu();
         var opts='<option value="auto">自动推荐</option>';
         allTypes().forEach(function(t){
-          opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s）</option>';
+          opts+='<option value="'+t.id+'">'+t.name+'（抗风'+t.maxWind+' m/s · 载重'+t.load+' kg）</option>';
         });
         els['uav-modal-select'].innerHTML=opts;
         els['uav-modal'].style.display='';

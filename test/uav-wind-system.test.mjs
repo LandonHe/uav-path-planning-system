@@ -798,5 +798,13 @@ test('低空经济机型库：新增真实市场机型且关键参数与公开�
   assert.ok(htmlSrc.includes("source:'参考大疆官方公开参数"), 'FlyCart 30 应标注官方数据来源');
 });
 
+test('无人机说明：下拉选项、右键弹窗与手动选择提示均显示载重', () => {
+  const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
+  assert.ok(htmlSrc.includes("载重'+t.load+' kg · 巡航'+t.cruise+' m/s"), '机型下拉应显示载重');
+  assert.ok(htmlSrc.includes("抗风'+t.maxWind+' m/s · 载重'+t.load+' kg）"), '右键添加无人机弹窗应显示载重');
+  assert.ok(htmlSrc.includes("抗风上限 '+uav.maxWind+' m/s · 载重上限 '+uav.load+' kg"), '手动选择提示应显示载重');
+  assert.ok(htmlSrc.includes('四旋翼（抗风8 m/s · 载重0.5 kg · 巡航10 m/s）'), '静态初始选项应显示载重');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
