@@ -136,6 +136,7 @@ const URLStub = {
 };
 
 const ctx = {
+  window: {},
   document: documentStub,
   localStorage: localStorageStub,
   Blob: BlobStub,
@@ -781,6 +782,17 @@ test('布局：四模块在左侧栏、切换按钮可用、主题键在地图�
   assert.ok(el('param-toggle').textContent.includes('展开参数'), '按钮应提示展开');
   click('param-toggle');
   assert.ok(!root.classList.contains('map-only'), '再次点击应展开');
+});
+
+test('WebGL：建筑类型推断与配色（3D 语义外观）', () => {
+  const t = ctx.window.__uavWind;
+  assert.ok(t && t.inferBuildingType, '应暴露 WebGL 测试钩子');
+  assert.equal(t.inferBuildingType({ x: 0, y: 0, l: 200, w: 100, h: 20 }), 'factory', '宽矮大底盘应推断为厂房');
+  assert.equal(t.inferBuildingType({ x: 0, y: 0, l: 40, w: 30, h: 15 }), 'residential', '多层方正应推断为住宅');
+  assert.equal(t.inferBuildingType({ x: 0, y: 0, l: 40, w: 40, h: 50 }), 'office', '中高较大应推断为写字楼');
+  assert.equal(t.inferBuildingType({ x: 0, y: 0, l: 20, w: 20, h: 80 }), 'tower', '瘦高应推断为塔楼');
+  assert.equal(t.inferBuildingType({ x: 0, y: 0, l: 10, w: 10, h: 5 }), 'other', '小建筑归为其他');
+  assert.equal(typeof t.heightColorRGB(50), 'number', '高度配色应返回数值');
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');

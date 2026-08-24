@@ -339,6 +339,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys .map-bar input[type=number]{width:76px;min-height:26px;border-radius:8px;}
   #uavwind-sys .map-bar .form-label{display:inline;margin:0;}
   #uavwind-sys .map-bar .spacer{flex:1;}
+  #uavwind-sys #view-3d-webgl{position:relative;min-height:420px;border-radius:12px;overflow:hidden;background:light-dark(rgb(235 242 250),rgb(16 22 34));}
+  #uavwind-sys #view-3d-webgl canvas{display:block;width:100%;height:auto;border-radius:12px;}
+  #uavwind-sys.hud #view-3d-webgl{background:radial-gradient(800px 400px at 50% 0%,rgba(47,130,255,0.12),transparent 70%),rgb(6 11 24);}
   #uavwind-sys .live-panel{
     position:absolute;top:38px;right:10px;z-index:40;width:268px;
     font-family:Consolas,Menlo,monospace;font-size:11px;line-height:1.6;
@@ -830,6 +833,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       <div id="view-3d" style="display:none">
       <svg id="svg3d" viewBox="0 0 760 540" width="100%" height="auto" role="img" aria-label="系统三维视图"></svg>
       </div>
+      <div id="view-3d-webgl" style="display:none"></div>
     </div>
     <div id="multi-play-wrap" class="playbar" style="display:none">
       <button type="button" id="multi-play" class="btn">▶ 播放</button>
@@ -895,7 +899,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:0,elevation:55,showLive:true,showAllBuildings:false,windSegOn:false,windSegs:[],windSimCache:null,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,dragDrone:null,pendingCtxDrone:null,pendingCtxBuilding:null,pendingCtxNf:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','view-3d-webgl','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -3397,6 +3401,266 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['svg3d'].innerHTML=out;
   }
 
+  /* ===== WebGL 3D（Three.js 真三维） ===== */
+  var THREE_CDN=[
+    'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js',
+    'https://unpkg.com/three@0.128.0/build/three.min.js'
+  ];
+  var WEBGL_COLORS={aw:0x2fd6ff,base:0x93a3b8,rrt:0x9b79ec,pso:0x3ec2b7};
+  var MULTI_HEX=[0x2fd6ff,0xffb25e,0xff7ab8,0x3ec2b7];
+  var webgl={active:false,renderer:null,scene:null,camera:null,raf:0,key:null,bldgGroup:null,nfGroup:null,pathGroup:null,droneGroup:null,markers:[],startMarkers:[],goalMarkers:[]};
+  var rafFn=typeof requestAnimationFrame!=='undefined'?requestAnimationFrame:function(fn){ return setTimeout(fn,33); };
+  var cafFn=typeof cancelAnimationFrame!=='undefined'?cancelAnimationFrame:function(id){ clearTimeout(id); };
+  function ensureThree(cb){
+    if(typeof THREE!=='undefined'){ cb(true); return; }
+    var i=0;
+    function next(){
+      if(i>=THREE_CDN.length){ cb(false); return; }
+      var s=document.createElement('script');
+      s.src=THREE_CDN[i++];
+      s.onload=function(){ if(typeof THREE!=='undefined'){ cb(true); } else { next(); } };
+      s.onerror=function(){ next(); };
+      (document.head||document.body).appendChild(s);
+    }
+    next();
+  }
+  function heightColorRGB(h){
+    if(h<=40) return 0x4a9eff;
+    if(h<=70) return 0xffb25e;
+    if(h<=100) return 0x39c97a;
+    if(h<=130) return 0xff7ab8;
+    return 0x9b79ec;
+  }
+  function inferBuildingType(b){
+    var w=Math.max(b.l,b.w), h=b.h||10, area=b.l*b.w;
+    if(h>=60&&w<=45) return 'tower';
+    if(h<=40&&area>=2000) return 'factory';
+    if(h>=30&&area>=1000) return 'office';
+    if(h>=8&&h<30&&area>=150) return 'residential';
+    return 'other';
+  }
+  function facadeTexture(type){
+    if(typeof document==='undefined') return null;
+    var cv=document.createElement('canvas');
+    cv.width=256; cv.height=256;
+    var ctx=cv.getContext('2d');
+    var base=type==='residential'?'#e9e5dc':(type==='office'||type==='tower'?'#a8c6e4':'#ccd3da');
+    ctx.fillStyle=base; ctx.fillRect(0,0,256,256);
+    var win='#dff2ff', frame='#5b6b7d', cols=8, rows=10;
+    var gw=26, gh=16, gx=(256-cols*gw)/(cols+1), gy=(256-rows*gh)/(rows+1);
+    if(type==='factory'){
+      ctx.strokeStyle='rgba(90,105,120,0.35)'; ctx.lineWidth=4;
+      for(var y=8;y<256;y+=18){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(256,y); ctx.stroke(); }
+      ctx.fillStyle='#5f6b76'; ctx.fillRect(88,110,80,146);
+      ctx.fillStyle='#dfe8ef'; ctx.fillRect(94,118,68,138);
+    } else {
+      ctx.fillStyle=frame;
+      for(var i=0;i<cols;i++) for(var j=0;j<rows;j++){
+        ctx.fillRect(gx+i*(gw+gx), gy+j*(gh+gy), gw, gh);
+      }
+      ctx.fillStyle=win;
+      for(var i2=0;i2<cols;i2++) for(var j2=0;j2<rows;j2++){
+        ctx.fillRect(gx+i2*(gw+gx)+3, gy+j2*(gh+gy)+3, gw-6, gh-6);
+      }
+      if(type==='residential'){
+        ctx.fillStyle='#b7c0cb'; ctx.fillRect(0,216,256,34);
+        ctx.fillStyle='#8a94a0';
+        for(var b2=0;b2<8;b2++){ ctx.fillRect(16+b2*30,208,18,6); }
+      }
+    }
+    var tex=new THREE.CanvasTexture(cv);
+    tex.anisotropy=4;
+    return tex;
+  }
+  function buildWebGLBuilding(b){
+    if(typeof THREE==='undefined') return null;
+    var g=new THREE.Group();
+    var type=inferBuildingType(b), col=heightColorRGB(b.h);
+    var l=b.l, w=b.w, h=Math.min(b.h,state.region.z);
+    var sideTex=type==='other'?null:facadeTexture(type);
+    var sideMat=sideTex?new THREE.MeshPhongMaterial({map:sideTex}):new THREE.MeshPhongMaterial({color:col});
+    var topMat=new THREE.MeshPhongMaterial({color:col});
+    var body=new THREE.Mesh(new THREE.BoxGeometry(l,h,w),sideMat);
+    body.position.y=h/2; body.castShadow=true; g.add(body);
+    var top=new THREE.Mesh(new THREE.BoxGeometry(l*0.99,1,w*0.99),topMat);
+    top.position.y=h+0.5; g.add(top);
+    if(type==='factory'){
+      var seg=Math.max(2,Math.min(10,Math.round(w/14)));
+      var segW=w/seg;
+      for(var i=0;i<seg;i++){
+        var shape=new THREE.Shape();
+        shape.moveTo(0,0); shape.lineTo(segW,0); shape.lineTo(segW/2,6);
+        var ex=new THREE.ExtrudeGeometry(shape,{depth:l,bevelEnabled:false});
+        var prism=new THREE.Mesh(ex,new THREE.MeshPhongMaterial({color:0xc96a4b}));
+        prism.position.set(-l/2, h, -w/2+i*segW);
+        prism.rotation.y=-Math.PI/2;
+        g.add(prism);
+      }
+      var door=new THREE.Mesh(new THREE.BoxGeometry(12,h*0.7,2),new THREE.MeshPhongMaterial({color:0x46525e}));
+      door.position.set(l/2+1,h*0.35,0); g.add(door);
+    } else if(type==='residential'){
+      var tank=new THREE.Mesh(new THREE.CylinderGeometry(3,3,4,12),new THREE.MeshPhongMaterial({color:0x8a94a0}));
+      tank.position.set(l*0.28,h+3,w*0.22); g.add(tank);
+    } else if(type==='office'||type==='tower'){
+      var roof=new THREE.Mesh(new THREE.BoxGeometry(l*0.5,3,w*0.5),new THREE.MeshPhongMaterial({color:0x5d6b7d}));
+      roof.position.set(0,h+2,0); g.add(roof);
+      var ant=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.4,8,6),new THREE.MeshPhongMaterial({color:0xcfd8e3}));
+      ant.position.set(0,h+8,0); g.add(ant);
+    }
+    g.userData={x:b.x,z:b.y};
+    return g;
+  }
+  function webglInit(){
+    if(webgl.renderer||typeof THREE==='undefined') return;
+    var el=document.getElementById('view-3d-webgl');
+    if(!el) return;
+    webgl.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    webgl.renderer.shadowMap.enabled=false;
+    webgl.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+    webgl.renderer.setSize(el.clientWidth||760, el.clientHeight||480);
+    el.appendChild(webgl.renderer.domElement);
+    webgl.scene=new THREE.Scene();
+    webgl.camera=new THREE.PerspectiveCamera(45, (el.clientWidth||760)/(el.clientHeight||480), 1, 20000);
+    webgl.scene.add(new THREE.AmbientLight(0xffffff,0.65));
+    var dir=new THREE.DirectionalLight(0xffffff,0.8);
+    dir.position.set(300,600,200); webgl.scene.add(dir);
+    webgl.bldgGroup=new THREE.Group(); webgl.scene.add(webgl.bldgGroup);
+    webgl.nfGroup=new THREE.Group(); webgl.scene.add(webgl.nfGroup);
+    webgl.pathGroup=new THREE.Group(); webgl.scene.add(webgl.pathGroup);
+    webgl.droneGroup=new THREE.Group(); webgl.scene.add(webgl.droneGroup);
+  }
+  function webglKey(){
+    return JSON.stringify([
+      state.region, state.res, state.flightAlt,
+      state.buildings.map(function(b){ return [b.x,b.y,b.l,b.w,b.h]; }),
+      state.noFly.map(function(z){ return [z.pts,z.z1,z.z2]; }),
+      state.results?state.results.count:0,
+      state.multi?state.multi.uavs.length:0
+    ]);
+  }
+  function webglBuildScene(){
+    if(typeof THREE==='undefined') return;
+    webglInit();
+    var key=webglKey();
+    if(key===webgl.key) return;
+    webgl.key=key;
+    var rx=state.region.x, ry=state.region.y;
+    function clear(g){ while(g.children.length){ var c=g.children.pop(); if(c.geometry) c.geometry.dispose(); if(c.material) c.material.dispose(); } }
+    clear(webgl.bldgGroup); clear(webgl.nfGroup); clear(webgl.pathGroup); clear(webgl.droneGroup);
+    webgl.markers=[]; webgl.startMarkers=[]; webgl.goalMarkers=[];
+    state.buildings.forEach(function(b){
+      var m=buildWebGLBuilding(b);
+      if(m){ m.position.set(b.x,0,b.y); webgl.bldgGroup.add(m); }
+    });
+    state.noFly.forEach(function(z){
+      var pts=nfPts(z), zz=nfZ(z);
+      if(pts.length<3||zz.z2<=zz.z1) return;
+      var sh=new THREE.Shape();
+      pts.forEach(function(p,k){ if(k===0) sh.moveTo(p.x-rx/2,p.y-ry/2); else sh.lineTo(p.x-rx/2,p.y-ry/2); });
+      var geo=new THREE.ExtrudeGeometry(sh,{depth:zz.z2-zz.z1,bevelEnabled:false});
+      var mesh=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0xff5c7a,transparent:true,opacity:0.35,side:THREE.DoubleSide}));
+      mesh.position.set(rx/2,zz.z1,ry/2);
+      webgl.nfGroup.add(mesh);
+    });
+    function line(pts,color,opacity){
+      var geo=new THREE.BufferGeometry();
+      var arr=[];
+      pts.forEach(function(p){ arr.push(p.x-rx/2,p.z||state.flightAlt,p.y-ry/2); });
+      geo.setAttribute('position',new THREE.Float32BufferAttribute(arr,3));
+      return new THREE.Line(geo,new THREE.LineBasicMaterial({color:color,transparent:opacity<1,opacity:opacity}));
+    }
+    if(state.results){
+      state.results.runs.forEach(function(run){
+        if(!run.res) return;
+        var wpts=run.res.cells.map(function(idx){ var d=decode(state.results.grid,idx); return {x:(d.ix+0.5)*state.res,y:(d.iy+0.5)*state.res}; });
+        wpts[0]={x:state.start.x,y:state.start.y}; wpts[wpts.length-1]={x:state.goal.x,y:state.goal.y};
+        var sp=smoothPts2D(wpts);
+        webgl.pathGroup.add(line(sp,WEBGL_COLORS[run.key]||0x2fd6ff,run.main?0.95:0.7));
+      });
+    }
+    if(state.multi){
+      state.multi.uavs.forEach(function(tr,idx){
+        if(!tr) return;
+        var pts=tr.pts.map(function(p){ return {x:p.x,y:p.y}; });
+        var sm=smoothPts2D(pts);
+        webgl.pathGroup.add(line(sm,MULTI_HEX[idx%4],0.9));
+      });
+    }
+    function sphere(r,col,transp,opac){ return new THREE.Mesh(new THREE.SphereGeometry(r,12,12),new THREE.MeshBasicMaterial({color:col,transparent:transp,opacity:opac})); }
+    state.drones.forEach(function(d,i){
+      var col=MULTI_HEX[i%4];
+      var s=sphere(5,col,false,1); s.position.set(d.sx-rx/2,state.flightAlt,d.sy-ry/2);
+      webgl.droneGroup.add(s); webgl.startMarkers.push(s);
+      if(d.gx!=null){
+        var gg=sphere(6,col,true,0.35); gg.position.set(d.gx-rx/2,state.flightAlt,d.gy-ry/2);
+        webgl.droneGroup.add(gg); webgl.goalMarkers.push(gg);
+      }
+      var mv=sphere(8,col,false,1); webgl.droneGroup.add(mv); webgl.markers.push(mv);
+    });
+    webglSyncCamera();
+  }
+  function uavCurrentPos(idx){
+    var m=state.multi; if(!m||!m.uavs[idx]) return null;
+    var tr=m.uavs[idx];
+    var sim=windSimAt(state.multiPlay);
+    if(sim&&sim[idx]){
+      if(sim[idx].waiting) return {x:tr.start.x,y:tr.start.y,z:state.flightAlt};
+      if(sim[idx].done) return {x:tr.goal.x,y:tr.goal.y,z:state.flightAlt};
+      return {x:sim[idx].pos.x,y:sim[idx].pos.y,z:sim[idx].pos.z};
+    }
+    var tt=state.multiPlay-(m.offsets[idx]||0);
+    if(tt<0) return {x:tr.start.x,y:tr.start.y,z:state.flightAlt};
+    var p=trajPos(tr,Math.min(tt,tr.duration));
+    return {x:p.x,y:p.y,z:p.z};
+  }
+  function webglSyncCamera(){
+    if(!webgl.camera) return;
+    var rx=state.region.x, ry=state.region.y, rz=state.region.z;
+    var cx=rx/2, cy=ry/2, cz=rz/2;
+    var dist=Math.max(rx,ry)*1.15;
+    var phi=((90-state.elevation)/180)*Math.PI;
+    var theta=(state.azimuth/180)*Math.PI;
+    var horiz=dist*Math.sin(phi);
+    webgl.camera.position.set(cx+horiz*Math.sin(theta), cz+dist*Math.cos(phi), cy-horiz*Math.cos(theta));
+    webgl.camera.lookAt(cx, cz*0.4, cy);
+    webgl.camera.aspect=(document.getElementById('view-3d-webgl').clientWidth||760)/(document.getElementById('view-3d-webgl').clientHeight||480);
+    webgl.camera.updateProjectionMatrix();
+  }
+  function webglUpdateFrame(){
+    if(!webgl.scene) return;
+    var rx=state.region.x, ry=state.region.y;
+    state.drones.forEach(function(d,i){
+      var mv=webgl.markers[i];
+      if(!mv) return;
+      var p=uavCurrentPos(i);
+      if(p){ mv.position.set(p.x-rx/2,p.z, p.y-ry/2); }
+    });
+    webglSyncCamera();
+    webgl.renderer.render(webgl.scene,webgl.camera);
+  }
+  function webglLoop(){
+    if(!webgl.active) return;
+    webglBuildScene();
+    webglUpdateFrame();
+    webgl.raf=rafFn(webglLoop);
+  }
+  function webglStart(){
+    if(webgl.active||typeof THREE==='undefined') return;
+    webgl.active=true;
+    webgl.key=null;
+    webgl.raf=rafFn(webglLoop);
+  }
+  function webglStop(){
+    webgl.active=false;
+    if(webgl.raf){ cafFn(webgl.raf); webgl.raf=0; }
+  }
+  function render3DWebGL(){
+    if(typeof THREE==='undefined'||!webgl.active) return;
+    webglBuildScene();
+    webglUpdateFrame();
+  }
+  if(typeof window!=='undefined'&&window){ window.__uavWind={inferBuildingType:inferBuildingType,heightColorRGB:heightColorRGB}; }
+
   function flyStats(grid, layerK, uav){
     var ws=windSpeedAt((layerK+0.5)*state.res);
     var instant=state.wind.instant;
@@ -3576,12 +3840,19 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(state.results){ renderResults(); }
     if(state.mode==='3d'){
       els['view-2d'].style.display='none';
-      els['view-3d'].style.display='';
+      if(webgl.active&&typeof THREE!=='undefined'){
+        els['view-3d'].style.display='none';
+        els['view-3d-webgl'].style.display='';
+      } else {
+        els['view-3d'].style.display='';
+        els['view-3d-webgl'].style.display='none';
+      }
       updateModeCap();
-      render3D(grid);
+      if(webgl.active&&typeof THREE!=='undefined'){ render3DWebGL(); } else { render3D(grid); }
     } else {
       els['view-2d'].style.display='';
       els['view-3d'].style.display='none';
+      els['view-3d-webgl'].style.display='none';
       updateModeCap();
       render2D(grid);
     }
@@ -4255,6 +4526,14 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       els['btn3d'].textContent=(state.mode==='3d')?'返回平面图':'3D 展示';
       els['btn3d'].classList.toggle('btn-primary',state.mode==='3d');
       els['az-wrap'].style.display=(state.mode==='3d')?'':'none';
+      if(state.mode==='3d'){
+        ensureThree(function(ok){
+          if(ok&&!webgl.active){ webglStart(); }
+          renderAll();
+        });
+      } else {
+        webglStop();
+      }
       updateModeCap();
       renderAll();
     });
