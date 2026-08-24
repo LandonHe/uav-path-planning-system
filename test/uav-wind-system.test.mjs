@@ -582,5 +582,25 @@ test('添加无人机后：未设置终点前不显示终点标记且无法规�
   assert.ok(el('svg2d').innerHTML.includes('>终点<'), '设置终点后应显示终点标记');
 });
 
+test('任务分配：可为每架无人机设置任务载重并影响可行性', () => {
+  el('V-num').value = '5';
+  const row = el('drone-info-body').children[0];
+  const loadInp = row.children[5].firstChild;
+  assert.ok(loadInp, '机型表中应有任务载重输入框');
+  // 超限载重：hexa 载重上限 3.0 kg
+  loadInp.value = '5';
+  loadInp.fire('change');
+  click('btn-plan');
+  const msg1 = el('plan-msg').textContent;
+  assert.ok(msg1.includes('载重') && msg1.includes('不满足安全条件'), '超载应被拦截，实际：' + msg1);
+  // 合理载重
+  const loadInp2 = el('drone-info-body').children[0].children[5].firstChild;
+  loadInp2.value = '1';
+  loadInp2.fire('change');
+  click('btn-plan');
+  const msg2 = el('plan-msg').textContent;
+  assert.ok(!msg2.includes('不满足安全条件'), '合理载重应可规划，实际：' + msg2);
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

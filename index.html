@@ -922,7 +922,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     </div>
     <div id="drone-info-wrap" class="table-responsive" style="display:none">
       <table class="table table-sm">
-        <thead><tr><th>编号</th><th>机型</th><th>抗风上限</th><th>载重上限</th><th>巡航速度</th></tr></thead>
+        <thead><tr><th>编号</th><th>机型</th><th>抗风上限</th><th>载重上限</th><th>巡航速度</th><th>任务载重(kg)</th></tr></thead>
         <tbody id="drone-info-body"></tbody>
       </table>
     </div>
@@ -2911,7 +2911,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       var r=rows[i];
       var du=state.drones&&state.drones[i]?resolveTypeById(state.drones[i].type):null;
       if(!du) du=uav;
-      if(!du||!uavFeasible(du)){ uavs.push(null); uavList.push(du||uav); failed++; continue; }
+      var dload=state.drones&&state.drones[i]?(state.drones[i].load||0):state.load;
+      if(!du||state.wind.instant>du.maxWind+1e-9||dload>du.load+1e-9||(state.hoverMin>0&&!du.canHover)){ uavs.push(null); uavList.push(du||uav); failed++; continue; }
       var wz=clamp(state.flightAlt,0,state.region.z);
       var s=snapCell(grid,r.x1,r.y1,wz);
       var g=snapCell(grid,r.x2,r.y2,wz);
@@ -3541,13 +3542,26 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     state.drones.forEach(function(d,i){
       var t=resolveTypeById(d.type)||null;
       var tr=document.createElement('tr');
-      [('无人机'+(i+1)),
-       (t?t.name:'未知机型'),
-       (t?(t.maxWind+' m/s'):'—'),
-       (t?(t.load.toFixed(1)+' kg'):'—'),
-       (t?(t.cruise+' m/s'):'—')].forEach(function(v){
+      var cells=[('无人机'+(i+1)),(t?t.name:'未知机型'),(t?(t.maxWind+' m/s'):'—'),(t?(t.load.toFixed(1)+' kg'):'—'),(t?(t.cruise+' m/s'):'—')];
+      cells.forEach(function(v){
         var td=document.createElement('td'); td.textContent=v; tr.appendChild(td);
       });
+      var td5=document.createElement('td');
+      var inp=document.createElement('input');
+      inp.type='number'; inp.className='form-control'; inp.min=0; inp.max=100; inp.step=0.1; inp.value=String(d.load||0);
+      inp.style.width='78px';
+      (function(ii){
+        inp.addEventListener('change',function(){
+          var v=Math.max(0,parseFloat(inp.value)||0);
+          state.drones[ii].load=v;
+          state.windSimCache=null;
+          renderDroneInfo();
+          inputChanged();
+        });
+      })(i);
+      td5.appendChild(inp);
+      if(t&&d.load>t.load+1e-9) td5.style.color='var(--red)';
+      tr.appendChild(td5);
       body.appendChild(tr);
     });
   }
@@ -3706,6 +3720,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(n===1){
       els['start-x'].value=state.drones[0].sx; els['start-y'].value=state.drones[0].sy;
       if(state.drones[0].gx!=null){ els['goal-x'].value=state.drones[0].gx; els['goal-y'].value=state.drones[0].gy; }
+      els['load-num'].value=String(state.drones[0].load||0);
+      if(state.drones[0].type) els['uav-select'].value=state.drones[0].type;
     }
   }
   function closeNf(){
@@ -4017,7 +4033,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['uav-modal-ok'].addEventListener('click',function(){
       var pos=state.pending&&state.pending.ctxPos;
       if(!pos){ els['uav-modal'].style.display='none'; return; }
-      var d={id:'d'+(state.drones.length+1), type:els['uav-modal-select'].value, sx:Math.round(pos.x), sy:Math.round(pos.y), gx:null, gy:null};
+      var d={id:'d'+(state.drones.length+1), type:els['uav-modal-select'].value, sx:Math.round(pos.x), sy:Math.round(pos.y), gx:null, gy:null, load:Math.max(0,parseFloat(els['load-num'].value)||0)};
       state.drones.push(d);
       state.editMode='uavGoal'; state.pending={droneId:d.id};
       els['uav-modal'].style.display='none';
