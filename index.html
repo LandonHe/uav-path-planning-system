@@ -3367,6 +3367,10 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var mpts3=tr.pts.map(function(p){ return P(p.x,p.y,p.z); });
         out+='<polyline class="path-halo" points="'+poly(mpts3)+'"/>';
         out+='<polyline class="multi-path" points="'+poly(mpts3)+'" style="stroke:'+col+'"/>';
+        var sp3=P(tr.start.x,tr.start.y,state.flightAlt);
+        out+='<circle cx="'+sp3[0].toFixed(1)+'" cy="'+sp3[1].toFixed(1)+'" r="6" style="fill:'+col+';stroke:var(--foreground);stroke-width:1.5"/>';
+        var gp3=P(tr.goal.x,tr.goal.y,state.flightAlt);
+        out+='<circle cx="'+gp3[0].toFixed(1)+'" cy="'+gp3[1].toFixed(1)+'" r="7" style="fill:none;stroke:'+col+';stroke-width:2.5"/>';
         var tt=state.multiPlay-mm.offsets[idx];
         if(tt>=0&&tt<=tr.duration){
           var pp=trajPos(tr,tt);

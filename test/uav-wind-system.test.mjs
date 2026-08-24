@@ -698,6 +698,13 @@ test('多机回放：两架无人机都显示并运动', () => {
   assert.notEqual(svg3, svg20, '播放过程中标记应移动');
   const live = el('live-body').innerHTML;
   assert.ok(live.includes('U1') && live.includes('U2'), '遥测应显示两架无人机');
+  // 3D：每架无人机起点（实心）/终点（圆环）都应有对应颜色
+  click('btn3d');
+  const svg3d = el('svg3d').innerHTML;
+  const startCircles = (svg3d.match(/fill:var\(--viz-series-\d\);stroke:var\(--foreground\);stroke-width:1\.5/g) || []).length;
+  const goalRings = (svg3d.match(/fill:none;stroke:var\(--viz-series-/g) || []).length;
+  assert.ok(startCircles >= 2 && goalRings >= 2, '3D 中每架无人机起终点应有对应颜色圆圈（起点 ' + startCircles + '，终点 ' + goalRings + '）');
+  click('btn3d');
   // 删除 U2（起点 600,300）→ 对应路径与标记应立即清除
   el('svg2d').fire('contextmenu', Object.assign(ev(44 + 600 * 0.694, 18 + (1000 - 300) * 0.496), { offsetX: 100, offsetY: 100 }));
   click('ctx-del-drone');
