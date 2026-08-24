@@ -469,5 +469,47 @@ test('分段风：可增删时段，回放时按时间切换风况', () => {
   assert.notEqual(body40, body10, '不同时段的风应改变飞行数据（速度/进度）');
 });
 
+test('高风速拦截与分段风超限提示，路径随风变化', () => {
+  if (el('mode-cap').textContent.includes('3D')) click('btn3d');
+  // 1) 未开启分段风：高风速应导致多机规划失败
+  el('wind-seg-on').checked = false;
+  el('wind-seg-on').fire('change');
+  el('V-num').value = '25';
+  el('wind-type').value = 'uniform';
+  click('btn-plan');
+  const fail1 = el('multi-info').textContent;
+  assert.ok(fail1.includes('无可用机型') || fail1.includes('不满足安全条件'), '高风速应无法多机规划，实际：' + fail1);
+  // 2) 开启分段风后，规划仍按当前平均风计算：高风速依然失败
+  el('wind-seg-on').checked = true;
+  el('wind-seg-on').fire('change');
+  click('wind-seg-reset');
+  click('btn-plan');
+  const fail2 = el('multi-info').textContent;
+  assert.ok(fail2.includes('无可用机型') || fail2.includes('不满足安全条件'), '开启分段风后高风速仍应失败，实际：' + fail2);
+  // 3) 恢复低风速 + 混合城区：进入超限时段应提示“风超限”
+  el('V-num').value = '5';
+  el('preset-select').value = 'mix';
+  el('preset-select').fire('change');
+  click('wind-seg-reset');
+  const speedInp2 = el('wind-seg-body').children[1].children[1].firstChild;
+  speedInp2.value = '15';
+  speedInp2.fire('change');
+  click('btn-plan');
+  el('multi-time').value = '35';
+  el('multi-time').fire('input');
+  assert.ok(el('live-body').innerHTML.includes('风超限'), '超限时段应提示风超限，实际：' + el('live-body').innerHTML);
+  // 4) 2D 下不同时段的路径/飞行状态应不同
+  el('multi-time').value = '10';
+  el('multi-time').fire('input');
+  const svg10 = el('svg2d').innerHTML;
+  el('multi-time').value = '40';
+  el('multi-time').fire('input');
+  const svg40 = el('svg2d').innerHTML;
+  assert.notEqual(svg10, svg40, '不同时段的路径/飞行状态应不同');
+  // 恢复原测试环境
+  el('preset-select').value = 'empty';
+  el('preset-select').fire('change');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

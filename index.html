@@ -1141,6 +1141,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var s=state.windSegs[i]||state.windSegs[state.windSegs.length-1];
     return {speed:s.v, dir:s.d, tAir:((s.d+180)%360)*Math.PI/180};
   }
+  function segFeasible(sw,uav){ return sw.speed<=uav.maxWind+1e-9; }
   function withWind(v,d,fn){
     var pv=state.wind.speed, pd=state.wind.dir, pt=state.wind.tAir;
     state.wind.speed=v; state.wind.dir=d; state.wind.tAir=((d+180)%360)*Math.PI/180;
@@ -1198,10 +1199,17 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var gCell=snapCell(grid,goal.x,goal.y,state.flightAlt);
     var cells=tr.cells.slice(), arr=cumDist(cells), total=arr[arr.length-1];
     var dist=0, el=0, segIdx=segIndexAt(off), done=false, lastVg=uav.cruise;
+    if(!segFeasible(segWindAt(segIdx),uav)){
+      return {waiting:false,pos:start,speed:0,cells:tr.cells,dist:0,total:cumDist(tr.cells).slice(-1)[0],done:false,blocked:true};
+    }
     while(el<own){
       var si=segIndexAt(off+el);
       if(si!==segIdx){
         segIdx=si;
+        if(!segFeasible(segWindAt(segIdx),uav)){
+          var bp=interpPos(cells,arr,dist);
+          return {waiting:false,pos:bp,speed:0,cells:cells,dist:dist,total:total,done:false,blocked:true};
+        }
         var ci=cellAtDist(cells,arr,dist), cur=decode(grid,cells[ci]);
         var sw=segWindAt(si);
         var nres=withWind(sw.speed,sw.dir,function(){ return plan(grid,{ix:cur.ix,iy:cur.iy,iz:cur.iz},gCell,true,uav); });
@@ -1779,15 +1787,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     return {cells:cells, ms:performance.now()-t0, wps:wps};
   }
   function planAll(){
-    var wPrev=null;
     try{
     if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
     readInputs();
-    if(state.windSegOn&&state.windSegs.length){
-      var w0=state.windSegs[0];
-      wPrev={s:state.wind.speed,d:state.wind.dir,t:state.wind.tAir};
-      state.wind.speed=w0.v; state.wind.dir=w0.d; state.wind.tAir=((w0.d+180)%360)*Math.PI/180;
-    }
     state.windSimCache=null;
     resetRng();
     var uav=resolveUav();
@@ -1884,8 +1886,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       els['metrics-wrap'].style.display='none';
       els['plan-msg'].textContent='规划出错：'+(err&&err.message?err.message:String(err));
       renderAll();
-    }finally{
-      if(wPrev){ state.wind.speed=wPrev.s; state.wind.dir=wPrev.d; state.wind.tAir=wPrev.t; }
     }
   }
 
@@ -2893,14 +2893,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function planMulti(){
     readInputs();
-    var wPrev=null;
-    if(state.windSegOn&&state.windSegs.length){
-      var w0=state.windSegs[0];
-      wPrev={s:state.wind.speed,d:state.wind.dir,t:state.wind.tAir};
-      state.wind.speed=w0.v; state.wind.dir=w0.d; state.wind.tAir=((w0.d+180)%360)*Math.PI/180;
-    }
     state.windSimCache=null;
-    try{
     var uav=resolveUav();
     if(!uav){ els['multi-info'].textContent='无可用机型，无法进行多机协同规划。'; return; }
     if(!uavFeasible(uav)){ els['multi-info'].textContent='所选机型不满足安全条件，无法进行多机协同规划。'; return; }
@@ -2955,9 +2948,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     renderMultiInfo();
     renderMultiData();
     renderAll();
-    }finally{
-      if(wPrev){ state.wind.speed=wPrev.s; state.wind.dir=wPrev.d; state.wind.tAir=wPrev.t; }
-    }
   }
   function startMultiPlay(){
     state.multiPlaying=true;
@@ -3222,14 +3212,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var tt=state.multiPlay-mm.offsets[idx];
         var pp=null, showDrone=false;
         if(sim&&sim[idx]){
-          if(!sim[idx].waiting&&!sim[idx].done){ pp=sim[idx].pos; showDrone=true; }
+          if(sim[idx].blocked){ pp=sim[idx].pos; showDrone=true; }
+          else if(!sim[idx].waiting&&!sim[idx].done){ pp=sim[idx].pos; showDrone=true; }
         } else if(tt>=0&&tt<=tr.duration){
           pp=trajPos(tr,tt); showDrone=true;
         }
         if(showDrone){
-          var inC=mm.conflictsAfter.some(function(cf){ return Math.abs(cf.t-state.multiPlay)<1.5&&(cf.i===idx||cf.j===idx); });
+          var blocked=(sim&&sim[idx]&&sim[idx].blocked);
+          var inC=blocked||mm.conflictsAfter.some(function(cf){ return Math.abs(cf.t-state.multiPlay)<1.5&&(cf.i===idx||cf.j===idx); });
           out+='<circle cx="'+mx(pp.x).toFixed(1)+'" cy="'+my(pp.y).toFixed(1)+'" r="8" style="fill:'+col+';stroke:'+(inC?'var(--red)':'var(--foreground)')+';stroke-width:2"/>';
-          out+='<text class="preview-label" x="'+mx(pp.x).toFixed(1)+'" y="'+(my(pp.y)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">UAV'+(idx+1)+'</text>';
+          out+='<text class="preview-label" x="'+mx(pp.x).toFixed(1)+'" y="'+(my(pp.y)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+(blocked?'var(--red)':col)+'">'+(blocked?'风超限':'UAV'+(idx+1))+'</text>';
         }
       });
       mm.conflictsAfter.forEach(function(cf){
@@ -3507,6 +3499,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     m.uavs.forEach(function(tr,idx){
       var col=MULTI_COLORS[idx%4];
       if(!tr){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">失败</span></div>'); return; }
+      if(sim&&sim[idx]&&sim[idx].blocked){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">风超限</span></div>'); return; }
       var tt=state.multiPlay-(m.offsets[idx]||0);
       if(tt<0){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">待命</span></div>'); return; }
       if(tt>tr.duration){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">完成</span></div>'); return; }
