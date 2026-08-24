@@ -688,6 +688,7 @@ test('多机回放：两架无人机都显示并运动', () => {
   el('multi-time').fire('input');
   const svg3 = el('svg2d').innerHTML;
   assert.ok(svg3.includes('>UAV1<') && svg3.includes('>UAV2<'), 't=3 时两架无人机都应显示');
+  assert.ok(!svg3.includes('>起点<') && !svg3.includes('>终点<'), '多机时不应在(0,0)出现通用起点终点标记');
   el('multi-time').value = '20';
   el('multi-time').fire('input');
   const svg20 = el('svg2d').innerHTML;

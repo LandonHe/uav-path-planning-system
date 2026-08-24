@@ -3189,7 +3189,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         out+='</g>';
       });
     }
-    if(state.drones.length){
+    if(state.drones.length===1){
       var smx=mx(state.start.x), smy=my(state.start.y);
       out+='<circle class="smark" cx="'+smx.toFixed(1)+'" cy="'+smy.toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
       out+='<text class="preview-label" x="'+smx.toFixed(1)+'" y="'+(smy-10)+'" text-anchor="middle">起点</text>';
@@ -3375,7 +3375,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         }
       });
     }
-    if(state.drones.length){
+    if(state.drones.length===1){
       var sp=P(state.start.x,state.start.y,state.flightAlt);
       out+='<circle class="smark" cx="'+sp[0].toFixed(1)+'" cy="'+sp[1].toFixed(1)+'" r="7" style="fill:var(--green);stroke:var(--foreground);stroke-width:1.5"/>';
       if(state.drones[0].gx!=null){
