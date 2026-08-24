@@ -437,5 +437,13 @@ test('自定义机型表单：双列布局且输入框可伸缩，避免裁切',
   assert.ok(htmlSrc.includes('推荐高度范围（m）'), '推荐高度范围应占整行并带单位说明');
 });
 
+test('播放控制条：位于规划图下方且样式统一', () => {
+  const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
+  const mapIdx = htmlSrc.indexOf('class="map-stage"');
+  const playIdx = htmlSrc.indexOf('id="multi-play-wrap"');
+  assert.ok(mapIdx > 0 && playIdx > mapIdx, '播放控制条应位于地图区域之后');
+  assert.ok(htmlSrc.includes('class="playbar"'), '播放控制条应有统一样式');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

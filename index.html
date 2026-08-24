@@ -319,6 +319,15 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys #cu-panel .ctl{min-width:0;}
   #uavwind-sys #cu-panel .pair input[type=number]{width:auto;flex:1;min-width:0;}
   #uavwind-sys .map-stage{position:relative;}
+  #uavwind-sys .playbar{
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    padding:8px 12px;margin-top:8px;
+    background:light-dark(rgb(255 255 255 / 82%),rgb(30 34 42 / 90%));
+    border:1px solid var(--border);border-radius:10px;
+    font-size:12px;
+  }
+  #uavwind-sys .playbar input[type=range]{flex:1;min-width:120px;accent-color:var(--blue);}
+  #uavwind-sys .playbar .cap{font-family:Consolas,Menlo,monospace;}
   #uavwind-sys .live-panel{
     position:absolute;top:38px;right:10px;z-index:40;width:268px;
     font-family:Consolas,Menlo,monospace;font-size:11px;line-height:1.6;
@@ -334,6 +343,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   #uavwind-sys .live-row.live-head2{color:var(--muted-foreground);font-weight:600;border-bottom:1px solid var(--border);padding-bottom:2px;margin-bottom:2px;}
   #uavwind-sys .live-note{grid-column:2 / 6;color:var(--muted-foreground);}
   #uavwind-sys.hud .live-panel{background:rgba(8,16,34,0.88);border-color:rgba(110,180,255,0.38);box-shadow:0 8px 24px rgb(0 0 0 / 55%),0 0 18px rgba(47,214,255,0.14);}
+  #uavwind-sys.hud .playbar{background:rgba(8,16,34,0.85);border-color:rgba(110,180,255,0.35);box-shadow:0 0 14px rgba(47,214,255,0.1);}
 </style>
 <h2>风扰环境下城市低空无人机路径规划系统 <span class="hud-status">● 系统在线</span></h2>
 <div class="hud-bar" id="hud-bar"></div>
@@ -825,15 +835,6 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
           </table>
         </div>
       </div>
-      <div id="multi-play-wrap" style="display:none">
-        <div class="pair">
-          <button type="button" id="multi-play" class="btn">▶ 播放</button>
-          <input type="range" id="multi-time" min="0" max="100" step="1" value="0">
-          <span class="cap" id="multi-clock">t = 0 s</span>
-        </div>
-        <div class="cap" id="multi-conflict-info"></div>
-        <div class="cap" id="multi-conflict-list"></div>
-      </div>
       <span class="cap text-small">代价 = 时间 + λE×能耗 + λR×风风险 + λT×转弯惩罚；地速 = 空速 ± 风速分量，逆风绕行、顺风直行，必要时爬升越障。</span>
     </div>
   </div>
@@ -894,6 +895,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       <div id="view-3d" style="display:none">
       <svg id="svg3d" viewBox="0 0 760 540" width="100%" height="auto" role="img" aria-label="系统三维视图"></svg>
       </div>
+    </div>
+    <div id="multi-play-wrap" class="playbar" style="display:none">
+      <button type="button" id="multi-play" class="btn">▶ 播放</button>
+      <input type="range" id="multi-time" min="0" max="100" step="1" value="0">
+      <span class="cap" id="multi-clock">t = 0 s</span>
+      <span class="cap" id="multi-conflict-info"></span>
+      <span class="cap" id="multi-conflict-list"></span>
     </div>
     <div class="legend-row">
       <span class="cap text-small">· 蓝实线 = 风感知路径</span>
