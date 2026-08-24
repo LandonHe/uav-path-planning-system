@@ -675,5 +675,26 @@ test('起点/终点：鼠标左键可自由拖拽移动', () => {
   assert.equal(el('multi-body').children[0].children[5].firstChild.value, '520', '拖拽后终点 Y 应更新');
 });
 
+test('多机回放：两架无人机都显示并运动', () => {
+  // 复位第2架悬停为0，避免固定翼含悬停失败
+  const row1 = el('drone-info-body').children[1];
+  const hoverInp1 = row1.children[6].firstChild;
+  hoverInp1.value = '0';
+  hoverInp1.fire('change');
+  el('V-num').value = '5';
+  click('btn-plan');
+  assert.ok(el('multi-info').textContent.includes('多机协同'), '应完成多机规划');
+  el('multi-time').value = '3';
+  el('multi-time').fire('input');
+  const svg3 = el('svg2d').innerHTML;
+  assert.ok(svg3.includes('>UAV1<') && svg3.includes('>UAV2<'), 't=3 时两架无人机都应显示');
+  el('multi-time').value = '20';
+  el('multi-time').fire('input');
+  const svg20 = el('svg2d').innerHTML;
+  assert.notEqual(svg3, svg20, '播放过程中标记应移动');
+  const live = el('live-body').innerHTML;
+  assert.ok(live.includes('U1') && live.includes('U2'), '遥测应显示两架无人机');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
