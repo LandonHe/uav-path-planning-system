@@ -876,7 +876,13 @@
     {id:'vtol',name:'复合翼',maxWind:12,load:4,cruise:20,hoverW:600,cruiseWh100:0.50,climbWh10:0.30,endurance:50,launchCost:2.5,canHover:true,altRange:{min:5,max:300},source:'内置示例参数：参考复合翼(VTOL)公开量级设定，正式研究请以实测标定为准'},
     {id:'octo',name:'重载八旋翼',maxWind:10,load:8,cruise:12,hoverW:2000,cruiseWh100:2.20,climbWh10:0.35,endurance:30,launchCost:3.5,canHover:true,altRange:{min:5,max:120},source:'内置示例参数：参考重载八旋翼公开量级设定，正式研究请以实测标定为准'},
     {id:'patrol',name:'安防巡检六旋翼',maxWind:12,load:2,cruise:14,hoverW:350,cruiseWh100:0.80,climbWh10:0.18,endurance:40,launchCost:1.5,canHover:true,altRange:{min:5,max:150},source:'内置示例参数：参考安防巡检六旋翼公开量级设定，正式研究请以实测标定为准'},
-    {id:'survey',name:'长航时测绘固定翼',maxWind:12,load:1,cruise:22,hoverW:0,cruiseWh100:0.28,climbWh10:0.12,endurance:120,launchCost:2.5,canHover:false,altRange:{min:30,max:300},source:'内置示例参数：参考长航时测绘固定翼公开量级设定，正式研究请以实测标定为准'}
+    {id:'survey',name:'长航时测绘固定翼',maxWind:12,load:1,cruise:22,hoverW:0,cruiseWh100:0.28,climbWh10:0.12,endurance:120,launchCost:2.5,canHover:false,altRange:{min:30,max:300},source:'内置示例参数：参考长航时测绘固定翼公开量级设定，正式研究请以实测标定为准'},
+    {id:'dji-fc30',name:'大疆 FlyCart 30（物流运输）',maxWind:12,load:30,cruise:15,hoverW:9000,cruiseWh100:12,climbWh10:3.7,endurance:30,launchCost:6,canHover:true,altRange:{min:5,max:500},source:'参考大疆官方公开参数：最大载重30kg、抗风12m/s、巡航15m/s、空载航程28km/满载16km；能耗按电池容量与航程量级估算'},
+    {id:'sf-ark80',name:'丰翼方舟 ARK80（中长距物流）',maxWind:13.9,load:30,cruise:25,hoverW:9000,cruiseWh100:6,climbWh10:4.7,endurance:40,launchCost:5,canHover:true,altRange:{min:10,max:500},source:'参考丰翼科技公开参数：最大起飞重量120kg、载重20–30kg（20kg/60km、30kg/30km）、巡航90km/h、抗风≤13.9m/s（7级风）；能耗按量级估算'},
+    {id:'dji-t50',name:'大疆 T50（农业植保）',maxWind:6,load:40,cruise:8,hoverW:8500,cruiseWh100:16,climbWh10:3.6,endurance:15,launchCost:3,canHover:true,altRange:{min:2,max:50},source:'参考大疆农业公开参数：最大喷洒起飞重量92kg、40L喷洒/50kg播撒、最大作业速度10m/s、抗风6m/s；能耗按量级估算'},
+    {id:'dji-m350',name:'大疆 Matrice 350 RTK（工业巡检）',maxWind:12,load:2.7,cruise:10,hoverW:1800,cruiseWh100:2,climbWh10:0.45,endurance:55,launchCost:2.5,canHover:true,altRange:{min:5,max:300},source:'参考大疆行业公开参数：最大起飞重量9.2kg、载重2.7kg、最大速度23m/s、抗风12m/s、续航55min；巡航取典型作业速度，能耗按量级估算'},
+    {id:'eh216-s',name:'亿航 EH216-S（载人 eVTOL）',maxWind:10.8,load:220,cruise:25,hoverW:60000,cruiseWh100:22,climbWh10:26,endurance:25,launchCost:10,canHover:true,altRange:{min:10,max:120},source:'参考亿航公开参数：最大起飞重量620kg、载2人（220kg级）、最大设计速度130km/h/巡航90km/h、航程30km、续航25min、运行高度≤120m；抗风按“六级风以下”运行要求取值，能耗按量级估算'},
+    {id:'v2000cg',name:'峰飞 V2000CG 凯瑞鸥（吨级货运 eVTOL）',maxWind:16,load:400,cruise:55,hoverW:160000,cruiseWh100:58,climbWh10:84,endurance:70,launchCost:15,canHover:true,altRange:{min:30,max:1000},source:'参考峰飞航空公开参数：最大起飞重量2t、商载400kg、巡航200km/h、适用航程200km（2024年3月获TC）；抗风16m/s为平潭实测（7级大风环境），能耗按量级估算'}
   ];
   var CUSTOM_TYPES=[];
   function loadCustomTypes(){

@@ -783,5 +783,20 @@ test('布局：四模块在左侧栏、切换按钮可用、主题键在地图�
   assert.ok(!root.classList.contains('map-only'), '再次点击应展开');
 });
 
+test('低空经济机型库：新增真实市场机型且关键参数与公开数据一致', () => {
+  const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
+  assert.ok(htmlSrc.includes("id:'dji-fc30'"), '应包含大疆 FlyCart 30（物流运输）');
+  assert.ok(htmlSrc.includes("id:'sf-ark80'"), '应包含丰翼方舟 ARK80（中长距物流）');
+  assert.ok(htmlSrc.includes("id:'dji-t50'"), '应包含大疆 T50（农业植保）');
+  assert.ok(htmlSrc.includes("id:'dji-m350'"), '应包含大疆 Matrice 350 RTK（工业巡检）');
+  assert.ok(htmlSrc.includes("id:'eh216-s'"), '应包含亿航 EH216-S（载人 eVTOL）');
+  assert.ok(htmlSrc.includes("id:'v2000cg'"), '应包含峰飞 V2000CG 凯瑞鸥（吨级货运 eVTOL）');
+  assert.ok(htmlSrc.includes("maxWind:12,load:30,cruise:15"), 'FlyCart 30 参数应与官方一致（抗风12 m/s、载重30 kg、巡航15 m/s）');
+  assert.ok(htmlSrc.includes("maxWind:13.9,load:30,cruise:25"), 'ARK80 参数应与公开一致（抗风13.9 m/s、载重30 kg、巡航25 m/s）');
+  assert.ok(htmlSrc.includes("maxWind:16,load:400,cruise:55"), 'V2000CG 参数应合理（抗风16 m/s、商载400 kg、巡航55 m/s）');
+  assert.ok(htmlSrc.includes("altRange:{min:10,max:120}"), 'EH216-S 运行高度上限应≤120 m');
+  assert.ok(htmlSrc.includes("source:'参考大疆官方公开参数"), 'FlyCart 30 应标注官方数据来源');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
