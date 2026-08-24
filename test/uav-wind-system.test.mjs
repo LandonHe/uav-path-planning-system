@@ -225,6 +225,7 @@ test('导出结果：规划后生成含基本信息/指标/航点的 CSV', () =>
   el('preset-select').value = 'empty';
   fire('preset-select', 'change');
   el('region-x').value = '1000'; el('region-y').value = '1000'; el('region-z').value = '120';
+  el('region-x').fire('change'); // 让 state.region 生效，地图坐标换算才正确
   el('V-num').value = '5';
   el('wind-type').value = 'uniform';
   el('res-select').value = '20';
@@ -235,6 +236,12 @@ test('导出结果：规划后生成含基本信息/指标/航点的 CSV', () =>
   el('alg-base').checked = true;
   el('alg-rrt').checked = true;
   el('alg-pso').checked = false;
+  // 新规则：必须先通过右键添加无人机（起点+终点）才能规划
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 100 * 0.694, 18 + (1000 - 100) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'hexa';
+  click('uav-modal-ok');
+  el('svg2d').fire('click', ev(44 + 900 * 0.694, 18 + (1000 - 900) * 0.496));
   click('btn-plan');
   const msg = el('plan-msg').textContent;
   assert.ok(!msg.includes('规划出错'), '规划不应报错，实际：' + msg);
@@ -255,6 +262,9 @@ test('导出结果：规划后生成含基本信息/指标/航点的 CSV', () =>
   if (process.env.DUMP_CSV) {
     fs.writeFileSync(process.env.DUMP_CSV, csv, 'utf8');
   }
+  // 清理：删除本测试添加的无人机，恢复 0 架状态
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 100 * 0.694, 18 + (1000 - 100) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-del-drone');
 });
 
 // T6: right-click on the 2D map opens a context menu with three add options.
@@ -520,10 +530,27 @@ test('单机规划：高风速被拦截并提示机型抗风不足', () => {
   el('wind-seg-on').checked = false;
   el('wind-seg-on').fire('change');
   el('V-num').value = '25';
+  // 添加一架无人机（起点 400,400 / 终点 500,500），再测高风速拦截
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 400 * 0.694, 18 + (1000 - 400) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'quad';
+  click('uav-modal-ok');
+  el('svg2d').fire('click', ev(44 + 500 * 0.694, 18 + (1000 - 500) * 0.496));
   click('btn-plan');
   const msg = el('plan-msg').textContent;
   assert.ok(msg.includes('未执行') && (msg.includes('不满足安全条件') || msg.includes('无可用机型')), '高风速应拦截单机规划，实际：' + msg);
-  assert.ok(el('plan-mode').textContent.includes('单机规划（0 架）'), '删除无人机后应为单机模式');
+  assert.ok(el('plan-mode').textContent.includes('单机规划（1 架）'), '应处于单机规划（1 架）模式');
+});
+
+test('无无人机时：不显示起点终点，点击规划提示先添加无人机', () => {
+  // 删除上一测试添加的无人机
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 400 * 0.694, 18 + (1000 - 400) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-del-drone');
+  assert.ok(el('plan-mode').textContent.includes('单机规划（0 架）'), '应为 0 架');
+  const svg = el('svg2d').innerHTML;
+  assert.ok(!svg.includes('>起点<') && !svg.includes('>终点<'), '无无人机时不应标注起点终点');
+  click('btn-plan');
+  assert.ok(el('plan-msg').textContent.includes('添加无人机'), '无无人机时规划应被拦截，实际：' + el('plan-msg').textContent);
 });
 
 test('地图下方显示各无人机机型与基本信息', () => {
