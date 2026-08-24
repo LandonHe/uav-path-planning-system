@@ -511,5 +511,20 @@ test('高风速拦截与分段风超限提示，路径随风变化', () => {
   el('preset-select').fire('change');
 });
 
+test('单机规划：高风速被拦截并提示机型抗风不足', () => {
+  // 删除所有无人机，回到单机规划
+  [[225, 633], [945, 432]].forEach(p => {
+    el('svg2d').fire('contextmenu', Object.assign(ev(44 + p[0] * 0.694, 18 + (1000 - p[1]) * 0.496), { offsetX: 100, offsetY: 100 }));
+    click('ctx-del-drone');
+  });
+  el('wind-seg-on').checked = false;
+  el('wind-seg-on').fire('change');
+  el('V-num').value = '25';
+  click('btn-plan');
+  const msg = el('plan-msg').textContent;
+  assert.ok(msg.includes('未执行') && (msg.includes('不满足安全条件') || msg.includes('无可用机型')), '高风速应拦截单机规划，实际：' + msg);
+  assert.ok(el('plan-mode').textContent.includes('单机规划（0 架）'), '删除无人机后应为单机模式');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
