@@ -3230,7 +3230,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     var rx=state.region.x, ry=state.region.y, rz=state.region.z;
     function proj(x,y,z){
       var xr=x*cos-y*sin, yr=x*sin+y*cos;
-      return {x:xr, y:-(yr*cosE-z*sinE)};
+      return {x:xr, y:-(yr*cosE+z*sinE)};
     }
     var ext=[[0,0,0],[rx,0,0],[0,ry,0],[rx,ry,0],[rx/2,ry/2,rz]];
     var minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
