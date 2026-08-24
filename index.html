@@ -969,7 +969,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function allTypes(){ return TYPES.concat(CUSTOM_TYPES); }
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
-  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,showLive:true,windSegOn:false,windSegs:[],pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:45,elevation:55,showLive:true,windSegOn:false,windSegs:[],windSimCache:null,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
   ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-name','obs-x','obs-y','obs-l','obs-w','obs-h','add-obs','clear-obs','obs-body','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','load-num','hover-min','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','start-x','start-y','goal-x','goal-y','btn-plan','export-results','btn3d','az-wrap','az-range','az-val','mode-cap','plan-mode','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','theme-toggle','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','nf-toggle','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','seed-check','seed-num','auto-plan','field-arrows','nf-toggle','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','pick-nf','add-nf','clear-nf','nf-name','nf-x','nf-y','nf-l','nf-w','nf-z1','nf-z2','nf-body','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','smooth-method','turn-radius','max-acc','show-cpts','smooth-info','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
@@ -1132,6 +1132,97 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     }
     return {speed:state.wind.speed, dir:state.wind.dir};
   }
+  function segIndexAt(t){
+    var idx=0;
+    for(var i=0;i<state.windSegs.length;i++){ if(t>=state.windSegs[i].t) idx=i; else break; }
+    return idx;
+  }
+  function segWindAt(i){
+    var s=state.windSegs[i]||state.windSegs[state.windSegs.length-1];
+    return {speed:s.v, dir:s.d, tAir:((s.d+180)%360)*Math.PI/180};
+  }
+  function withWind(v,d,fn){
+    var pv=state.wind.speed, pd=state.wind.dir, pt=state.wind.tAir;
+    state.wind.speed=v; state.wind.dir=d; state.wind.tAir=((d+180)%360)*Math.PI/180;
+    try{ return fn(); } finally {
+      state.wind.speed=pv; state.wind.dir=pd; state.wind.tAir=pt;
+    }
+  }
+  function cumDist(cells){
+    var g=state.multi?state.multi.grid:state.results?state.results.grid:null;
+    var arr=[0],d=0;
+    for(var i=1;i<cells.length;i++){
+      var a=decode(g,cells[i-1]), b=decode(g,cells[i]);
+      d+=Math.sqrt(Math.pow((b.ix-a.ix)*state.res,2)+Math.pow((b.iy-a.iy)*state.res,2)+Math.pow((b.iz-a.iz)*state.res,2));
+      arr.push(d);
+    }
+    return arr;
+  }
+  function cellAtDist(cells,arr,dist){
+    var lo=0, hi=arr.length-1;
+    while(lo<hi){ var mid=(lo+hi+1)>>1; if(arr[mid]<=dist) lo=mid; else hi=mid-1; }
+    return lo;
+  }
+  function interpPos(cells,arr,dist){
+    var g=state.multi?state.multi.grid:state.results?state.results.grid:null;
+    var i=cellAtDist(cells,arr,dist), j=Math.min(i+1,cells.length-1);
+    var a=decode(g,cells[i]), b=decode(g,cells[j]);
+    var den=arr[j]-arr[i]||1, f=Math.max(0,Math.min(1,(dist-arr[i])/den));
+    return {
+      x:((a.ix+0.5)+((b.ix-a.ix)*f))*state.res,
+      y:((a.iy+0.5)+((b.iy-a.iy)*f))*state.res,
+      z:((a.iz+0.5)+((b.iz-a.iz)*f))*state.res
+    };
+  }
+  function groundSpeedAt(cells,arr,dist,sw,uav){
+    var g=state.multi?state.multi.grid:state.results?state.results.grid:null;
+    var i=cellAtDist(cells,arr,dist), j=Math.min(i+1,cells.length-1);
+    var a=decode(g,cells[i]), b=decode(g,cells[j]);
+    var dx=(b.ix-a.ix)*state.res, dy=(b.iy-a.iy)*state.res;
+    var horiz=Math.sqrt(dx*dx+dy*dy);
+    if(horiz<1e-9) return uav.cruise;
+    var wAlong=sw.speed*(Math.sin(sw.tAir)*(dx/horiz)+Math.cos(sw.tAir)*(dy/horiz));
+    var vg=Math.max(0.5,uav.cruise+wAlong);
+    if(state.windType==='turbulent'||state.windType==='mix') vg=Math.max(0.5,vg*(1-state.wind.turb*0.6));
+    return vg;
+  }
+  function simOneUav(idx,t,m){
+    var tr=m.uavs[idx];
+    if(!tr) return null;
+    var uav=(m.uavList&&m.uavList[idx])||m.uav;
+    var off=m.offsets[idx]||0, own=t-off;
+    var start={x:tr.start.x,y:tr.start.y,z:state.flightAlt};
+    if(own<=0) return {waiting:true,pos:start,speed:0,cells:tr.cells,dist:0,total:cumDist(tr.cells).slice(-1)[0],done:false};
+    var grid=m.grid;
+    var goal={x:tr.goal.x,y:tr.goal.y};
+    var gCell=snapCell(grid,goal.x,goal.y,state.flightAlt);
+    var cells=tr.cells.slice(), arr=cumDist(cells), total=arr[arr.length-1];
+    var dist=0, el=0, segIdx=segIndexAt(off), done=false, lastVg=uav.cruise;
+    while(el<own){
+      var si=segIndexAt(off+el);
+      if(si!==segIdx){
+        segIdx=si;
+        var ci=cellAtDist(cells,arr,dist), cur=decode(grid,cells[ci]);
+        var sw=segWindAt(si);
+        var nres=withWind(sw.speed,sw.dir,function(){ return plan(grid,{ix:cur.ix,iy:cur.iy,iz:cur.iz},gCell,true,uav); });
+        if(nres){ cells=nres.cells.slice(); arr=cumDist(cells); total=arr[arr.length-1]; dist=0; }
+      }
+      var sw2=segWindAt(segIdx);
+      var vg=groundSpeedAt(cells,arr,dist,sw2,uav);
+      lastVg=vg;
+      var dt=Math.min(0.1,own-el);
+      dist+=vg*dt; el+=dt;
+      if(dist>=total){ done=true; dist=total; break; }
+    }
+    return {waiting:false,pos:interpPos(cells,arr,dist),speed:done?0:lastVg,cells:cells,dist:dist,total:total,done:done};
+  }
+  function windSimAt(t){
+    if(!state.windSegOn||!state.multi||!state.windSegs.length) return null;
+    if(state.windSimCache&&state.windSimCache.t===t) return state.windSimCache.data;
+    var data=state.multi.uavs.map(function(tr,idx){ return simOneUav(idx,t,state.multi); });
+    state.windSimCache={t:t,data:data};
+    return data;
+  }
   function renderWindSegTable(){
     var tb=els['wind-seg-body'];
     tb.innerHTML='';
@@ -1152,6 +1243,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
             if(isFinite(v)){
               if(key==='d') v=((Math.round(v)%360)+360)%360;
               state.windSegs[ii][key]=Math.max(0,v);
+              state.windSimCache=null;
             }
           });
         })(i,f[0]);
@@ -1159,18 +1251,20 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       });
       var td=document.createElement('td');
       var bd=document.createElement('button'); bd.type='button'; bd.className='btn'; bd.textContent='删除';
-      bd.addEventListener('click',function(){ state.windSegs.splice(i,1); renderWindSegTable(); inputChanged(); });
+      bd.addEventListener('click',function(){ state.windSegs.splice(i,1); state.windSimCache=null; renderWindSegTable(); inputChanged(); });
       td.appendChild(bd); tr.appendChild(td); tb.appendChild(tr);
     });
   }
   function addWindSeg(){
     var last=state.windSegs.length?state.windSegs[state.windSegs.length-1].t:0;
     state.windSegs.push({t:last+30, v:state.wind.speed||5, d:state.wind.dir||90});
+    state.windSimCache=null;
     renderWindSegTable();
     inputChanged();
   }
   function resetWindSegs(){
     state.windSegs=[{t:0,v:5,d:90},{t:30,v:8,d:180},{t:60,v:12,d:270}];
+    state.windSimCache=null;
     renderWindSegTable();
     inputChanged();
   }
@@ -1685,9 +1779,16 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     return {cells:cells, ms:performance.now()-t0, wps:wps};
   }
   function planAll(){
+    var wPrev=null;
     try{
     if(autoTimer){ clearTimeout(autoTimer); autoTimer=null; }
     readInputs();
+    if(state.windSegOn&&state.windSegs.length){
+      var w0=state.windSegs[0];
+      wPrev={s:state.wind.speed,d:state.wind.dir,t:state.wind.tAir};
+      state.wind.speed=w0.v; state.wind.dir=w0.d; state.wind.tAir=((w0.d+180)%360)*Math.PI/180;
+    }
+    state.windSimCache=null;
     resetRng();
     var uav=resolveUav();
     if(!uav){
@@ -1783,6 +1884,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       els['metrics-wrap'].style.display='none';
       els['plan-msg'].textContent='规划出错：'+(err&&err.message?err.message:String(err));
       renderAll();
+    }finally{
+      if(wPrev){ state.wind.speed=wPrev.s; state.wind.dir=wPrev.d; state.wind.tAir=wPrev.t; }
     }
   }
 
@@ -2790,6 +2893,14 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   }
   function planMulti(){
     readInputs();
+    var wPrev=null;
+    if(state.windSegOn&&state.windSegs.length){
+      var w0=state.windSegs[0];
+      wPrev={s:state.wind.speed,d:state.wind.dir,t:state.wind.tAir};
+      state.wind.speed=w0.v; state.wind.dir=w0.d; state.wind.tAir=((w0.d+180)%360)*Math.PI/180;
+    }
+    state.windSimCache=null;
+    try{
     var uav=resolveUav();
     if(!uav){ els['multi-info'].textContent='无可用机型，无法进行多机协同规划。'; return; }
     if(!uavFeasible(uav)){ els['multi-info'].textContent='所选机型不满足安全条件，无法进行多机协同规划。'; return; }
@@ -2809,6 +2920,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       var res=plan(grid,s,g,true,du);
       if(!res){ uavs.push(null); uavList.push(du); failed++; continue; }
       var tr=uavTrajectory(grid,res.cells,du);
+      tr.cells=res.cells.slice();
       tr.pts[0]={x:r.x1,y:r.y1,z:state.flightAlt};
       tr.pts[tr.pts.length-1]={x:r.x2,y:r.y2,z:state.flightAlt};
       tr.start={x:r.x1,y:r.y1}; tr.goal={x:r.x2,y:r.y2};
@@ -2843,6 +2955,9 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     renderMultiInfo();
     renderMultiData();
     renderAll();
+    }finally{
+      if(wPrev){ state.wind.speed=wPrev.s; state.wind.dir=wPrev.d; state.wind.tAir=wPrev.t; }
+    }
   }
   function startMultiPlay(){
     state.multiPlaying=true;
@@ -3084,10 +3199,20 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     }
     if(state.multi){
       var mm=state.multi;
+      var sim=windSimAt(state.multiPlay);
       mm.uavs.forEach(function(tr,idx){
         if(!tr) return;
         var col=MULTI_COLORS[idx%4];
-        var mpts=tr.pts.map(function(p){ return mx(p.x)+','+my(p.y); });
+        var routePts;
+        if(sim&&sim[idx]&&!sim[idx].waiting){
+          routePts=sim[idx].cells.map(function(c){
+            var d=decode(grid,c);
+            return {x:(d.ix+0.5)*state.res, y:(d.iy+0.5)*state.res};
+          });
+        } else {
+          routePts=tr.pts;
+        }
+        var mpts=routePts.map(function(p){ return mx(p.x).toFixed(1)+','+my(p.y).toFixed(1); });
         out+='<polyline class="path-halo" points="'+mpts.join(' ')+'"/>';
         out+='<polyline class="multi-path" points="'+mpts.join(' ')+'" style="stroke:'+col+'"/>';
         out+='<circle cx="'+mx(tr.start.x).toFixed(1)+'" cy="'+my(tr.start.y).toFixed(1)+'" r="5" style="fill:'+col+';stroke:var(--foreground);stroke-width:1"/>';
@@ -3095,8 +3220,13 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         out+='<text class="preview-label" x="'+mx(tr.start.x).toFixed(1)+'" y="'+(my(tr.start.y)+16).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">起点'+(idx+1)+'</text>';
         out+='<text class="preview-label" x="'+mx(tr.goal.x).toFixed(1)+'" y="'+(my(tr.goal.y)+16).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">终点'+(idx+1)+'</text>';
         var tt=state.multiPlay-mm.offsets[idx];
-        if(tt>=0&&tt<=tr.duration){
-          var pp=trajPos(tr,tt);
+        var pp=null, showDrone=false;
+        if(sim&&sim[idx]){
+          if(!sim[idx].waiting&&!sim[idx].done){ pp=sim[idx].pos; showDrone=true; }
+        } else if(tt>=0&&tt<=tr.duration){
+          pp=trajPos(tr,tt); showDrone=true;
+        }
+        if(showDrone){
           var inC=mm.conflictsAfter.some(function(cf){ return Math.abs(cf.t-state.multiPlay)<1.5&&(cf.i===idx||cf.j===idx); });
           out+='<circle cx="'+mx(pp.x).toFixed(1)+'" cy="'+my(pp.y).toFixed(1)+'" r="8" style="fill:'+col+';stroke:'+(inC?'var(--red)':'var(--foreground)')+';stroke-width:2"/>';
           out+='<text class="preview-label" x="'+mx(pp.x).toFixed(1)+'" y="'+(my(pp.y)-12).toFixed(1)+'" text-anchor="middle" style="fill:'+col+'">UAV'+(idx+1)+'</text>';
@@ -3373,16 +3503,24 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
       var wSeg=windAtTime(state.multiPlay);
       if(wSeg) rows.push('<div class="live-note" style="grid-column:1 / -1">风 '+wSeg.speed.toFixed(1)+' m/s · 风向 '+wSeg.dir.toFixed(0)+'°</div>');
     }
+    var sim=windSimAt(state.multiPlay);
     m.uavs.forEach(function(tr,idx){
       var col=MULTI_COLORS[idx%4];
       if(!tr){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">失败</span></div>'); return; }
       var tt=state.multiPlay-(m.offsets[idx]||0);
       if(tt<0){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">待命</span></div>'); return; }
       if(tt>tr.duration){ rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span class="live-note">完成</span></div>'); return; }
-      var p1=trajPos(tr,tt), p0=trajPos(tr,Math.max(0,tt-0.5));
-      var spd=dist3(p1,p0)/Math.max(0.001,tt-Math.max(0,tt-0.5));
-      var pct=tr.duration>0?(tt/tr.duration*100):100;
-      rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span>'+spd.toFixed(1)+' m/s</span><span>'+p1.z.toFixed(0)+' m</span><span>'+tt.toFixed(0)+' s</span><span>'+pct.toFixed(0)+'%</span></div>');
+      var spd, alt, pct;
+      if(sim&&sim[idx]&&!sim[idx].waiting){
+        spd=sim[idx].speed; alt=sim[idx].pos.z;
+        pct=sim[idx].total>0?(sim[idx].dist/sim[idx].total*100):100;
+      } else {
+        var p1=trajPos(tr,tt), p0=trajPos(tr,Math.max(0,tt-0.5));
+        spd=dist3(p1,p0)/Math.max(0.001,tt-Math.max(0,tt-0.5));
+        alt=p1.z;
+        pct=tr.duration>0?(tt/tr.duration*100):100;
+      }
+      rows.push('<div class="live-row"><span style="color:'+col+'">U'+(idx+1)+'</span><span>'+spd.toFixed(1)+' m/s</span><span>'+alt.toFixed(0)+' m</span><span>'+tt.toFixed(0)+' s</span><span>'+pct.toFixed(0)+'%</span></div>');
     });
     document.getElementById('live-body').innerHTML=rows.join('');
   }
@@ -3758,6 +3896,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     els['dir-num'].addEventListener('change',function(){ var v=Math.min(360,Math.max(0,parseFloat(els['dir-num'].value)||0)); els['dir-range'].value=v; inputChanged(); });
     els['wind-seg-on'].addEventListener('change',function(){
       state.windSegOn=els['wind-seg-on'].checked;
+      state.windSimCache=null;
       els['wind-seg-wrap'].style.display=state.windSegOn?'':'none';
       renderWindSegTable();
       inputChanged();

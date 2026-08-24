@@ -165,6 +165,7 @@ function test(name, fn) {
   } catch (e) {
     failed++;
     console.log('FAIL ' + name + ' :: ' + e.message);
+    if (e.stack) console.log(e.stack.split('\n').slice(0, 6).join('\n'));
   }
 }
 
@@ -460,7 +461,12 @@ test('分段风：可增删时段，回放时按时间切换风况', () => {
   assert.ok(body.includes('180°'), 't=40 应显示第二段风向 180°');
   el('multi-time').value = '10';
   el('multi-time').fire('input');
-  assert.ok(el('live-body').innerHTML.includes('风 5.0 m/s'), 't=10 应显示第一段风速 5.0 m/s');
+  const body10 = el('live-body').innerHTML;
+  assert.ok(body10.includes('风 5.0 m/s'), 't=10 应显示第一段风速 5.0 m/s');
+  el('multi-time').value = '40';
+  el('multi-time').fire('input');
+  const body40 = el('live-body').innerHTML;
+  assert.notEqual(body40, body10, '不同时段的风应改变飞行数据（速度/进度）');
 });
 
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
