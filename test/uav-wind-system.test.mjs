@@ -696,5 +696,50 @@ test('多机回放：两架无人机都显示并运动', () => {
   assert.ok(live.includes('U1') && live.includes('U2'), '遥测应显示两架无人机');
 });
 
+test('建筑绕行：飞行高度低于建筑时路径应绕行', () => {
+  if (el('mode-cap').textContent.includes('3D')) click('btn3d');
+  // 清空两架已知位置的无人机（U1 起点 340,340；U2 起点 600,300）
+  [[340, 340], [600, 300]].forEach(p => {
+    el('svg2d').fire('contextmenu', Object.assign(ev(44 + p[0] * 0.694, 18 + (1000 - p[1]) * 0.496), { offsetX: 100, offsetY: 100 }));
+    click('ctx-del-drone');
+  });
+  el('preset-select').value = 'mix';
+  el('preset-select').fire('change');
+  el('flight-alt').value = '40';
+  el('flight-alt').fire('change');
+  el('wind-seg-on').checked = false;
+  el('wind-seg-on').fire('change');
+  el('V-num').value = '5';
+  // 在路径正中间放一座超高建筑（200×200×150m，阻挡所有高度层）
+  click('ctx-build');
+  el('svg2d').fire('mousedown', ev(44 + 400 * 0.694, 18 + (1000 - 400) * 0.496));
+  el('svg2d').fire('mousemove', ev(44 + 600 * 0.694, 18 + (1000 - 600) * 0.496));
+  el('svg2d').fire('mouseup', ev(44 + 600 * 0.694, 18 + (1000 - 600) * 0.496));
+  el('build-h').value = '150';
+  click('build-ok');
+  // 添加一架无人机：起点 (100,100)，终点 (900,900)，横穿混合城区
+  el('svg2d').fire('contextmenu', Object.assign(ev(44 + 100 * 0.694, 18 + (1000 - 100) * 0.496), { offsetX: 100, offsetY: 100 }));
+  click('ctx-uav');
+  el('uav-modal-select').value = 'hexa';
+  click('uav-modal-ok');
+  el('svg2d').fire('click', ev(44 + 900 * 0.694, 18 + (1000 - 900) * 0.496));
+  click('btn-plan');
+  const svg = el('svg2d').innerHTML;
+  const mp = svg.indexOf('path-main');
+  assert.ok(mp >= 0, '应生成风感知路径，msg=' + el('plan-msg').textContent);
+  clearDownloads();
+  click('export-results');
+  const csv = downloads.length ? downloads[0].parts.join('') : '';
+  const mLine = csv.split('\r\n').find(l => l.startsWith('风感知 A*（本文方法）,成功'));
+  const awLen = mLine ? parseFloat(mLine.split(',')[2]) : 0;
+  const straight = Math.sqrt(800 * 800 + 800 * 800);
+  assert.ok(awLen > straight * 1.08, '路径应绕行（长度 ' + awLen.toFixed(0) + ' m vs 直线 ' + straight.toFixed(0) + ' m）');
+  // 恢复
+  el('preset-select').value = 'empty';
+  el('preset-select').fire('change');
+  el('flight-alt').value = '80';
+  el('flight-alt').fire('change');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

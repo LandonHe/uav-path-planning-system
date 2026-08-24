@@ -2435,15 +2435,19 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
   function lerpPts(a,b,t){ return {x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t, z:a.z+(b.z-a.z)*t}; }
   function smoothPts2D(pts){
     if(!pts||pts.length<3) return pts;
-    var n=Math.max(10,pts.length*6);
-    var out=[];
-    for(var i=0;i<=n;i++){
-      var u=i/n;
-      var q=bsplineDeBoor(pts,3,u);
-      out.push({x:q.x,y:q.y});
+    var p=pts;
+    for(var it=0;it<2;it++){
+      var out=[];
+      for(var i=0;i<p.length-1;i++){
+        var a=p[i], b=p[i+1];
+        out.push({x:a.x*0.75+b.x*0.25, y:a.y*0.75+b.y*0.25});
+        out.push({x:a.x*0.25+b.x*0.75, y:a.y*0.25+b.y*0.75});
+      }
+      out.push(p[p.length-1]);
+      p=out;
     }
-    out[0]=pts[0]; out[out.length-1]=pts[pts.length-1];
-    return out;
+    p[0]=pts[0]; p[p.length-1]=pts[pts.length-1];
+    return p;
   }
   function ptOnPath(pts, frac){
     if(!pts||!pts.length) return null;
@@ -3406,6 +3410,8 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
     if(Math.abs(state.wind.wz)>1e-9) s+=' · 垂直风 '+state.wind.wz.toFixed(1)+' m/s';
     if(state.wind.profile) s+=' · 幂律 α='+state.wind.alpha.toFixed(2);
     s+='；空域 '+state.region.x.toFixed(0)+'×'+state.region.y.toFixed(0)+'×'+state.region.z.toFixed(0)+' m · 栅格 '+state.res+' m（'+grid.nx+'×'+grid.ny+'×'+grid.nz+'）· 占用格 '+occCount+' · 风险格 '+riskCount+' · 障碍物 '+state.buildings.length+' 个 · 禁飞区 '+state.noFly.length+' 个';
+    var lowCnt=state.buildings.filter(function(b){ return b.h<state.flightAlt; }).length;
+    if(lowCnt) s+=' · '+lowCnt+' 栋建筑低于飞行高度（可越障，路径为直线属正常）';
     s+=' · 查看层 '+state.sliceAlt.toFixed(0)+' m';
     if(state.showFly){
       var fuav=resolveUav();
@@ -4183,7 +4189,7 @@ OK: map+extras OK: legend OK: table OK: number OK: range OK: inline OK: headings
         var x0=Math.min(a.x,b.x), x1=Math.max(a.x,b.x), y0=Math.min(a.y,b.y), y1=Math.max(a.y,b.y);
         if(x1-x0>=5&&y1-y0>=5){
           state.pendingRect={x:(x0+x1)/2,y:(y0+y1)/2,l:x1-x0,w:y1-y0};
-          els['build-h'].value=Math.round(state.flightAlt||30);
+          els['build-h'].value=Math.round((state.flightAlt||30)+20);
           els['build-pop'].style.display='';
         } else {
           state.pending=null;
