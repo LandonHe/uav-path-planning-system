@@ -837,5 +837,22 @@ test('分段风时间轴：拖动滑块切换风场，平面图箭头与标签�
   el('wind-seg-on').fire('change');
 });
 
+test('路径重叠提示：图上仅保留小圆点，文字移到地图下方不遮挡路线', () => {
+  el('wind-seg-on').checked = false;
+  el('wind-seg-on').fire('change');
+  el('preset-select').value = 'empty';
+  el('preset-select').fire('change');
+  el('V-num').value = '5';
+  el('V-num').fire('change');
+  click('btn-plan');
+  const line = el('overlap-line');
+  assert.ok(line, '应有地图下方重叠提示行');
+  assert.equal(line.style.display, '', '存在重叠时应显示提示行');
+  assert.ok(line.textContent.includes('重叠'), '提示行应包含重叠说明，实际：' + line.textContent);
+  const svg = el('svg2d').innerHTML;
+  assert.ok(svg.includes('overlap-dot'), '图上应保留重叠圆点');
+  assert.ok(!svg.includes('x="-75" y="-16" width="150"'), '图上不应再出现遮挡路线的药丸标签');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);

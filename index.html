@@ -125,6 +125,7 @@
   #uavwind-sys .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;}
   #uavwind-sys .preview-label{fill:var(--muted-foreground);font-size:12px;}
   #uavwind-sys .overlap-label{fill:var(--foreground);font-size:11px;font-weight:500;}
+  #uavwind-sys .overlap-dot{fill:var(--orange);fill-opacity:0.6;stroke:var(--foreground);stroke-opacity:0.55;stroke-width:1;pointer-events:none;}
   #uavwind-sys .grid-line{stroke:var(--border);stroke-width:1;}
   #uavwind-sys .region-border{stroke:var(--foreground);stroke-width:1.5;fill:none;}
   #uavwind-sys .wind-line{stroke:var(--blue);stroke-width:2.5;}
@@ -167,6 +168,7 @@
   #uavwind-sys .btn-primary{box-shadow:0 2px 8px color-mix(in srgb,var(--primary) 30%,transparent);}
   #uavwind-sys #summary{background:color-mix(in srgb,var(--blue) 10%,var(--background));border:1px solid color-mix(in srgb,var(--blue) 22%,var(--border));border-radius:10px;padding:8px 12px;color:var(--foreground);}
   #uavwind-sys #plan-msg{background:color-mix(in srgb,var(--blue) 8%,var(--background));border-radius:10px;padding:8px 12px;}
+  #uavwind-sys #overlap-line{background:color-mix(in srgb,var(--orange) 10%,var(--background));border-radius:10px;padding:6px 12px;color:var(--foreground);}
   #uavwind-sys input[type=checkbox]{accent-color:var(--blue);}
   #uavwind-sys .viz-badge{border-radius:999px;}
 #uavwind-sys .hud-bar,#uavwind-sys .hud-status{display:none;}
@@ -876,6 +878,7 @@
         </div>
       </div>
     </div>
+    <div id="overlap-line" class="cap" style="display:none"></div>
     <div id="multi-play-wrap" class="playbar" style="display:none">
       <button type="button" id="multi-play" class="btn">▶ 播放</button>
       <input type="range" id="multi-time" min="0" max="100" step="1" value="0">
@@ -894,7 +897,7 @@
       <span class="cap text-small">· 灰虚线 = 传统路径</span>
       <span class="cap text-small">· 紫色 = RRT*（细线为其搜索树）</span>
       <span class="cap text-small">· 青色 = PSO</span>
-      <span class="cap text-small">· 文字标注 = 路径重叠段</span>
+      <span class="cap text-small">· 橙色圆点 + 地图下方文字 = 路径重叠提示</span>
       <span class="cap text-small">· 绿点 = 起点 · 红点 = 终点</span>
       <span class="cap text-small">· 深色格 = 占用 · 浅色格 = 膨胀/风险</span>
       <span class="cap text-small">· 橙色区 = 尾流风险区 · 蓝箭头 = 风场分布与平均风</span>
@@ -946,7 +949,7 @@
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
   var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,mode:'2d',azimuth:0,elevation:55,showLive:true,showAllBuildings:false,windSegOn:false,windSegs:[],windSegTime:0,windSimCache:null,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,dragDrone:null,pendingCtxDrone:null,pendingCtxBuilding:null,pendingCtxNf:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','help-toggle','help-pop','help-close','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','wind-seg-time','wind-seg-time-val','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','help-toggle','help-pop','help-close','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','overlap-line','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','wind-seg-time','wind-seg-time-val','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -2402,6 +2405,23 @@
     labels.sort(function(x,y){ return y.len-x.len; });
     return labels.slice(0,6);
   }
+  function renderOverlapLine(){
+    var el0=els['overlap-line'];
+    if(!el0) return;
+    if(!state.results){
+      el0.style.display='none';
+      el0.textContent='';
+      return;
+    }
+    var labels=overlapLabels(state.results.grid);
+    if(!labels.length){
+      el0.style.display='none';
+      el0.textContent='';
+      return;
+    }
+    el0.style.display='';
+    el0.textContent='路径重叠提示：'+labels.map(function(lb){ return lb.text; }).join('；');
+  }
   function otsuThreshold(gray,n){
     var hist=new Array(256),i;
     for(i=0;i<256;i++) hist[i]=0;
@@ -3207,10 +3227,7 @@
       var labels=overlapLabels(grid);
       labels.forEach(function(lb){
         var px=mx(lb.x), py=my(lb.y);
-        out+='<g transform="translate('+px.toFixed(1)+','+py.toFixed(1)+')">';
-        out+='<rect x="-75" y="-16" width="150" height="19" rx="9" style="fill:var(--background);fill-opacity:0.85;stroke:var(--border);stroke-width:1"/>';
-        out+='<text class="overlap-label" x="0" y="0" text-anchor="middle">'+esc(lb.text)+'</text>';
-        out+='</g>';
+        out+='<circle class="overlap-dot" cx="'+px.toFixed(1)+'" cy="'+py.toFixed(1)+'" r="3"/>';
       });
     }
     if(state.multi){
@@ -3427,10 +3444,7 @@
       var labels=overlapLabels(grid);
       labels.forEach(function(lb){
         var q=P(lb.x,lb.y,lb.z);
-        out+='<g transform="translate('+q[0].toFixed(1)+','+q[1].toFixed(1)+')">';
-        out+='<rect x="-75" y="-16" width="150" height="19" rx="9" style="fill:var(--background);fill-opacity:0.85;stroke:var(--border);stroke-width:1"/>';
-        out+='<text class="overlap-label" x="0" y="0" text-anchor="middle">'+esc(lb.text)+'</text>';
-        out+='</g>';
+        out+='<circle class="overlap-dot" cx="'+q[0].toFixed(1)+'" cy="'+q[1].toFixed(1)+'" r="3"/>';
       });
     }
     if(state.smoothResult){
@@ -3653,6 +3667,7 @@
     renderTableBuildings();
     renderNfTable();
     if(state.results){ renderResults(); }
+    renderOverlapLine();
     if(state.mode==='3d'){
       els['view-2d'].style.display='none';
       els['view-3d'].style.display='';
