@@ -511,6 +511,7 @@
       <div class="ctl">
         <label class="form-label" for="preset-select">离线示例区域</label>
         <select id="preset-select" class="form-select">
+          <option value="real">真实街区（示例数据）</option>
           <option value="mix">混合城区</option>
           <option value="grid">规则街区</option>
           <option value="canyon">街道峡谷</option>
@@ -518,10 +519,17 @@
           <option value="empty">无障碍空地</option>
         </select>
       </div>
+      <div class="inline">
+        <span class="cap">3D 建筑样式</span>
+        <select id="bld-style" class="form-select">
+          <option value="detail">精细（按建筑类型）</option>
+          <option value="simple">简约（体块）</option>
+        </select>
+      </div>
       <div class="ctl">
         <label class="form-label" for="file-buildings">导入建筑数据（JSON / CSV）</label>
         <input type="file" id="file-buildings" accept=".json,.csv,application/json,text/csv">
-        <span class="cap text-small">格式：name,x,y,l,w,h 或 JSON 数组</span>
+        <span class="cap text-small">格式：name,x,y,l,w,h[,type[,levels[,roof]]] 或 JSON 数组；type 可选 factory/residential/office/tower/mall/school/other</span>
       </div>
       <div class="ctl">
         <label class="form-label" for="file-map">导入地图底图（图片）</label>
@@ -953,9 +961,9 @@
   }
   function allTypes(){ return TYPES.concat(CUSTOM_TYPES); }
   var OBJ={efficient:'效率最高',cost:'效益最高',safe:'最安全',balanced:'平衡'};
-  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,singlePlay:0,singlePlaying:false,singleTimer:null,singleTr:null,singleMulti:null,singleSimCache:null,mode:'2d',azimuth:0,elevation:55,showLive:true,showAllBuildings:false,windSegOn:false,windSegs:[],windSegTime:0,windSimCache:null,pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,dragDrone:null,pendingCtxDrone:null,pendingCtxBuilding:null,pendingCtxNf:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
+  var state={buildings:[],noFly:[],drones:[],smoothResult:null,multi:null,multiPlay:0,multiPlaying:false,multiTimer:null,singlePlay:0,singlePlaying:false,singleTimer:null,singleTr:null,singleMulti:null,singleSimCache:null,mode:'2d',azimuth:0,elevation:55,showLive:true,showAllBuildings:false,windSegOn:false,windSegs:[],windSegTime:0,windSimCache:null,bldStyle:'detail',pick:null,editMode:null,pending:null,pendingRect:null,pendingNf:null,ctxPos:null,azDrag:null,dragDrone:null,pendingCtxDrone:null,pendingCtxBuilding:null,pendingCtxNf:null,start:{x:150,y:150},goal:{x:850,y:850},results:null,bg:null,step:1,mapMode:'offline',map:null,lastCenter:null,layer:null};
   var els={};
-  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','help-toggle','help-pop','help-close','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','overlap-line','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','wind-seg-time','wind-seg-time-val','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list','single-play-wrap','single-play','single-time','single-clock','single-info']
+  ['wind-type','V-range','V-num','dir-range','dir-num','wz-num','gust-amp','turb-i','turb-l','profile-check','alpha-num','href-num','wake-toggle','wake-len','region-x','region-y','region-z','preset-select','bld-style','file-buildings','file-map','remove-map','map-import-status','bg-opacity','bg-opacity-val','detect-sens','detect-h','detect-btn','detect-mode','obs-body','obs-expand','obj-select','uav-select','uav-reason','uav-detail','cu-toggle','cu-panel','cu-name','cu-source','cu-maxwind','cu-load','cu-cruise','cu-hoverw','cu-cruisewh','cu-climbwh','cu-endur','cu-cost','cu-altmin','cu-altmax','cu-hover','cu-save','cu-clear','cu-clear-all','cu-body','s-hover','s-cruise','s-climb','res-select','flight-alt','margin-num','btn-plan','export-results','btn3d','help-toggle','help-pop','help-close','az-wrap','az-range','az-val','mode-cap','plan-mode','param-toggle','theme-toggle','summary','plan-msg','overlap-line','live-toggle','ctx-menu','build-pop','build-name','build-h','build-ok','build-cancel','uav-modal','uav-modal-select','uav-modal-ok','uav-modal-cancel','nf-pop','nf-z1-input','nf-z2-input','nf-ok','nf-cancel','metrics-wrap','metrics-body','valid-wrap','valid-summary','valid-body','concl','view-2d','view-3d','svg2d','svg3d','step-1','step-2','step-3','step-4','sec-env','sec-uav','sec-air','sec-plan','alg-aw','alg-base','alg-rrt','alg-pso','rrt-iter','pso-parts','pso-iter','field-arrows','data-mode','online-panel','search-loc','search-loc-btn','amap-key','lat-num','lon-num','locate-btn','fetch-buildings','map','map-status','span-num','auto-plan','wind-seg-on','wind-seg-wrap','wind-seg-body','wind-seg-add','wind-seg-reset','wind-seg-time','wind-seg-time-val','slice-alt','slice-alt-val','slice-sync','show-risk','show-fly','save-now','export-state','import-state','clear-state','save-status','multi-count','multi-safe','multi-mode','multi-dt','multi-body','multi-info','multi-data-wrap','multi-data-body','multi-play-wrap','multi-play','multi-time','multi-clock','multi-conflict-info','multi-conflict-list','single-play-wrap','single-play','single-time','single-clock','single-info']
     .forEach(function(id){ els[id]=document.getElementById(id); });
 
   var PAD2=44, TOP2=18, XM2=22, YM2=26, W2=760, H2=540;
@@ -968,6 +976,18 @@
     if(h<=100) return 'var(--viz-series-3)';
     if(h<=130) return 'var(--viz-series-4)';
     return 'var(--viz-series-5)';
+  }
+  var TYP_NAMES={factory:'厂房',residential:'住宅',office:'写字楼',tower:'塔楼',mall:'商场',school:'学校',other:'其他'};
+  var BLD_PAL={factory:'#8fa3ad',residential:'#c9a37a',office:'#7fa7c7',tower:'#5f7994',mall:'#a4b0a0',school:'#b8a8c8'};
+  function inferBuildingType(b){
+    var l=b.l||0, w=b.w||0, h=b.h||0, area=l*w, mx=Math.max(l,w);
+    if(h>=85&&mx<=55) return 'tower';
+    if(h>=60&&h<=130&&mx>=45&&mx<=95) return 'office';
+    if((l>=120||w>=120)&&h<=45) return 'factory';
+    if(area>=18000&&h<=55) return 'mall';
+    if(h>=18&&h<=75) return 'residential';
+    if(area>4000) return 'factory';
+    return 'other';
   }
   function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
   function nfPts(z){
@@ -1032,6 +1052,22 @@
         {name:'连廊A',x:300,y:330,l:140,w:25,h:25}
       ];
     }
+    if(kind==='real'){
+      return [
+        {name:'中心写字楼A',x:200,y:180,l:120,w:70,h:96,type:'office',levels:24,roof:'flat'},
+        {name:'金融大厦B',x:520,y:150,l:90,w:90,h:130,type:'tower',levels:33,roof:'flat'},
+        {name:'城市购物中心',x:830,y:230,l:160,w:110,h:38,type:'mall',levels:7,roof:'flat'},
+        {name:'住宅1号楼',x:150,y:520,l:90,w:60,h:52,type:'residential',levels:15,roof:'flat'},
+        {name:'住宅2号楼',x:265,y:565,l:90,w:60,h:52,type:'residential',levels:15,roof:'flat'},
+        {name:'住宅3号楼',x:390,y:600,l:90,w:60,h:42,type:'residential',levels:12,roof:'flat'},
+        {name:'物流厂房A',x:570,y:520,l:220,w:110,h:28,type:'factory',levels:2,roof:'sawtooth'},
+        {name:'制造厂房B',x:570,y:680,l:200,w:100,h:32,type:'factory',levels:2,roof:'sawtooth'},
+        {name:'科技研发中心',x:830,y:560,l:110,w:80,h:48,type:'office',levels:12,roof:'flat'},
+        {name:'学校教学楼',x:190,y:800,l:140,w:60,h:24,type:'school',levels:6,roof:'gable'},
+        {name:'社区医院',x:430,y:830,l:80,w:60,h:30,type:'other',levels:8,roof:'flat'},
+        {name:'沿街商铺',x:720,y:840,l:120,w:45,h:18,type:'mall',levels:4,roof:'flat'}
+      ];
+    }
     return a;
   }
 
@@ -1055,6 +1091,7 @@
     state.wind.tAir=((state.wind.dir+180)%360)*Math.PI/180;
     state.wakeOn=els['wake-toggle'].checked;
     state.fieldArrows=els['field-arrows'].checked;
+    state.bldStyle=els['bld-style']?els['bld-style'].value:'detail';
     state.windSegOn=els['wind-seg-on'].checked;
     state.nfOn=true;
     state.sliceAlt=Math.max(0,Math.min(state.region.z,parseInt(els['slice-alt'].value,10)||0));
@@ -2098,6 +2135,7 @@
       algs:{aw:c('alg-aw'),base:c('alg-base'),rrt:c('alg-rrt'),pso:c('alg-pso')},
       autoPlan:c('auto-plan'),
       fieldArrows:c('field-arrows'), sliceAlt:g('slice-alt'), showRisk:c('show-risk'), showFly:c('show-fly'),
+      bldStyle:state.bldStyle,
       windSegOn:state.windSegOn, windSegs:state.windSegs,
       multiCount:g('multi-count'), multiSafe:g('multi-safe'), multiMode:g('multi-mode'), multiDt:g('multi-dt'),
       buildings:state.buildings, noFly:state.noFly, drones:state.drones, customTypes:CUSTOM_TYPES, multiRows:rows()
@@ -2143,6 +2181,7 @@
     if(s.algs){ ck('alg-aw',s.algs.aw); ck('alg-base',s.algs.base); ck('alg-rrt',s.algs.rrt); ck('alg-pso',s.algs.pso); }
     ck('auto-plan',s.autoPlan);
     ck('field-arrows',s.fieldArrows); g('slice-alt',s.sliceAlt); ck('show-risk',s.showRisk); ck('show-fly',s.showFly);
+    if(s.bldStyle&&els['bld-style']){ els['bld-style'].value=s.bldStyle; state.bldStyle=s.bldStyle; }
     state.windSegOn=!!s.windSegOn;
     if(Array.isArray(s.windSegs)) state.windSegs=s.windSegs.slice();
     els['wind-seg-on'].checked=state.windSegOn;
@@ -3462,7 +3501,9 @@
     bs.sort(function(a,b2){ return b2.depth-a.depth; });
     bs.forEach(function(b){
       var x0=b.x-b.l/2, x1=b.x+b.l/2, y0=b.y-b.w/2, y1=b.y+b.w/2;
-      var col=heightColor(b.h);
+      var typ=b.type||inferBuildingType(b);
+      var detail=state.bldStyle==='detail';
+      var col=detail&&BLD_PAL[typ]?BLD_PAL[typ]:heightColor(b.h);
       var base=[P(x0,y0,0),P(x1,y0,0),P(x1,y1,0),P(x0,y1,0)];
       out+='<polygon points="'+poly(base.map(function(pt){ return [pt[0]+4,pt[1]+6]; }))+'" style="fill:var(--foreground);fill-opacity:0.14;stroke:none"/>';
       var light={x:cos,y:-sin};
@@ -3474,17 +3515,61 @@
       ];
       faces.forEach(function(face){
         face.depth=face.n.x*light.x+face.n.y*light.y;
+        face.isFront=false;
       });
       faces.sort(function(f1,f2){ return f1.depth-f2.depth; });
+      var fCopy=faces.slice().sort(function(f1,f2){ return f2.depth-f1.depth; });
+      if(fCopy[0]) fCopy[0].isFront=true;
+      if(fCopy[1]) fCopy[1].isFront=true;
+      var isOfficeTower=(typ==='office'||typ==='tower');
       faces.forEach(function(face){
         var shade=face.depth>1e-4?'color-mix(in srgb,'+col+' 92%,var(--background))':(face.depth<-1e-4?'color-mix(in srgb,'+col+' 55%,var(--background))':'color-mix(in srgb,'+col+' 74%,var(--background))');
         var q1=P(face.a[0],face.a[1],0), q2=P(face.b[0],face.b[1],0), q3=P(face.b[0],face.b[1],b.h), q4=P(face.a[0],face.a[1],b.h);
         out+='<polygon points="'+poly([q1,q2,q3,q4])+'" style="fill:'+shade+';fill-opacity:1;stroke:var(--foreground);stroke-opacity:0.6;stroke-width:1"/>';
+        if(detail&&face.isFront){
+          var lv=b.levels||Math.max(1,Math.round(b.h/3.5));
+          if(lv>1&&lv<=50){
+            for(var fk=1;fk<lv;fk++){
+              var ff=fk/lv;
+              var e1=[q1[0]+(q4[0]-q1[0])*ff, q1[1]+(q4[1]-q1[1])*ff];
+              var e2=[q2[0]+(q3[0]-q2[0])*ff, q2[1]+(q3[1]-q2[1])*ff];
+              out+='<line x1="'+e1[0].toFixed(1)+'" y1="'+e1[1].toFixed(1)+'" x2="'+e2[0].toFixed(1)+'" y2="'+e2[1].toFixed(1)+'" style="stroke:var(--background);stroke-opacity:0.38;stroke-width:0.8"/>';
+            }
+          }
+          if(isOfficeTower){
+            var ncol=Math.min(9,Math.max(3,Math.round(Math.max(b.l,b.w)/14)));
+            for(var fc=1;fc<ncol;fc++){
+              var ff2=fc/ncol;
+              var m1=[q1[0]+(q2[0]-q1[0])*ff2, q1[1]+(q2[1]-q1[1])*ff2];
+              var m2=[q4[0]+(q3[0]-q4[0])*ff2, q4[1]+(q3[1]-q4[1])*ff2];
+              out+='<line x1="'+m1[0].toFixed(1)+'" y1="'+m1[1].toFixed(1)+'" x2="'+m2[0].toFixed(1)+'" y2="'+m2[1].toFixed(1)+'" style="stroke:var(--background);stroke-opacity:0.2;stroke-width:0.7"/>';
+            }
+          }
+        }
       });
       var top=[P(x0,y0,b.h),P(x1,y0,b.h),P(x1,y1,b.h),P(x0,y1,b.h)];
       var over=b.h>rz;
-      var tip2=b.name+'：'+b.l.toFixed(0)+'×'+b.w.toFixed(0)+'×'+b.h.toFixed(0)+' m'+(over?'（超出区域高度）':'');
+      var tip2=b.name+'：'+b.l.toFixed(0)+'×'+b.w.toFixed(0)+'×'+b.h.toFixed(0)+' m'+(TYP_NAMES[typ]?(' · '+TYP_NAMES[typ]):'')+(b.levels?(' · '+b.levels+' 层'):'')+(over?'（超出区域高度）':'');
       out+='<polygon points="'+poly(top)+'" style="fill:'+col+';fill-opacity:1;stroke:'+(over?'var(--destructive)':'var(--foreground)')+';stroke-opacity:'+(over?0.9:0.8)+';stroke-width:1.3" data-tooltip="'+esc(tip2)+'"/>';
+      if(detail&&typ==='factory'){
+        var nRidge=Math.max(2,Math.min(6,Math.round(Math.max(b.l,b.w)/30)));
+        var longAxis=b.l>=b.w;
+        for(var ri=0;ri<nRidge;ri++){
+          var fr=(ri+0.5)/nRidge;
+          var rx1,ry1,rx2,ry2;
+          if(longAxis){ rx1=x0+fr*(x1-x0); rx2=rx1; ry1=y0; ry2=y1; }
+          else { rx1=x0; rx2=x1; ry1=y0+fr*(y1-y0); ry2=ry1; }
+          var rr1=P(rx1,ry1,b.h), rr2=P(rx2,ry2,b.h);
+          out+='<line x1="'+rr1[0].toFixed(1)+'" y1="'+rr1[1].toFixed(1)+'" x2="'+rr2[0].toFixed(1)+'" y2="'+rr2[1].toFixed(1)+'" style="stroke:color-mix(in srgb,'+col+' 62%,var(--background));stroke-width:1.6;stroke-dasharray:2 1"/>';
+        }
+      }
+      if(detail&&typ==='school'){
+        var rh2=Math.min(10,b.h*0.25);
+        var midX=(x0+x1)/2, midY=(y0+y1)/2, ga, gb;
+        if(b.l>=b.w){ ga=P(x0,midY,b.h+rh2); gb=P(x1,midY,b.h+rh2); }
+        else { ga=P(midX,y0,b.h+rh2); gb=P(midX,y1,b.h+rh2); }
+        out+='<line x1="'+ga[0].toFixed(1)+'" y1="'+ga[1].toFixed(1)+'" x2="'+gb[0].toFixed(1)+'" y2="'+gb[1].toFixed(1)+'" style="stroke:color-mix(in srgb,'+col+' 76%,var(--background));stroke-width:2"/>';
+      }
     });
     if(state.nfOn){
       state.noFly.forEach(function(z){
@@ -4069,6 +4154,16 @@
     if(!isFinite(h)||h<=0) h=15;
     return Math.min(300,Math.max(3,h));
   }
+  function osmBuildingType(tags){
+    var b=String(tags.building||'').toLowerCase();
+    var map={industrial:'factory',warehouse:'factory',garage:'factory',factory:'factory',manufacture:'factory',shed:'factory',
+      residential:'residential',apartments:'residential',house:'residential',terrace:'residential',dormitory:'residential',semidetached_house:'residential',
+      commercial:'office',office:'office',government:'office',public:'office',civic:'office',bank:'office',
+      retail:'mall',supermarket:'mall',department_store:'mall',kiosk:'mall',
+      tower:'tower',highrise:'tower',
+      school:'school',university:'school',kindergarten:'school'};
+    return map[b]||null;
+  }
   function buildFromOsm(elements){
     var list=[], minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity,count=0;
     elements.forEach(function(e){
@@ -4081,7 +4176,13 @@
       var y0=Math.min.apply(null,ys), y1=Math.max.apply(null,ys);
       var l=x1-x0, w=y1-y0;
       if(l<3||w<3) return;
-      list.push({name:(e.tags.name||('OSM-'+e.type+'-'+e.id)),x:(x0+x1)/2,y:(y0+y1)/2,l:l,w:w,h:parseOsmHeight(e.tags)});
+      var hh=parseOsmHeight(e.tags);
+      var lv=parseInt(e.tags['building:levels'],10);
+      var roof=String(e.tags['roof:shape']||'').toLowerCase();
+      list.push({name:(e.tags.name||('OSM-'+e.type+'-'+e.id)),x:(x0+x1)/2,y:(y0+y1)/2,l:l,w:w,h:hh,
+        levels:(isFinite(lv)&&lv>0)?lv:Math.max(1,Math.round(hh/3.5)),
+        roof:(roof&&roof!=='flat')?roof:null,
+        type:osmBuildingType(e.tags)||inferBuildingType({l:l,w:w,h:hh})});
       if(state.layer&&typeof L!=='undefined'){
         var ring=g.map(function(pt){ return [pt.lat,pt.lon]; });
         var f=ring[0], las=ring[ring.length-1];
@@ -4221,6 +4322,7 @@
       els[id].addEventListener('input',inputChanged);
       els[id].addEventListener('change',inputChanged);
     });
+    els['bld-style'].addEventListener('change',function(){ renderAll(); });
     els['preset-select'].addEventListener('change',function(){ state.buildings=presets(els['preset-select'].value).slice(); inputChanged(); });
     els['obs-expand'].addEventListener('click',function(){
       state.showAllBuildings=!state.showAllBuildings;
@@ -4597,7 +4699,12 @@
     var x=parseFloat(b.x), y=parseFloat(b.y);
     var l=parseFloat(b.l!=null?b.l:b.len), w=parseFloat(b.w!=null?b.w:b.width), h=parseFloat(b.h!=null?b.h:b.height);
     if(!isFinite(x)||!isFinite(y)||!isFinite(l)||!isFinite(w)||!isFinite(h)||l<=0||w<=0||h<=0) return null;
-    return {name:String(b.name||('建筑'+Math.round(x)+'_'+Math.round(y))),x:x,y:y,l:l,w:w,h:h};
+    var ob={name:String(b.name||('建筑'+Math.round(x)+'_'+Math.round(y))),x:x,y:y,l:l,w:w,h:h};
+    if(b.type) ob.type=String(b.type).toLowerCase();
+    if(b.levels){ var lv=parseInt(b.levels,10); if(isFinite(lv)&&lv>0) ob.levels=lv; }
+    if(b.roof) ob.roof=String(b.roof).toLowerCase();
+    ob.type=ob.type||inferBuildingType(ob);
+    return ob;
   }
   function parseBuildings(txt){
     var arr=[], data=null;
@@ -4612,7 +4719,7 @@
       var parts=line.split(',');
       if(idx===0&&/name/i.test(parts[0])) return;
       if(parts.length<6) return;
-      var ob=normBuilding({name:parts[0],x:parseFloat(parts[1]),y:parseFloat(parts[2]),l:parseFloat(parts[3]),w:parseFloat(parts[4]),h:parseFloat(parts[5])});
+      var ob=normBuilding({name:parts[0],x:parseFloat(parts[1]),y:parseFloat(parts[2]),l:parseFloat(parts[3]),w:parseFloat(parts[4]),h:parseFloat(parts[5]),type:parts[6],levels:parts[7],roof:parts[8]});
       if(ob) arr.push(ob);
     });
     return arr.length?arr:null;

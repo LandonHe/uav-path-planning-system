@@ -873,5 +873,28 @@ test('单机回放：规划后可播放/拖动时间轴，无人机沿路径运�
   assert.ok(el('single-play').textContent.includes('播放'), '再次点击应停止');
 });
 
+test('真实建筑：真实街区预设含类型，3D 精细模式按类型配色并显示细节，可切简约', () => {
+  const htmlSrc = fs.readFileSync(HTML_PATH, 'utf8');
+  assert.ok(htmlSrc.includes('<option value="real">'), '预设应包含真实街区');
+  assert.ok(htmlSrc.includes('id="bld-style"'), '应有 3D 建筑样式切换');
+  el('preset-select').value = 'real';
+  el('preset-select').fire('change');
+  el('bld-style').value = 'detail';
+  el('bld-style').fire('change');
+  if (!el('mode-cap').textContent.includes('3D')) click('btn3d');
+  const svgD = el('svg3d').innerHTML;
+  assert.ok(svgD.includes('#8fa3ad'), '精细模式应出现厂房配色');
+  assert.ok(svgD.includes('#c9a37a'), '精细模式应出现住宅配色');
+  assert.ok(svgD.includes('#7fa7c7'), '精细模式应出现写字楼配色');
+  assert.ok(svgD.includes('厂房'), '建筑悬停信息应含类型');
+  el('bld-style').value = 'simple';
+  el('bld-style').fire('change');
+  const svgS = el('svg3d').innerHTML;
+  assert.ok(!svgS.includes('#8fa3ad') && !svgS.includes('#c9a37a') && !svgS.includes('#7fa7c7'), '简约模式应回到统一配色');
+  click('btn3d');
+  el('preset-select').value = 'empty';
+  el('preset-select').fire('change');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
