@@ -820,5 +820,22 @@ test('操作说明：工具条含说明按钮，弹窗可开关并含完整快�
   assert.equal(el('help-pop').style.display, 'none', '关闭后应隐藏');
 });
 
+test('分段风时间轴：拖动滑块切换风场，平面图箭头与标签随之变化', () => {
+  el('wind-seg-on').checked = true;
+  el('wind-seg-on').fire('change');
+  click('wind-seg-reset');
+  el('wind-seg-time').value = '40';
+  el('wind-seg-time').fire('input');
+  const label40 = el('wind-seg-time-val').textContent;
+  assert.ok(label40.includes('风速 8.0 m/s') && label40.includes('180°'), 't=40 应显示第二段风况，实际：' + label40);
+  el('wind-seg-time').value = '10';
+  el('wind-seg-time').fire('input');
+  const label10 = el('wind-seg-time-val').textContent;
+  assert.ok(label10.includes('风速 5.0 m/s') && label10.includes('90°'), 't=10 应显示第一段风况，实际：' + label10);
+  assert.notEqual(label40, label10, '不同时段的风况标签应不同');
+  el('wind-seg-on').checked = false;
+  el('wind-seg-on').fire('change');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
