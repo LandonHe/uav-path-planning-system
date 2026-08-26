@@ -488,13 +488,13 @@ test('高风速拦截与分段风超限提示，路径随风变化', () => {
   click('btn-plan');
   const fail1 = el('multi-info').textContent;
   assert.ok(fail1.includes('无可用机型') || fail1.includes('不满足安全条件'), '高风速应无法多机规划，实际：' + fail1);
-  // 2) 开启分段风后，规划仍按当前平均风计算：高风速依然失败
+  // 2) 开启分段风后，规划改用分段风（t=0 为 5 m/s）：静态高风不再拦截
   el('wind-seg-on').checked = true;
   el('wind-seg-on').fire('change');
   click('wind-seg-reset');
   click('btn-plan');
   const fail2 = el('multi-info').textContent;
-  assert.ok(fail2.includes('无可用机型') || fail2.includes('不满足安全条件'), '开启分段风后高风速仍应失败，实际：' + fail2);
+  assert.ok(fail2.includes('多机协同'), '开启分段风后应改按分段风规划（t=0 为 5 m/s），实际：' + fail2);
   // 3) 恢复低风速 + 混合城区：进入超限时段应提示“风超限”
   el('V-num').value = '5';
   el('preset-select').value = 'mix';

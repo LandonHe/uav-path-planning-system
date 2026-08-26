@@ -1078,6 +1078,15 @@
     state.rrtIter=parseInt(els['rrt-iter'].value,10)||2000;
     state.psoParts=parseInt(els['pso-parts'].value,10)||30;
     state.psoIter=parseInt(els['pso-iter'].value,10)||50;
+    if(state.windSegOn&&state.windSegs.length){
+      var segW=windAtTime(state.windSegTime);
+      if(segW){
+        state.wind.speed=segW.speed;
+        state.wind.dir=segW.dir;
+        state.wind.tAir=((segW.dir+180)%360)*Math.PI/180;
+        state.wind.instant=segW.speed+state.wind.gust;
+      }
+    }
   }
   function windSpeedAt(z){
     var s=state.wind.speed;
@@ -1792,8 +1801,6 @@
     readInputs();
     state.windSimCache=null;
     resetRng();
-    state.windSegTime=0;
-    refreshWindSegTime();
     var uav=resolveUav();
     if(!uav){
       state.results=null;
@@ -2924,6 +2931,7 @@
     els['multi-clock'].textContent='t = '+state.multiPlay.toFixed(0)+' s';
   }
   function planMulti(){
+    state.windSegTime=0;
     readInputs();
     state.windSimCache=null;
     var uav=resolveUav();
@@ -2974,7 +2982,6 @@
     uavs.forEach(function(tr,idx){ if(tr) makespan=Math.max(makespan,offsets[idx]+tr.duration); });
     state.multi={uavs:uavs,offsets:offsets,conflictsBefore:conflictsBefore,conflictsAfter:conflictsAfter,makespan:makespan,failed:failed,safe:state.multiSafe,grid:grid,uav:uav,uavList:uavList};
     state.multiPlay=0;
-    state.windSegTime=0;
     refreshWindSegTime();
     var cnt=uavs.filter(function(x){return x;}).length;
     var per='';
@@ -4038,7 +4045,7 @@
       state.windSegTime=parseFloat(els['wind-seg-time'].value)||0;
       refreshWindSegTime();
       state.windSimCache=null;
-      renderAll();
+      inputChanged();
     });
     els['wind-seg-add'].addEventListener('click',addWindSeg);
     els['wind-seg-reset'].addEventListener('click',resetWindSegs);
