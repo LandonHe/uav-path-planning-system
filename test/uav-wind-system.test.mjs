@@ -854,5 +854,24 @@ test('路径重叠提示：图上仅保留小圆点，文字移到地图下方�
   assert.ok(!svg.includes('x="-75" y="-16" width="150"'), '图上不应再出现遮挡路线的药丸标签');
 });
 
+test('单机回放：规划后可播放/拖动时间轴，无人机沿路径运动且遥测更新', () => {
+  assert.equal(el('single-play-wrap').style.display, '', '单机规划后应显示播放条');
+  assert.ok(parseFloat(el('single-time').max) > 0, '时间轴应有最大时长');
+  const svg0 = el('svg2d').innerHTML;
+  assert.ok(svg0.includes('UAV1'), '图上应显示单机无人机标记');
+  click('single-play');
+  assert.ok(el('single-play').textContent.includes('暂停'), '点击后应进入播放状态');
+  el('single-time').value = '10';
+  el('single-time').fire('input');
+  const live = el('live-body').innerHTML;
+  assert.ok(live.includes('U1') && live.includes('m/s'), '遥测应显示单机速度，实际：' + live);
+  el('single-time').value = '1';
+  el('single-time').fire('input');
+  const svg1 = el('svg2d').innerHTML;
+  assert.notEqual(svg0, svg1, '不同时间的无人机位置应不同');
+  click('single-play');
+  assert.ok(el('single-play').textContent.includes('播放'), '再次点击应停止');
+});
+
 console.log('\n' + passed + ' passed, ' + failed + ' failed');
 process.exit(failed ? 1 : 0);
