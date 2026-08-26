@@ -3521,28 +3521,20 @@
       var fCopy=faces.slice().sort(function(f1,f2){ return f2.depth-f1.depth; });
       if(fCopy[0]) fCopy[0].isFront=true;
       if(fCopy[1]) fCopy[1].isFront=true;
-      var isOfficeTower=(typ==='office'||typ==='tower');
       faces.forEach(function(face){
         var shade=face.depth>1e-4?'color-mix(in srgb,'+col+' 92%,var(--background))':(face.depth<-1e-4?'color-mix(in srgb,'+col+' 55%,var(--background))':'color-mix(in srgb,'+col+' 74%,var(--background))');
         var q1=P(face.a[0],face.a[1],0), q2=P(face.b[0],face.b[1],0), q3=P(face.b[0],face.b[1],b.h), q4=P(face.a[0],face.a[1],b.h);
         out+='<polygon points="'+poly([q1,q2,q3,q4])+'" style="fill:'+shade+';fill-opacity:1;stroke:var(--foreground);stroke-opacity:0.6;stroke-width:1"/>';
         if(detail&&face.isFront){
           var lv=b.levels||Math.max(1,Math.round(b.h/3.5));
+          var bandCol='color-mix(in srgb,'+col+' 60%,#000)';
           if(lv>1&&lv<=50){
-            for(var fk=1;fk<lv;fk++){
-              var ff=fk/lv;
+            var bands=Math.min(8,lv);
+            for(var fk=1;fk<bands;fk++){
+              var ff=fk/bands;
               var e1=[q1[0]+(q4[0]-q1[0])*ff, q1[1]+(q4[1]-q1[1])*ff];
               var e2=[q2[0]+(q3[0]-q2[0])*ff, q2[1]+(q3[1]-q2[1])*ff];
-              out+='<line x1="'+e1[0].toFixed(1)+'" y1="'+e1[1].toFixed(1)+'" x2="'+e2[0].toFixed(1)+'" y2="'+e2[1].toFixed(1)+'" style="stroke:var(--background);stroke-opacity:0.38;stroke-width:0.8"/>';
-            }
-          }
-          if(isOfficeTower){
-            var ncol=Math.min(9,Math.max(3,Math.round(Math.max(b.l,b.w)/14)));
-            for(var fc=1;fc<ncol;fc++){
-              var ff2=fc/ncol;
-              var m1=[q1[0]+(q2[0]-q1[0])*ff2, q1[1]+(q2[1]-q1[1])*ff2];
-              var m2=[q4[0]+(q3[0]-q4[0])*ff2, q4[1]+(q3[1]-q4[1])*ff2];
-              out+='<line x1="'+m1[0].toFixed(1)+'" y1="'+m1[1].toFixed(1)+'" x2="'+m2[0].toFixed(1)+'" y2="'+m2[1].toFixed(1)+'" style="stroke:var(--background);stroke-opacity:0.2;stroke-width:0.7"/>';
+              out+='<line x1="'+e1[0].toFixed(1)+'" y1="'+e1[1].toFixed(1)+'" x2="'+e2[0].toFixed(1)+'" y2="'+e2[1].toFixed(1)+'" style="stroke:'+bandCol+';stroke-opacity:0.22;stroke-width:1"/>';
             }
           }
         }
